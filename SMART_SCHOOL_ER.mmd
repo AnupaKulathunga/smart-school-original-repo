@@ -1,0 +1,1543 @@
+erDiagram
+    %% Core Student & Academic Module
+    STUDENTS ||--o{ STUDENT_SESSION : "enrolled in"
+    SESSIONS ||--o{ STUDENT_SESSION : "has"
+    CLASSES ||--o{ STUDENT_SESSION : "contains"
+    SECTIONS ||--o{ STUDENT_SESSION : "contains"
+    
+    STUDENTS {
+        int id PK
+        int parent_id
+        varchar admission_no
+        varchar roll_no
+        date admission_date
+        varchar firstname
+        varchar middlename
+        varchar lastname
+        varchar email
+        varchar mobileno
+        varchar gender
+        date dob
+        int category_id FK
+        int school_house_id FK
+        int hostel_room_id FK
+        text about
+        varchar designation
+        int created_by
+    }
+    
+    STUDENT_SESSION {
+        int id PK
+        int session_id FK
+        int student_id FK
+        int class_id FK
+        int section_id FK
+        int hostel_room_id FK
+        int vehroute_id FK
+        int route_pickup_point_id FK
+        float transport_fees
+        float fees_discount
+    }
+    
+    SESSIONS {
+        int id PK
+        varchar session
+        varchar is_active
+    }
+    
+    CLASSES {
+        int id PK
+        varchar class
+        varchar is_active
+    }
+    
+    SECTIONS {
+        int id PK
+        varchar section
+        varchar is_active
+    }
+    
+    CLASS_SECTIONS ||--|| CLASSES : "belongs to"
+    CLASS_SECTIONS ||--|| SECTIONS : "belongs to"
+    
+    CLASS_SECTIONS {
+        int id PK
+        int class_id FK
+        int section_id FK
+    }
+    
+    CATEGORIES ||--o{ STUDENTS : "categorizes"
+    CATEGORIES {
+        int id PK
+        varchar category
+    }
+    
+    SCHOOL_HOUSES ||--o{ STUDENTS : "belongs to"
+    SCHOOL_HOUSES {
+        int id PK
+        varchar house_name
+    }
+
+    %% Staff & Human Resource Module
+    STAFF ||--o{ STAFF_ROLES : "has"
+    ROLES ||--o{ STAFF_ROLES : "assigned to"
+    DEPARTMENT ||--o{ STAFF : "belongs to"
+    STAFF_DESIGNATION ||--o{ STAFF : "has"
+    
+    STAFF {
+        int id PK
+        varchar employee_id UK
+        int department FK
+        int designation FK
+        varchar name
+        varchar surname
+        varchar email
+        varchar contact_no
+        date dob
+        date date_of_joining
+        int basic_salary
+        int user_id
+        time in_time
+        time out_time
+    }
+    
+    ROLES {
+        int id PK
+        varchar name
+        varchar slug
+        int is_system
+        int is_superadmin
+    }
+    
+    STAFF_ROLES {
+        int id PK
+        int role_id FK
+        int staff_id FK
+    }
+    
+    DEPARTMENT {
+        int id PK
+        varchar department_name
+    }
+    
+    STAFF_DESIGNATION {
+        int id PK
+        varchar designation
+    }
+    
+    STAFF ||--o{ STAFF_ATTENDANCE : "has"
+    STAFF_ATTENDANCE_TYPE ||--o{ STAFF_ATTENDANCE : "type"
+    
+    STAFF_ATTENDANCE {
+        int id PK
+        date date
+        int staff_id FK
+        int staff_attendance_type_id FK
+        time in_time
+        time out_time
+    }
+    
+    STAFF ||--o{ STAFF_LEAVE_REQUEST : "requests"
+    LEAVE_TYPES ||--o{ STAFF_LEAVE_REQUEST : "type"
+    
+    STAFF_LEAVE_REQUEST {
+        int id PK
+        int staff_id FK
+        int leave_type_id FK
+        date leave_from
+        date leave_to
+        varchar status
+        date approve_date
+    }
+    
+    STAFF ||--o{ STAFF_PAYSLIP : "receives"
+    
+    STAFF_PAYSLIP {
+        int id PK
+        int staff_id FK
+        float basic
+        float total_allowance
+        float total_deduction
+        float net_salary
+        varchar month
+        varchar year
+    }
+
+    %% Fee Management Module
+    FEE_GROUPS ||--o{ FEE_SESSION_GROUPS : "has"
+    SESSIONS ||--o{ FEE_SESSION_GROUPS : "for"
+    
+    FEE_GROUPS {
+        int id PK
+        varchar name
+        varchar description
+        varchar nature
+    }
+    
+    FEE_SESSION_GROUPS {
+        int id PK
+        int fee_groups_id FK
+        int session_id FK
+    }
+    
+    FEE_SESSION_GROUPS ||--o{ FEE_GROUPS_FEETYPE : "contains"
+    FEE_GROUPS ||--o{ FEE_GROUPS_FEETYPE : "has"
+    FEETYPE ||--o{ FEE_GROUPS_FEETYPE : "type"
+    
+    FEETYPE {
+        int id PK
+        int is_system
+        varchar type
+        varchar code
+        varchar nature
+        int session_id FK
+        int student_session_id
+    }
+    
+    FEE_GROUPS_FEETYPE {
+        int id PK
+        int fee_session_group_id FK
+        int fee_groups_id FK
+        int feetype_id FK
+        float amount
+        date due_date
+        float fine_amount
+        int fine_per_day
+    }
+    
+    STUDENT_SESSION ||--o{ STUDENT_FEES_MASTER : "has"
+    FEE_SESSION_GROUPS ||--o{ STUDENT_FEES_MASTER : "assigned"
+    
+    STUDENT_FEES_MASTER {
+        int id PK
+        int student_session_id FK
+        int fee_session_group_id FK
+        float amount
+    }
+    
+    STUDENT_FEES_MASTER ||--o{ STUDENT_FEES_DEPOSITE : "payments"
+    FEE_GROUPS_FEETYPE ||--o{ STUDENT_FEES_DEPOSITE : "for"
+    
+    STUDENT_FEES_DEPOSITE {
+        int id PK
+        int student_fees_master_id FK
+        int fee_groups_feetype_id FK
+        text amount_detail
+    }
+    
+    FEES_DISCOUNTS ||--o{ STUDENT_FEES_DISCOUNTS : "applied"
+    STUDENT_SESSION ||--o{ STUDENT_FEES_DISCOUNTS : "receives"
+    
+    FEES_DISCOUNTS {
+        int id PK
+        varchar name
+        varchar code
+        float amount
+        varchar type
+        int session_id FK
+        int student_session_id
+        varchar nature
+        int discount_limit
+        date expire_date
+    }
+    
+    CUMULATIVE_FINE {
+        int id PK
+        int overdue_day
+        float fine_amount
+        int fee_groups_feetype_id
+        int fee_session_group_id
+    }
+
+    STUDENT_APPLIED_DISCOUNTS {
+        int id PK
+        int student_fees_deposite_id FK
+        int student_fees_discount_id FK
+        date date
+        int invoice_id
+        int sub_invoice_id
+    }
+
+    STUDENT_FEES_DEPOSITE ||--o{ STUDENT_APPLIED_DISCOUNTS : "has"
+    STUDENT_FEES_DISCOUNTS ||--o{ STUDENT_APPLIED_DISCOUNTS : "used"
+
+    %% Examination Module
+    EXAM_GROUPS ||--o{ EXAM_GROUP_CLASS_BATCH_EXAMS : "contains"
+    SESSIONS ||--o{ EXAM_GROUP_CLASS_BATCH_EXAMS : "for"
+    
+    EXAM_GROUPS {
+        int id PK
+        varchar name
+        varchar exam_type
+    }
+    
+    EXAM_GROUP_CLASS_BATCH_EXAMS {
+        int id PK
+        int exam_group_id FK
+        int session_id FK
+        int class_id
+        int section_id
+    }
+    
+    EXAM_GROUP_CLASS_BATCH_EXAMS ||--o{ EXAM_GROUP_CLASS_BATCH_EXAM_SUBJECTS : "has"
+    SUBJECTS ||--o{ EXAM_GROUP_CLASS_BATCH_EXAM_SUBJECTS : "includes"
+    
+    EXAM_GROUP_CLASS_BATCH_EXAM_SUBJECTS {
+        int id PK
+        int exam_group_class_batch_exams_id FK
+        int subject_id FK
+        float max_marks
+        float passing_marks
+        date date
+    }
+    
+    EXAM_GROUP_CLASS_BATCH_EXAMS ||--o{ EXAM_GROUP_CLASS_BATCH_EXAM_STUDENTS : "has"
+    STUDENTS ||--o{ EXAM_GROUP_CLASS_BATCH_EXAM_STUDENTS : "enrolled"
+    STUDENT_SESSION ||--o{ EXAM_GROUP_CLASS_BATCH_EXAM_STUDENTS : "session"
+    
+    EXAM_GROUP_CLASS_BATCH_EXAM_STUDENTS {
+        int id PK
+        int exam_group_class_batch_exam_id FK
+        int student_id FK
+        int student_session_id FK
+    }
+    
+    EXAM_GROUP_CLASS_BATCH_EXAM_SUBJECTS ||--o{ EXAM_GROUP_EXAM_RESULTS : "results"
+    EXAM_GROUP_CLASS_BATCH_EXAM_STUDENTS ||--o{ EXAM_GROUP_EXAM_RESULTS : "scored"
+    
+    EXAM_GROUP_EXAM_RESULTS {
+        int id PK
+        int exam_group_class_batch_exam_subject_id FK
+        int exam_group_class_batch_exam_student_id FK
+        float attendence
+        float get_marks
+        text note
+    }
+    
+    GRADES {
+        int id PK
+        varchar name
+        float percent_from
+        float percent_upto
+        varchar grade_point
+    }
+    
+    MARK_DIVISIONS {
+        int id PK
+        varchar name
+        float percent_from
+        float percent_upto
+    }
+
+    %% Online Examination Module
+    ONLINEEXAM ||--o{ ONLINEEXAM_STUDENTS : "has"
+    SESSIONS ||--o{ ONLINEEXAM : "for"
+    STUDENT_SESSION ||--o{ ONLINEEXAM_STUDENTS : "takes"
+    
+    ONLINEEXAM {
+        int id PK
+        int session_id FK
+        text exam
+        int attempt
+        datetime exam_from
+        datetime exam_to
+        time duration
+        float passing_percentage
+    }
+    
+    ONLINEEXAM_STUDENTS {
+        int id PK
+        int onlineexam_id FK
+        int student_session_id FK
+        int is_attempted
+        int rank
+    }
+    
+    ONLINEEXAM ||--o{ ONLINEEXAM_QUESTIONS : "contains"
+    QUESTIONS ||--o{ ONLINEEXAM_QUESTIONS : "includes"
+    
+    QUESTIONS {
+        int id PK
+        int staff_id FK
+        int subject_id FK
+        varchar question_type
+        varchar level
+        int class_id FK
+        text question
+        text opt_a
+        text opt_b
+        text opt_c
+        text opt_d
+        text correct
+    }
+    
+    ONLINEEXAM_QUESTIONS {
+        int id PK
+        int question_id FK
+        int onlineexam_id FK
+        float marks
+        float neg_marks
+    }
+    
+    ONLINEEXAM_STUDENTS ||--o{ ONLINEEXAM_STUDENT_RESULTS : "results"
+    ONLINEEXAM_QUESTIONS ||--o{ ONLINEEXAM_STUDENT_RESULTS : "answers"
+    
+    ONLINEEXAM_STUDENT_RESULTS {
+        int id PK
+        int onlineexam_student_id FK
+        int onlineexam_question_id FK
+        text select_option
+        float marks
+    }
+
+    %% Subject & Timetable Module
+    SUBJECTS {
+        int id PK
+        varchar name
+        varchar code
+        varchar type
+    }
+    
+    SUBJECT_GROUPS ||--o{ SUBJECT_GROUP_SUBJECTS : "contains"
+    SUBJECTS ||--o{ SUBJECT_GROUP_SUBJECTS : "included"
+    SESSIONS ||--o{ SUBJECT_GROUPS : "for"
+    
+    SUBJECT_GROUPS {
+        int id PK
+        varchar name
+        int session_id FK
+    }
+    
+    SUBJECT_GROUP_SUBJECTS {
+        int id PK
+        int subject_group_id FK
+        int session_id FK
+        int subject_id FK
+    }
+    
+    SUBJECT_GROUPS ||--o{ SUBJECT_GROUP_CLASS_SECTIONS : "assigned"
+    CLASS_SECTIONS ||--o{ SUBJECT_GROUP_CLASS_SECTIONS : "has"
+    
+    SUBJECT_GROUP_CLASS_SECTIONS {
+        int id PK
+        int subject_group_id FK
+        int class_section_id FK
+        int session_id FK
+    }
+    
+    SUBJECT_TIMETABLE ||--|| CLASSES : "for"
+    SUBJECT_TIMETABLE ||--|| SECTIONS : "for"
+    SUBJECT_TIMETABLE ||--|| STAFF : "taught by"
+    SUBJECT_TIMETABLE ||--|| SUBJECT_GROUP_SUBJECTS : "subject"
+    
+    SUBJECT_TIMETABLE {
+        int id PK
+        int session_id FK
+        int class_id FK
+        int section_id FK
+        int subject_group_id FK
+        int subject_group_subject_id FK
+        int staff_id FK
+        varchar day
+        time start_time
+        time end_time
+        varchar room_no
+    }
+    
+    CLASS_TEACHER ||--|| CLASSES : "assigned"
+    CLASS_TEACHER ||--|| SECTIONS : "assigned"
+    CLASS_TEACHER ||--|| SESSIONS : "for"
+    CLASS_TEACHER ||--|| STAFF : "teacher"
+    
+    CLASS_TEACHER {
+        int id PK
+        int class_id FK
+        int section_id FK
+        int session_id FK
+        int staff_id FK
+    }
+
+    %% Attendance Module
+    ATTENDENCE_TYPE {
+        int id PK
+        varchar type
+        varchar key_value
+        varchar is_active
+        int for_schedule
+        int for_qr_attendance
+    }
+    
+    STUDENT_SESSION ||--o{ STUDENT_ATTENDENCES : "has"
+    ATTENDENCE_TYPE ||--o{ STUDENT_ATTENDENCES : "type"
+    
+    STUDENT_ATTENDENCES {
+        int id PK
+        int student_session_id FK
+        int biometric_attendence
+        date date
+        int attendence_type_id FK
+        varchar remark
+        time in_time
+        time out_time
+    }
+    
+    STUDENT_SESSION ||--o{ STUDENT_SUBJECT_ATTENDANCES : "has"
+    ATTENDENCE_TYPE ||--o{ STUDENT_SUBJECT_ATTENDANCES : "type"
+    SUBJECT_TIMETABLE ||--o{ STUDENT_SUBJECT_ATTENDANCES : "period"
+    
+    STUDENT_SUBJECT_ATTENDANCES {
+        int id PK
+        int student_session_id FK
+        int subject_timetable_id FK
+        int attendence_type_id FK
+        date date
+    }
+    
+    STUDENT_SESSION ||--o{ STUDENT_APPLYLEAVE : "requests"
+    STAFF ||--o{ STUDENT_APPLYLEAVE : "approves"
+    
+    STUDENT_APPLYLEAVE {
+        int id PK
+        int student_session_id FK
+        date from_date
+        date to_date
+        int status
+        int approve_by FK
+    }
+
+    STUDENT_ATTENDENCE_SCHEDULES {
+        int id PK
+        int attendence_type_id FK
+        int class_section_id FK
+        time entry_time_from
+        time entry_time_to
+        time total_institute_hour
+        int is_active
+    }
+
+    STAFF_ATTENDENCE_SCHEDULES {
+        int id PK
+        int staff_attendence_type_id FK
+        int role_id FK
+        time entry_time_from
+        time entry_time_to
+        time total_institute_hour
+        int is_active
+    }
+
+    %% Homework & Lesson Plan Module
+    HOMEWORK ||--|| CLASSES : "for"
+    HOMEWORK ||--|| SECTIONS : "for"
+    HOMEWORK ||--|| SESSIONS : "in"
+    HOMEWORK ||--|| STAFF : "created by"
+    HOMEWORK ||--|| SUBJECTS : "subject"
+    
+    HOMEWORK {
+        int id PK
+        int class_id FK
+        int section_id FK
+        int session_id FK
+        int staff_id FK
+        int subject_id FK
+        int subject_group_subject_id FK
+        date homework_date
+        date submit_date
+        text description
+    }
+    
+    HOMEWORK ||--o{ HOMEWORK_EVALUATION : "evaluations"
+    STUDENTS ||--o{ HOMEWORK_EVALUATION : "submitted"
+    STUDENT_SESSION ||--o{ HOMEWORK_EVALUATION : "session"
+    
+    HOMEWORK_EVALUATION {
+        int id PK
+        int homework_id FK
+        int student_id FK
+        int student_session_id FK
+        varchar status
+        date date
+    }
+    
+    HOMEWORK ||--o{ SUBMIT_ASSIGNMENT : "submissions"
+    STUDENTS ||--o{ SUBMIT_ASSIGNMENT : "submits"
+    
+    SUBMIT_ASSIGNMENT {
+        int id PK
+        int homework_id FK
+        int student_id FK
+        text message
+        varchar docs
+    }
+    
+    LESSON ||--|| SESSIONS : "for"
+    LESSON ||--|| SUBJECT_GROUP_SUBJECTS : "subject"
+    LESSON ||--|| SUBJECT_GROUP_CLASS_SECTIONS : "class"
+    
+    LESSON {
+        int id PK
+        int session_id FK
+        int subject_group_subject_id FK
+        int subject_group_class_sections_id FK
+        varchar name
+    }
+    
+    LESSON ||--o{ TOPIC : "contains"
+    
+    TOPIC {
+        int id PK
+        int session_id FK
+        int lesson_id FK
+        varchar name
+        int status
+        date complete_date
+    }
+    
+    TOPIC ||--o{ SUBJECT_SYLLABUS : "syllabus"
+    
+    SUBJECT_SYLLABUS {
+        int id PK
+        int topic_id FK
+        int session_id FK
+        int created_by FK
+        date date
+        text teaching_method
+        text general_objectives
+    }
+
+    %% Library Module
+    BOOKS {
+        int id PK
+        varchar book_title
+        varchar book_no
+        varchar isbn_no
+        varchar subject
+        varchar rack_no
+        int qty
+        float book_price
+        varchar author
+    }
+    
+    LIBARARY_MEMBERS {
+        int id PK
+        varchar library_card_no
+        varchar member_type
+        int member_id
+    }
+    
+    BOOKS ||--o{ BOOK_ISSUES : "issued"
+    LIBARARY_MEMBERS ||--o{ BOOK_ISSUES : "borrowed"
+    
+    BOOK_ISSUES {
+        int id PK
+        int book_id FK
+        int member_id FK
+        date issue_date
+        date return_date
+        date due_return_date
+    }
+
+    %% Transport Module
+    TRANSPORT_ROUTE {
+        int id PK
+        varchar route_title
+        int no_of_vehicle
+        text note
+    }
+    
+    VEHICLES {
+        int id PK
+        varchar vehicle_no
+        varchar vehicle_model
+        varchar driver_name
+        varchar driver_contact
+        varchar max_seating_capacity
+    }
+    
+    TRANSPORT_ROUTE ||--o{ VEHICLE_ROUTES : "has"
+    VEHICLES ||--o{ VEHICLE_ROUTES : "assigned"
+    
+    VEHICLE_ROUTES {
+        int id PK
+        int route_id FK
+        int vehicle_id FK
+    }
+    
+    PICKUP_POINT {
+        int id PK
+        varchar name
+        varchar latitude
+        varchar longitude
+    }
+    
+    TRANSPORT_ROUTE ||--o{ ROUTE_PICKUP_POINT : "has"
+    PICKUP_POINT ||--o{ ROUTE_PICKUP_POINT : "on"
+    
+    ROUTE_PICKUP_POINT {
+        int id PK
+        int transport_route_id FK
+        int pickup_point_id FK
+        float fees
+        time pickup_time
+        int session_id
+    }
+    
+    STUDENT_SESSION ||--o{ STUDENT_TRANSPORT_FEES : "pays"
+    ROUTE_PICKUP_POINT ||--o{ STUDENT_TRANSPORT_FEES : "for"
+    TRANSPORT_FEEMASTER ||--o{ STUDENT_TRANSPORT_FEES : "master"
+    
+    TRANSPORT_FEEMASTER {
+        int id PK
+        int session_id FK
+        varchar month
+        date due_date
+        float fine_amount
+    }
+
+    %% Hostel Module
+    HOSTEL {
+        int id PK
+        varchar hostel_name
+        varchar type
+        varchar address
+    }
+    
+    ROOM_TYPES {
+        int id PK
+        varchar room_type
+        text description
+    }
+    
+    HOSTEL ||--o{ HOSTEL_ROOMS : "has"
+    ROOM_TYPES ||--o{ HOSTEL_ROOMS : "type"
+    
+    HOSTEL_ROOMS {
+        int id PK
+        int hostel_id FK
+        int room_type_id FK
+        varchar room_no
+        int no_of_bed
+        float cost_per_bed
+    }
+    
+    HOSTEL_ROOMS ||--o{ STUDENT_SESSION : "assigned"
+
+    %% Inventory Module
+    ITEM_CATEGORY {
+        int id PK
+        varchar item_category
+    }
+    
+    ITEM_STORE {
+        int id PK
+        varchar item_store
+        varchar code
+        text description
+    }
+    
+    ITEM_SUPPLIER {
+        int id PK
+        varchar item_supplier
+        varchar phone
+        varchar email
+        text address
+    }
+    
+    ITEM ||--|| ITEM_CATEGORY : "belongs"
+    ITEM ||--|| ITEM_STORE : "stored in"
+    ITEM ||--|| ITEM_SUPPLIER : "supplied by"
+    
+    ITEM {
+        int id PK
+        int item_category_id FK
+        int item_store_id FK
+        int item_supplier_id FK
+        varchar name
+        varchar unit
+        text description
+    }
+    
+    ITEM ||--o{ ITEM_STOCK : "stock"
+    ITEM_SUPPLIER ||--o{ ITEM_STOCK : "from"
+    ITEM_STORE ||--o{ ITEM_STOCK : "in"
+    
+    ITEM_STOCK {
+        int id PK
+        int item_id FK
+        int supplier_id FK
+        int store_id FK
+        varchar symbol
+        int quantity
+        float purchase_price
+        date date
+    }
+    
+    ITEM ||--o{ ITEM_ISSUE : "issued"
+    ITEM_CATEGORY ||--o{ ITEM_ISSUE : "category"
+    STAFF ||--o{ ITEM_ISSUE : "to"
+    STAFF ||--o{ ITEM_ISSUE : "by"
+    
+    ITEM_ISSUE {
+        int id PK
+        int item_id FK
+        int item_category_id FK
+        int issue_to FK
+        int issue_by FK
+        date issue_date
+        date return_date
+        int quantity
+    }
+
+    %% Front Office Module
+    ENQUIRY_TYPE {
+        int id PK
+        varchar enquiry_type
+    }
+    
+    ENQUIRY ||--|| ENQUIRY_TYPE : "type"
+    ENQUIRY ||--|| STAFF : "created by"
+    ENQUIRY ||--|| CLASSES : "for"
+    
+    ENQUIRY {
+        int id PK
+        int enquiry_type FK
+        varchar name
+        varchar contact
+        varchar email
+        varchar address
+        int class_id FK
+        int created_by FK
+        int assigned FK
+        varchar status
+    }
+    
+    ENQUIRY ||--o{ FOLLOW_UP : "follow ups"
+    STAFF ||--o{ FOLLOW_UP : "by"
+    
+    FOLLOW_UP {
+        int id PK
+        int enquiry_id FK
+        date follow_up_date
+        text response
+        int followup_by FK
+    }
+    
+    COMPLAINT_TYPE {
+        int id PK
+        varchar complaint_type
+    }
+    
+    COMPLAINT ||--|| COMPLAINT_TYPE : "type"
+    
+    COMPLAINT {
+        int id PK
+        int complaint_type_id FK
+        varchar name
+        varchar contact
+        date date
+        text description
+    }
+    
+    VISITORS_PURPOSE {
+        int id PK
+        varchar visitors_purpose
+    }
+    
+    VISITORS_BOOK ||--|| STAFF : "meets"
+    VISITORS_BOOK ||--|| STUDENT_SESSION : "meets"
+    
+    VISITORS_BOOK {
+        int id PK
+        int staff_id FK
+        int student_session_id FK
+        varchar name
+        varchar contact
+        varchar purpose
+        date date
+        varchar in_time
+        varchar out_time
+    }
+    
+    DISPATCH_RECEIVE {
+        int id PK
+        varchar type
+        varchar to_title
+        varchar from_title
+        varchar reference_no
+        date date
+        text note
+    }
+    
+    GENERAL_CALLS {
+        int id PK
+        varchar name
+        varchar contact
+        date date
+        text description
+        varchar call_type
+    }
+
+    %% Communication Module
+    SEND_NOTIFICATION ||--|| STAFF : "created by"
+    
+    SEND_NOTIFICATION {
+        int id PK
+        varchar title
+        date publish_date
+        text message
+        varchar visible_student
+        varchar visible_staff
+        varchar visible_parent
+        int created_id FK
+    }
+    
+    SEND_NOTIFICATION ||--o{ NOTIFICATION_ROLES : "for"
+    ROLES ||--o{ NOTIFICATION_ROLES : "receives"
+    
+    NOTIFICATION_ROLES {
+        int id PK
+        int send_notification_id FK
+        int role_id FK
+    }
+    
+    SEND_NOTIFICATION ||--o{ READ_NOTIFICATION : "read by"
+    
+    READ_NOTIFICATION {
+        int id PK
+        int student_id FK
+        int parent_id FK
+        int staff_id FK
+        int notification_id FK
+    }
+    
+    EMAIL_CONFIG {
+        int id PK
+        varchar email_type
+        varchar smtp_server
+        varchar smtp_port
+        varchar smtp_username
+        varchar smtp_password
+        varchar smtp_email
+    }
+    
+    SMS_CONFIG {
+        int id PK
+        varchar type
+        varchar name
+        varchar api_id
+        varchar authkey
+        varchar senderid
+    }
+    
+    EMAIL_TEMPLATE {
+        int id PK
+        varchar title
+        text message
+        varchar is_active
+    }
+    
+    SMS_TEMPLATE {
+        int id PK
+        varchar title
+        text message
+    }
+    
+    MESSAGES {
+        int id PK
+        varchar title
+        text message
+        varchar send_mail
+        varchar send_sms
+        varchar send_to
+    }
+
+    %% Chat Module
+    CHAT_USERS ||--|| STAFF : "is"
+    CHAT_USERS ||--|| STUDENTS : "is"
+    
+    CHAT_USERS {
+        int id PK
+        int staff_id FK
+        int student_id FK
+        int create_staff_id FK
+        int create_student_id FK
+    }
+    
+    CHAT_USERS ||--o{ CHAT_CONNECTIONS : "connects"
+    
+    CHAT_CONNECTIONS {
+        int id PK
+        int chat_user_one FK
+        int chat_user_two FK
+        int ip
+        varchar status
+    }
+    
+    CHAT_CONNECTIONS ||--o{ CHAT_MESSAGES : "has"
+    CHAT_USERS ||--o{ CHAT_MESSAGES : "sends"
+    
+    CHAT_MESSAGES {
+        int id PK
+        int chat_user_id FK
+        int chat_connection_id FK
+        text message
+        int is_read
+    }
+
+    %% Download Center & Content Module
+    CONTENT_TYPES {
+        int id PK
+        varchar name
+    }
+    
+    UPLOAD_CONTENTS ||--|| CONTENT_TYPES : "type"
+    UPLOAD_CONTENTS ||--|| STAFF : "uploaded by"
+    
+    UPLOAD_CONTENTS {
+        int id PK
+        int content_type_id FK
+        varchar image
+        varchar file_type
+        varchar file_size
+        int upload_by FK
+    }
+    
+    CONTENTS ||--|| STAFF : "created by"
+    CONTENTS ||--|| CLASSES : "for"
+    CONTENTS ||--|| CLASS_SECTIONS : "for"
+    
+    CONTENTS {
+        int id PK
+        varchar title
+        text description
+        int cls_sec_id FK
+        int class_id FK
+        int created_by FK
+    }
+    
+    CONTENTS ||--o{ CONTENT_FOR : "shared with"
+    USERS ||--o{ CONTENT_FOR : "user"
+    
+    CONTENT_FOR {
+        int id PK
+        int content_id FK
+        int user_id FK
+    }
+    
+    VIDEO_TUTORIAL ||--|| STAFF : "created by"
+    
+    VIDEO_TUTORIAL {
+        int id PK
+        varchar title
+        text description
+        varchar video_link
+        int created_by FK
+    }
+    
+    VIDEO_TUTORIAL ||--o{ VIDEO_TUTORIAL_CLASS_SECTIONS : "for"
+    CLASS_SECTIONS ||--o{ VIDEO_TUTORIAL_CLASS_SECTIONS : "assigned"
+    
+    VIDEO_TUTORIAL_CLASS_SECTIONS {
+        int id PK
+        int video_tutorial_id FK
+        int class_section_id FK
+    }
+
+    %% Permission & Roles Module
+    PERMISSION_GROUP {
+        int id PK
+        varchar name
+        varchar short_code
+        int is_active
+        int system
+    }
+    
+    PERMISSION_GROUP ||--o{ PERMISSION_CATEGORY : "contains"
+    
+    PERMISSION_CATEGORY {
+        int id PK
+        int perm_group_id FK
+        varchar name
+        varchar short_code
+        int enable_view
+        int enable_add
+        int enable_edit
+        int enable_delete
+    }
+    
+    ROLES ||--o{ ROLES_PERMISSIONS : "has"
+    PERMISSION_CATEGORY ||--o{ ROLES_PERMISSIONS : "grants"
+    
+    ROLES_PERMISSIONS {
+        int id PK
+        int role_id FK
+        int perm_cat_id FK
+        int can_view
+        int can_add
+        int can_edit
+        int can_delete
+    }
+    
+    PERMISSION_GROUP ||--o{ PERMISSION_STUDENT : "contains"
+    
+    PERMISSION_STUDENT {
+        int id PK
+        varchar name
+        varchar short_code
+        int student
+        int parent
+        int group_id FK
+    }
+    
+    PERMISSION_GROUP ||--o{ SIDEBAR_MENUS : "group"
+    
+    SIDEBAR_MENUS {
+        int id PK
+        int permission_group_id FK
+        varchar menu
+        varchar icon
+        varchar lang_key
+        varchar product_name
+    }
+    
+    SIDEBAR_MENUS ||--o{ SIDEBAR_SUB_MENUS : "has"
+    
+    SIDEBAR_SUB_MENUS {
+        int id PK
+        int sidebar_menu_id FK
+        varchar menu
+        varchar url
+        varchar access_permissions
+    }
+
+    %% Online Admission Module
+    ONLINE_ADMISSIONS ||--|| CLASS_SECTIONS : "for"
+    ONLINE_ADMISSIONS ||--|| CATEGORIES : "category"
+    ONLINE_ADMISSIONS ||--|| SCHOOL_HOUSES : "house"
+    ONLINE_ADMISSIONS ||--|| HOSTEL_ROOMS : "hostel"
+    
+    ONLINE_ADMISSIONS {
+        int id PK
+        varchar reference_no
+        varchar firstname
+        varchar lastname
+        varchar email
+        varchar mobileno
+        int class_section_id FK
+        int category_id FK
+        int school_house_id FK
+        int hostel_room_id FK
+        int is_enroll
+        varchar form_status
+    }
+    
+    ONLINE_ADMISSIONS ||--o{ ONLINE_ADMISSION_PAYMENT : "payments"
+    
+    ONLINE_ADMISSION_PAYMENT {
+        int id PK
+        int online_admission_id FK
+        float paid_amount
+        varchar payment_mode
+        varchar transaction_id
+        datetime date
+    }
+    
+    ONLINE_ADMISSIONS ||--o{ GATEWAY_INS : "payment gateway"
+    
+    GATEWAY_INS {
+        int id PK
+        int online_admission_id FK
+        varchar gateway
+        varchar status
+        float amount
+    }
+    
+    GATEWAY_INS ||--o{ GATEWAY_INS_RESPONSE : "responses"
+    
+    GATEWAY_INS_RESPONSE {
+        int id PK
+        int gateway_ins_id FK
+        text gateway_response
+    }
+    
+    ONLINE_ADMISSION_FIELDS {
+        int id PK
+        varchar name
+        int status
+    }
+
+    %% Alumni Module
+    STUDENTS ||--o{ ALUMNI_STUDENTS : "becomes"
+    
+    ALUMNI_STUDENTS {
+        int id PK
+        int student_id FK
+        varchar current_email
+        varchar current_phone
+        varchar occupation
+        text address
+    }
+    
+    ALUMNI_EVENTS ||--|| SESSIONS : "for"
+    ALUMNI_EVENTS ||--|| CLASSES : "for"
+    
+    ALUMNI_EVENTS {
+        int id PK
+        varchar title
+        int session_id FK
+        int class_id FK
+        date event_from
+        date event_to
+        text description
+    }
+
+    %% Resume & Student Profile Module (New)
+    STUDENT_WORK_EXPERIENCE {
+        int id PK
+        text institute
+        text designation
+        varchar year
+        text location
+        text detail
+        varchar student_id
+    }
+
+    STUDENT_EDUCATIONAL_DETAILS {
+        int id PK
+        varchar course
+        varchar university
+        varchar education_year
+        varchar education_detail
+        varchar student_id
+    }
+
+    STUDENT_SKILLS_DETAIL {
+        int id PK
+        varchar skill_category
+        varchar skill_detail
+        varchar student_id
+    }
+
+    STUDENT_REFRENCE {
+        int id PK
+        varchar name
+        varchar relation
+        varchar age
+        varchar profession
+        varchar contact
+        int student_id
+    }
+
+    RESUME_SETTINGS_FIELDS {
+        int id PK
+        varchar name
+        int status
+    }
+
+    RESUME_ADDITIONAL_FIELDS_SETTINGS {
+        int id PK
+        varchar name
+        int status
+    }
+
+    STUDENT_WORK_EXPERIENCE }|..|| STUDENTS : "belongs to"
+    STUDENT_EDUCATIONAL_DETAILS }|..|| STUDENTS : "belongs to"
+    STUDENT_SKILLS_DETAIL }|..|| STUDENTS : "belongs to"
+    STUDENT_REFRENCE }|..|| STUDENTS : "belongs to"
+
+
+    %% Certificate Module
+    CERTIFICATES {
+        int id PK
+        varchar certificate_name
+        varchar certificate_text
+        varchar left_logo
+        varchar right_logo
+        varchar background
+        int enable_student_image
+    }
+    
+    ID_CARD {
+        int id PK
+        varchar title
+        varchar school_name
+        varchar school_address
+        varchar logo
+        varchar background
+        varchar sign_image
+        int enable_photo
+        int enable_class
+        int enable_student_rollno
+        int enable_student_house_name
+    }
+    
+    STAFF_ID_CARD {
+        int id PK
+        varchar title
+        varchar school_name
+        varchar school_address
+        varchar logo
+        varchar background
+        varchar sign_image
+        int enable_photo
+        int enable_department
+    }
+    
+    TEMPLATE_ADMITCARDS {
+        int id PK
+        varchar template
+        varchar heading
+        varchar school_name
+        varchar left_logo
+        varchar right_logo
+        int is_name
+        int is_roll_no
+        int is_photo
+        int is_active
+    }
+    
+    TEMPLATE_MARKSHEETS {
+        int id PK
+        varchar template
+        varchar heading
+        varchar school_name
+        varchar left_logo
+        varchar right_logo
+        int is_name
+        int is_roll_no
+        int is_photo
+        int is_rank
+    }
+
+    %% Settings & Configuration Module
+    SCH_SETTINGS {
+        int id PK
+        varchar name
+        varchar email
+        varchar phone
+        text address
+        int lang_id FK
+        int session_id FK
+        varchar timezone
+        varchar currency
+        varchar currency_symbol
+        varchar date_format
+        varchar theme
+        int student_resume_download
+        int download_admit_card
+        int fees_discount
+        int front_side_whatsapp
+        int admin_panel_whatsapp
+    }
+    
+    LANGUAGES {
+        int id PK
+        varchar language
+        varchar short_code
+    }
+    
+    CURRENCIES {
+        int id PK
+        varchar name
+        varchar short_name
+        varchar symbol
+    }
+    
+    PAYMENT_SETTINGS {
+        int id PK
+        varchar payment_type
+        varchar api_secret_key
+        varchar api_publishable_key
+        varchar is_active
+    }
+    
+    NOTIFICATION_SETTING {
+        int id PK
+        varchar type
+        int is_mail
+        int is_sms
+        int notification_order
+    }
+    
+    CUSTOM_FIELDS {
+        int id PK
+        varchar name
+        varchar belong_to
+        varchar type
+        text field_values
+        int weight
+    }
+    
+    CUSTOM_FIELDS ||--o{ CUSTOM_FIELD_VALUES : "values"
+    
+    CUSTOM_FIELD_VALUES {
+        int id PK
+        int belong_table_id
+        int custom_field_id FK
+        text field_value
+    }
+    
+    FILETYPES {
+        int id PK
+        varchar file_extension
+        varchar file_mime
+    }
+
+    STUDENT_DASHBOARD_SETTINGS {
+        int id PK
+        varchar name
+        varchar short_code
+        int is_student
+        int is_parent
+    }
+
+    %% Calendar Module
+    ANNUAL_CALENDAR {
+        int id PK
+        int session_id FK
+        int holiday_type
+        datetime from_date
+        datetime to_date
+        text description
+        varchar holiday_color
+    }
+
+    HOLIDAY_TYPE {
+        int id PK
+        varchar type
+        int is_default
+    }
+
+    ANNUAL_CALENDAR }o..|| SESSIONS : "belongs to"
+    ANNUAL_CALENDAR }o..|| HOLIDAY_TYPE : "type"
+
+    %% Addons Module
+    ADDONS {
+        int id PK
+        int product_id
+        varchar name
+        varchar short_name
+        float price
+        varchar current_version
+    }
+
+    ADDON_VERSIONS {
+        int id PK
+        int addon_id FK
+        varchar version
+        text folder_path
+    }
+
+    ADDONS ||--o{ ADDON_VERSIONS : "has"
+
+    %% Income & Expense Module
+    INCOME_HEAD {
+        int id PK
+        varchar income_head
+        text description
+    }
+    
+    INCOME_HEAD ||--o{ INCOME : "category"
+    
+    INCOME {
+        int id PK
+        int income_head_id FK
+        varchar name
+        varchar invoice_no
+        date date
+        float amount
+        text description
+    }
+    
+    EXPENSE_HEAD {
+        int id PK
+        varchar expense_head
+        text description
+    }
+    
+    EXPENSE_HEAD ||--o{ EXPENSES : "category"
+    
+    EXPENSES {
+        int id PK
+        int exp_head_id FK
+        varchar name
+        varchar invoice_no
+        date date
+        float amount
+        text description
+    }
+
+    %% Front CMS Module
+    FRONT_CMS_SETTINGS {
+        int id PK
+        varchar theme
+        varchar is_active_front_cms
+        varchar is_active_rtl
+    }
+    
+    FRONT_CMS_MENUS {
+        int id PK
+        varchar menu
+        varchar slug
+        varchar description
+    }
+    
+    FRONT_CMS_MENUS ||--o{ FRONT_CMS_MENU_ITEMS : "has"
+    
+    FRONT_CMS_MENU_ITEMS {
+        int id PK
+        int menu_id FK
+        varchar menu_title
+        varchar page_slug
+        varchar url
+        int open_new_tab
+    }
+    
+    FRONT_CMS_PAGES {
+        int id PK
+        varchar page_type
+        varchar slug
+        varchar title
+        varchar meta_title
+        text meta_description
+    }
+    
+    FRONT_CMS_PAGES ||--o{ FRONT_CMS_PAGE_CONTENTS : "has"
+    
+    FRONT_CMS_PAGE_CONTENTS {
+        int id PK
+        int page_id FK
+        text content
+    }
+    
+    FRONT_CMS_PROGRAMS {
+        int id PK
+        varchar title
+        text description
+    }
+    
+    FRONT_CMS_PROGRAMS ||--o{ FRONT_CMS_PROGRAM_PHOTOS : "has"
+    
+    FRONT_CMS_PROGRAM_PHOTOS {
+        int id PK
+        int program_id FK
+        varchar photo
+    }
+    
+    FRONT_CMS_MEDIA_GALLERY {
+        int id PK
+        varchar image
+        varchar thumb_path
+        varchar file_type
+    }
+    
+    EVENTS ||--|| ROLES : "visible to"
+    
+    EVENTS {
+        int id PK
+        varchar event_title
+        date event_start
+        date event_end
+        text event_description
+        int role_id FK
+        varchar is_active
+    }
