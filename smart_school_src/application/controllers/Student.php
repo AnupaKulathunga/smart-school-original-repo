@@ -1215,16 +1215,28 @@ class Student extends Admin_Controller
 
                                 $admission_no_exists = $this->student_model->check_adm_exists($admission_no);
                                 if ($admission_no_exists) {
-                                    $insert = "";
+                                    $student_exists = $this->student_model->getStudentByAdmission($admission_no);
+                                    $insert_id      = $student_exists['id'];
+                                    $is_update_import = true;
                                 } else {
-                                    $insert_id = $this->student_model->add($student_data[$i], $data_setting);
+                                    $insert_id      = $this->student_model->add($student_data[$i], $data_setting);
+                                    $is_update_import = false;
                                 }
                             } else {
-
+                                $admission_no = $adm_no;
                                 if ($this->form_validation->is_unique($adm_no, 'students.admission_no')) {
-                                    $insert_id = $this->student_model->add($student_data[$i], $data_setting);
+                                    $insert_id      = $this->student_model->add($student_data[$i], $data_setting);
+                                    $is_update_import = false;
                                 } else {
-                                    $insert_id = "";
+                                    // Modified to allow enrollment for existing students via CSV
+                                    $student_exists = $this->student_model->getStudentByAdmission($adm_no);
+                                    if(!empty($student_exists)){
+                                        $insert_id = $student_exists['id'];
+                                        $is_update_import = true;
+                                    }else{
+                                        $insert_id = "";
+                                        $is_update_import = false;
+                                    }
                                 }
                             }
 
@@ -1238,56 +1250,59 @@ class Student extends Admin_Controller
                                 );
 
                                 $this->student_model->add_student_session($data_new);
-                                $user_password = $this->role->get_random_password($chars_min = 6, $chars_max = 6, $use_upper_case = false, $include_numbers = true, $include_special_chars = false);
-                                $sibling_id    = $this->input->post('sibling_id');
+                                
+                                if (!$is_update_import) {
+                                    $user_password = $this->role->get_random_password($chars_min = 6, $chars_max = 6, $use_upper_case = false, $include_numbers = true, $include_special_chars = false);
+                                    $sibling_id    = $this->input->post('sibling_id');
 
-                                $data_student_login = array(
-                                    'username' => $this->student_login_prefix . $insert_id,
-                                    'password' => $user_password,
-                                    'user_id'  => $insert_id,
-                                    'role'     => 'student',
-                                );
+                                    $data_student_login = array(
+                                        'username' => $this->student_login_prefix . $insert_id,
+                                        'password' => $user_password,
+                                        'user_id'  => $insert_id,
+                                        'role'     => 'student',
+                                    );
 
-                                $this->user_model->add($data_student_login);
-                                $parent_password = $this->role->get_random_password($chars_min = 6, $chars_max = 6, $use_upper_case = false, $include_numbers = true, $include_special_chars = false);
+                                    $this->user_model->add($data_student_login);
+                                    $parent_password = $this->role->get_random_password($chars_min = 6, $chars_max = 6, $use_upper_case = false, $include_numbers = true, $include_special_chars = false);
 
-                                $temp              = $insert_id;
-                                $data_parent_login = array(
-                                    'username' => $this->parent_login_prefix . $insert_id,
-                                    'password' => $parent_password,
-                                    'user_id'  => $insert_id,
-                                    'role'     => 'parent',
-                                    'childs'   => $temp,
-                                );
+                                    $temp              = $insert_id;
+                                    $data_parent_login = array(
+                                        'username' => $this->parent_login_prefix . $insert_id,
+                                        'password' => $parent_password,
+                                        'user_id'  => $insert_id,
+                                        'role'     => 'parent',
+                                        'childs'   => $temp,
+                                    );
 
-                                $ins_id         = $this->user_model->add($data_parent_login);
-                                $update_student = array(
-                                    'id'        => $insert_id,
-                                    'parent_id' => $ins_id,
-                                );
+                                    $ins_id         = $this->user_model->add($data_parent_login);
+                                    $update_student = array(
+                                        'id'        => $insert_id,
+                                        'parent_id' => $ins_id,
+                                    );
 
-                                $this->student_model->add($update_student);
-                                $sender_details = array('student_id' => $insert_id, 'contact_no' => $guardian_phone, 'email' => $guardian_email);
-                                $this->mailsmsconf->mailsms('student_admission', $sender_details);
+                                    $this->student_model->add($update_student);
+                                    $sender_details = array('student_id' => $insert_id, 'contact_no' => $guardian_phone, 'email' => $guardian_email);
+                                    $this->mailsmsconf->mailsms('student_admission', $sender_details);
 
-                                $student_login_detail = array('id' => $insert_id, 'credential_for' => 'student', 'username' => $this->student_login_prefix . $insert_id, 'password' => $user_password, 'contact_no' => $mobile_no, 'email' => $email, 'admission_no' => $admission_no);
-                                $this->mailsmsconf->mailsms('student_login_credential', $student_login_detail);
+                                    $student_login_detail = array('id' => $insert_id, 'credential_for' => 'student', 'username' => $this->student_login_prefix . $insert_id, 'password' => $user_password, 'contact_no' => $mobile_no, 'email' => $email, 'admission_no' => $admission_no);
+                                    $this->mailsmsconf->mailsms('student_login_credential', $student_login_detail);
 
-                                $parent_login_detail = array('id' => $insert_id, 'credential_for' => 'parent', 'username' => $this->parent_login_prefix . $insert_id, 'password' => $parent_password, 'contact_no' => $guardian_phone, 'email' => $guardian_email, 'admission_no' => $admission_no);
+                                    $parent_login_detail = array('id' => $insert_id, 'credential_for' => 'parent', 'username' => $this->parent_login_prefix . $insert_id, 'password' => $parent_password, 'contact_no' => $guardian_phone, 'email' => $guardian_email, 'admission_no' => $admission_no);
 
-                                $this->mailsmsconf->mailsms('student_login_credential', $parent_login_detail);
+                                    $this->mailsmsconf->mailsms('student_login_credential', $parent_login_detail);
+                                    
+                                     //generate student id card
+                                    $student_details = $this->student_model->get($insert_id);
+                                    $scan_type = $this->sch_setting_detail->scan_code_type;
+                                    $this->customlib->generatebarcode($student_details['admission_no'], $student_details['id'], $scan_type);
+                                    //generate student id card
+                                }
 
                                 $data['csvData'] = $result;
                                 $this->session->set_flashdata('msg', '<div class="alert alert-success text-center">' . $this->lang->line('students_imported_successfully') . '</div>');
 
                                 $rowcount++;
                                 $this->session->set_flashdata('msg', '<div class="alert alert-success text-center">' . $this->lang->line('total') . ' ' . count($result) . $this->lang->line('records_found_in_csv_file_total') . $rowcount . ' ' . $this->lang->line('records_imported_successfully') . '</div>');
-
-                                //generate student id card
-                                $student_details = $this->student_model->get($insert_id);
-                                $scan_type = $this->sch_setting_detail->scan_code_type;
-                                $this->customlib->generatebarcode($student_details['admission_no'], $student_details['id'], $scan_type);
-                                //generate student id card
 
                             } else {
 

@@ -1094,6 +1094,7 @@ class Student_model extends MY_Model
         //=======================Code Start===========================
         $this->db->where('session_id', $data['session_id']);
         $this->db->where('student_id', $data['student_id']);
+        $this->db->where('class_id', $data['class_id']);
         $q = $this->db->get('student_session');
         if ($q->num_rows() > 0) {
             $rec = $q->row_array();
@@ -1636,6 +1637,17 @@ class Student_model extends MY_Model
         $query = $this->db->get('students');
         if ($query->num_rows() > 0) {
             return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function getStudentByAdmission($admission_no)
+    {
+        $this->db->where(array('admission_no' => $admission_no));
+        $query = $this->db->get('students');
+        if ($query->num_rows() > 0) {
+            return $query->row_array();
         } else {
             return false;
         }
