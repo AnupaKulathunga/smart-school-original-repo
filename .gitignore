@@ -1,0 +1,198 @@
+# Smart School Git Ignore
+# CodeCanyon Product - Configured for fresh installation capability
+
+# ====================
+# Environment & System Files
+# ====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# ====================
+# IDE & Editor Files
+# ====================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+nbproject/
+.project
+.buildpath
+.settings/
+
+# ====================
+# Installation-Generated Config Files
+# ====================
+# Database config is CREATED during installation, not tracked
+smart_school_src/application/config/database.php
+
+# NOTE: config.php and autoload.php ARE TRACKED in pre-install state
+# After running installer, these files will be modified locally:
+# - config.php: installed = false → true
+# - autoload.php: minimal libraries → full libraries
+# These local modifications should NOT be committed back to git
+# Use: git update-index --skip-worktree <file> to ignore local changes
+
+# Any local configuration overrides
+smart_school_src/application/config/local.php
+smart_school_src/application/config/*_local.php
+
+# ====================
+# Runtime & Generated Files
+# ====================
+# Application logs (keep folder structure, exclude log files)
+smart_school_src/application/logs/*
+!smart_school_src/application/logs/index.html
+!smart_school_src/application/logs/.gitkeep
+
+# Backup directory (exclude all backup files)
+smart_school_src/backup/*
+!smart_school_src/backup/.gitkeep
+!smart_school_src/backup/index.html
+
+# Temporary files
+smart_school_src/temp/*
+!smart_school_src/temp/.gitkeep
+!smart_school_src/temp/index.html
+
+# Generated captcha images
+smart_school_src/backend/captcha_images/*.jpg
+smart_school_src/backend/captcha_images/*.png
+!smart_school_src/backend/captcha_images/.gitkeep
+
+# Cache files
+smart_school_src/application/cache/*
+!smart_school_src/application/cache/index.html
+!smart_school_src/application/cache/.gitkeep
+
+# ====================
+# User Uploads (Exclude user data, KEEP core/default assets)
+# ====================
+# Exclude everything in uploads first
+smart_school_src/uploads/*
+
+# Then INCLUDE the uploads directory structure and core assets
+!smart_school_src/uploads/.gitkeep
+!smart_school_src/uploads/index.html
+
+# INCLUDE: Core placeholder images
+!smart_school_src/uploads/no_image.png
+
+# INCLUDE: Student images - default placeholders
+!smart_school_src/uploads/student_images/
+!smart_school_src/uploads/student_images/default_male.jpg
+!smart_school_src/uploads/student_images/default_female.jpg
+!smart_school_src/uploads/student_images/no_image.png
+!smart_school_src/uploads/student_images/online_admission_image/
+!smart_school_src/uploads/student_images/online_admission_image/default_male.jpg
+!smart_school_src/uploads/student_images/online_admission_image/default_female.jpg
+!smart_school_src/uploads/student_images/online_admission_image/no_image.png
+
+# INCLUDE: Staff images - default placeholders
+!smart_school_src/uploads/staff_images/
+!smart_school_src/uploads/staff_images/default_male.jpg
+!smart_school_src/uploads/staff_images/default_female.jpg
+!smart_school_src/uploads/staff_images/no_image.png
+
+# INCLUDE: Teacher images - default placeholders
+!smart_school_src/uploads/teacher_images/
+!smart_school_src/uploads/teacher_images/no_image.png
+
+# INCLUDE: Librarian images - default placeholders
+!smart_school_src/uploads/librarian_images/
+!smart_school_src/uploads/librarian_images/no_image.png
+
+# INCLUDE: Accountant images - default placeholders
+!smart_school_src/uploads/accountant_images/
+!smart_school_src/uploads/accountant_images/no_image.png
+
+# INCLUDE: Student ID card - sample/default images
+!smart_school_src/uploads/student_id_card/
+!smart_school_src/uploads/student_id_card/*/
+!smart_school_src/uploads/student_id_card/background/
+!smart_school_src/uploads/student_id_card/background/samplebackground12.png
+!smart_school_src/uploads/student_id_card/signature/
+!smart_school_src/uploads/student_id_card/signature/samplesign12.png
+!smart_school_src/uploads/student_id_card/logo/
+!smart_school_src/uploads/student_id_card/logo/samplelogo12.png
+!smart_school_src/uploads/student_id_card/qrcode/
+!smart_school_src/uploads/student_id_card/qrcode/default.png
+!smart_school_src/uploads/student_id_card/barcodes/
+!smart_school_src/uploads/student_id_card/barcodes/default.png
+
+# INCLUDE: Staff ID card - sample/default images
+!smart_school_src/uploads/staff_id_card/
+!smart_school_src/uploads/staff_id_card/*/
+!smart_school_src/uploads/staff_id_card/logo/
+!smart_school_src/uploads/staff_id_card/logo/logo1.png
+!smart_school_src/uploads/staff_id_card/qrcode/
+!smart_school_src/uploads/staff_id_card/qrcode/default.png
+!smart_school_src/uploads/staff_id_card/barcodes/
+!smart_school_src/uploads/staff_id_card/barcodes/default.png
+
+# INCLUDE: Certificate - sample images
+!smart_school_src/uploads/certificate/
+!smart_school_src/uploads/certificate/sampletc121.png
+
+# INCLUDE: Transport vehicle - default image
+!smart_school_src/uploads/transport_vehicle/
+!smart_school_src/uploads/transport_vehicle/default_vehicle.jpg
+
+# INCLUDE: School content - default logos and login images
+!smart_school_src/uploads/school_content/
+!smart_school_src/uploads/school_content/*/
+!smart_school_src/uploads/school_content/logo/
+!smart_school_src/uploads/school_content/logo/1.png
+!smart_school_src/uploads/school_content/logo/app_logo/
+!smart_school_src/uploads/school_content/logo/app_logo/1.png
+!smart_school_src/uploads/school_content/admin_logo/
+!smart_school_src/uploads/school_content/admin_logo/1.png
+!smart_school_src/uploads/school_content/admin_small_logo/
+!smart_school_src/uploads/school_content/admin_small_logo/1.png
+!smart_school_src/uploads/school_content/login_image/
+!smart_school_src/uploads/school_content/login_image/*.jpg
+
+# INCLUDE: Print header/footer - default images
+!smart_school_src/uploads/print_headerfooter/
+!smart_school_src/uploads/print_headerfooter/*/
+!smart_school_src/uploads/print_headerfooter/*/header_image.jpg
+!smart_school_src/uploads/print_headerfooter/online_exam/
+!smart_school_src/uploads/print_headerfooter/online_exam/*.jpg
+
+# All other user uploads are excluded
+# (homework, documents, receipts, expense attachments, etc.)
+
+# ====================
+# Third-Party Dependencies (Composer managed)
+# ====================
+# Omnipay vendor directory (managed via composer.json)
+smart_school_src/application/third_party/omnipay/vendor/
+
+# Billplz vendor directories
+smart_school_src/application/third_party/billplz/*/vendor/
+
+# Other vendor directories
+smart_school_src/application/third_party/*/vendor/
+
+# Composer
+composer.phar
+composer.lock
+
+# NPM
+node_modules/
+npm-debug.log
+yarn.lock
+package-lock.json
+
+# ====================
+# Optional: Update Packages
+# ====================
+# Uncomment if you don't want to track update files
+# smart_school_update_*/
