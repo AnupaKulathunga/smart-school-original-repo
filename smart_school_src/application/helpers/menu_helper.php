@@ -381,8 +381,12 @@ if (!function_exists('main_menu_array')) {
                 'holiday'        => array('index','holidaytype','editholidaytype'),               
             ),
                 
-            'student_cv' => array(                            
-                'resume'        => array('index','download','resume_setting','student_resume_details'),               
+            'student_cv' => array(
+                'resume'        => array('index','download','resume_setting','student_resume_details'),
+            ),
+
+            'tvet_management' => array(
+                'tvet'        => array('index','programme','programme_add','programme_edit','qualification','qualification_add','qualification_edit','level','level_add','level_edit','cohort','cohort_add','cohort_edit','cohort_roster','module_mapping','lecturer_allocation'),
             ),
                 
             

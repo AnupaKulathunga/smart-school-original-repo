@@ -2466,3 +2466,14 @@ $lang['whatsapp_link'] = "Whatsapp Link";
 $lang['whatsapp_settings'] = "Whatsapp Settings";
 $lang['processing_fees_type'] = "Processing Fees Type";
 $lang['percentage_fix_amount'] = "Percentage/Fix Amount";
+
+#TVET Management
+$lang['tvet_management'] = "TVET Management";
+$lang['tvet_dashboard'] = "Dashboard";
+$lang['tvet_programmes'] = "Programmes";
+$lang['tvet_qualifications'] = "Qualifications";
+$lang['tvet_levels'] = "Levels";
+$lang['tvet_cohorts'] = "Cohorts";
+$lang['tvet_module_mapping'] = "Module Mapping";
+$lang['tvet_lecturer_allocation'] = "Lecturer Allocation";
+$lang['tvet_reports'] = "TVET Reports";
