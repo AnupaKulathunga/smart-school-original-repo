@@ -16,6 +16,7 @@ class Homework extends Student_Controller
         $this->load->model("staff_model");
         $this->load->model("student_model");
         $this->load->model("filetype_model");
+        $this->load->model("subjectgroup_model");
     }
 
     public function index()
@@ -51,6 +52,7 @@ class Homework extends Student_Controller
         } 
 
         $data["closedhomeworklist"] = $closedhomeworklist;
+        $data['subjectlist'] = $this->subjectgroup_model->getAllsubjectByClassSection($class_id, $section_id);
         $this->load->view("layout/student/header");
         $this->load->view("user/homework/homeworklist", $data);
         $this->load->view("layout/student/footer");

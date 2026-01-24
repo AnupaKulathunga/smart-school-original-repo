@@ -69,3 +69,10 @@ $lang['get_access_token'] = "Get Access Token";
 
 $lang['parent_live_class'] = "Parent Live Class";
 
+#version 7.1 - Teams Integration
+
+$lang['teams_live_classes'] = "Teams Live Classes";
+$lang['teams_live_meeting'] = "Teams Live Meeting";
+$lang['teams_setting'] = "Teams Setting";
+$lang['cohort'] = "Cohort";
+

@@ -7,7 +7,7 @@
         <form id="upload" method="post" class="ptt10" style="min-height: 500px;">
             <div class="scroll-area">  
             <div class="form-group">
-                <label><?php echo $this->lang->line('description'); ?></label>
+                <label><?php echo $this->lang->line('instructions'); ?></label>
             </div>
             <p><?php echo $result['description']; ?></p>
             <hr>

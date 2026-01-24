@@ -14,6 +14,21 @@
                         </div>
                     </div>
 
+                    <div class="box-body pb0">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label><?php echo $this->lang->line('subject'); ?></label>
+                                    <select id="subject_filter" class="form-control input-sm">
+                                        <option value=""><?php echo $this->lang->line('all'); ?></option>
+                                        <?php if (!empty($subjectlist)) { foreach ($subjectlist as $sub) { ?>
+                                            <option value="<?php echo $sub['name']; ?>"><?php echo $sub['name']; ?><?php if($sub['code']){ echo ' ('.$sub['code'].')'; } ?></option>
+                                        <?php } } ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                         <div class="nav-tabs-custom mb0">
                         <ul class="nav nav-tabs">
                             <li class="active"><a href="#tab_1" data-toggle="tab"><?php echo $this->lang->line('upcoming_homework'); ?></a></li>
@@ -310,6 +325,22 @@ $evl_date = "";
     function addhomework() {
         $('iframe').contents().find('.wysihtml5-editor').html("");
     }
+
+    $('#subject_filter').on('change', function() {
+        var selectedSubject = $(this).val();
+        $('.tab-content table tbody tr').each(function() {
+            if (selectedSubject === '') {
+                $(this).show();
+            } else {
+                var subjectCell = $(this).find('td:eq(2)').text().trim();
+                if (subjectCell.indexOf(selectedSubject) !== -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            }
+        });
+    });
     
     $(document).ready(function (e) {
 

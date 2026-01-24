@@ -242,7 +242,7 @@ $language_name = $language["short_code"];
                                 </div>
                                 <div class="col-sm-12">
                                     <div class="form-group">
-                                        <label for="email"><?php echo $this->lang->line('description'); ?></label><small class="req"> *</small>
+                                        <label for="email"><?php echo $this->lang->line('instructions'); ?></label><small class="req"> *</small>
                                         <textarea name="description" id="compose-textarea" class="form-control" ><?php echo set_value('address'); ?>
                                         </textarea>
                                     </div>

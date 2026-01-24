@@ -2477,3 +2477,19 @@ $lang['tvet_cohorts'] = "Cohorts";
 $lang['tvet_module_mapping'] = "Module Mapping";
 $lang['tvet_lecturer_allocation'] = "Lecturer Allocation";
 $lang['tvet_reports'] = "TVET Reports";
+
+#Feature Enhancements
+$lang['preview'] = "Preview";
+$lang['this_is_preview_mode'] = "This is a read-only preview showing how students will see this exam.";
+$lang['student_answer_area'] = "Student answer area";
+$lang['exam_moderation'] = "Exam Moderation";
+$lang['review'] = "Review";
+$lang['approved'] = "Approved";
+$lang['rejected'] = "Rejected";
+$lang['comments'] = "Comments";
+$lang['student_accommodation'] = "Student Accommodations";
+$lang['extra_time'] = "Extra Time";
+$lang['inactive'] = "Inactive";
+$lang['teams_setup_info'] = "To use Microsoft Teams, register an app in Azure AD with OnlineMeetings.ReadWrite.All permission. Enter the credentials below.";
+$lang['new'] = "New";
+$lang['minutes'] = "minutes";
