@@ -176,7 +176,7 @@ class Uploadcontent_model extends MY_Model
         }
     }
      
-    public function getlimitwithsearch($staff_id, $limit = null, $start = null, $where_condition = array())
+    public function getlimitwithsearch($staff_id, $limit = null, $start = null, $where_condition = array(), $content_type_id = null)
     {
 
         $getStaffRole = $this->customlib->getStaffRole();
@@ -199,6 +199,10 @@ class Uploadcontent_model extends MY_Model
 
         if ($staffrole->id != "7") {
             $query->where('upload_by', $staff_id);
+        }
+
+        if (!empty($content_type_id)) {
+            $query->where('upload_contents.content_type_id', $content_type_id);
         }
 
         $num_rows = $query->count_all_results('', false);

@@ -12,7 +12,7 @@ class Content extends Student_Controller
         parent::__construct();
         $this->load->library('media_storage');
         $this->load->library('enc_lib');
-        $this->load->model(array('contenttype_model', 'uploadcontent_model', 'sharecontent_model'));
+        $this->load->model(array('contenttype_model', 'uploadcontent_model', 'sharecontent_model', 'content_view_model'));
     }
 
     function list() {
@@ -38,29 +38,34 @@ class Content extends Student_Controller
 
             $m = $this->sharecontent_model->getParentsharelist($this->customlib->getUsersID(), $student_current_class->class_id, $student_current_class->section_id);
         }
-        
-        $superadmin_visible =    $this->Setting_model->get();        
+
+        $superadmin_visible =    $this->Setting_model->get();
         $superadmin_restriction =   $superadmin_visible[0]['superadmin_restriction'];
-        
+
         $m = json_decode($m);
+
+        $viewed_ids = $this->content_view_model->getViewedContentIds($student_current_class->student_session_id);
 
         $dt_data = array();
         if (!empty($m->data)) {
             foreach ($m->data as $key => $value) {
                 $viewbtn   = '';
                 $title     = $value->title;
+                if (!in_array($value->id, $viewed_ids)) {
+                    $title .= ' <span class="label label-info">' . $this->lang->line('new') . '</span>';
+                }
                 $row       = array();
                 $row[]     = $title;
                 $viewbtn   = "<a href='" . site_url('user/content/view/') . $value->id . "'   class='btn btn-default btn-xs'  data-toggle='tooltip' title='" . $this->lang->line('view') . "'><i class='fa fa-eye'></i></a>";
                 $row[]     = $this->customlib->dateformat($value->share_date);
                 $row[]     = $this->customlib->dateformat($value->valid_upto);
-                
+
                 if($superadmin_restriction == 'disabled' && $value->role_id == 7){
                         $row[]     =  '';
                 }else{
                         $row[]     = $value->name .' '. $value->surname . ' (' . $value->employee_id . ')';
-                }               
-                
+                }
+
                 $row[]     = $viewbtn;
                 $dt_data[] = $row;
             }
@@ -80,11 +85,14 @@ class Content extends Student_Controller
         $data['title']      = 'Upload Content';
         $data['title_list'] = 'Upload Content List';
         $data['content']    = $this->sharecontent_model->getShareContentWithDocuments($id);
-        $superadmin_visible =    $this->Setting_model->get();        
+        $superadmin_visible =    $this->Setting_model->get();
         $data['superadmin_restriction'] =   $superadmin_visible[0]['superadmin_restriction'];
 
         $data['branch_url']=$this->customlib->getBaseUrl();
-        
+
+        $student_current_class = $this->customlib->getStudentCurrentClsSection();
+        $this->content_view_model->trackView($id, $student_current_class->student_session_id);
+
         $this->load->view('layout/student/header');
         $this->load->view('user/content/view', $data);
         $this->load->view('layout/student/footer');
@@ -92,9 +100,23 @@ class Content extends Student_Controller
 
  public function download_content($id)
     {
-        $this->load->helper('file'); // Load file helper
+        $this->load->helper('file');
+        $student_current_class = $this->customlib->getStudentCurrentClsSection();
+        $this->content_view_model->trackView($id, $student_current_class->student_session_id);
         $content = $this->uploadcontent_model->get($id);
         $this->media_storage->filedownload($content->img_name, $content->dir_path);
+    }
+
+    public function track_view()
+    {
+        $content_id = $this->input->post('content_id');
+        if ($content_id) {
+            $student_current_class = $this->customlib->getStudentCurrentClsSection();
+            $this->content_view_model->trackView($content_id, $student_current_class->student_session_id);
+            echo json_encode(array('status' => 'success'));
+        } else {
+            echo json_encode(array('status' => 'fail'));
+        }
     }
     public function index()
     {

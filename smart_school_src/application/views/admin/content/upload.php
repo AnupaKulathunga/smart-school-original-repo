@@ -14,7 +14,7 @@
                     </div><!-- /.box-header -->
                     <div class="box-body">
        <div class="row pb20">
-        <div class="col-lg-6 col-md-6 col-sm-8 col-xs-8">
+        <div class="col-lg-4 col-md-4 col-sm-6 col-xs-6">
             <form method="POST" action="#" id="searchform">
                 <div class="input-group input-group-sm">
                     <input type="text" name="table_search" class="form-control pull-right post_search_text"  placeholder="<?php echo $this->lang->line('search'); ?>">
@@ -23,6 +23,14 @@
                     </div>
                 </div>
             </form>
+        </div>
+        <div class="col-lg-2 col-md-2 col-sm-4 col-xs-4">
+            <select id="content_type_filter" class="form-control input-sm">
+                <option value=""><?php echo $this->lang->line('all'); ?> <?php echo $this->lang->line('content_type'); ?></option>
+                <?php foreach ($content_types as $ct) { ?>
+                    <option value="<?php echo $ct->id; ?>"><?php echo $ct->name; ?></option>
+                <?php } ?>
+            </select>
         </div>
         <div class="col-lg-6 col-md-6 col-sm-4 col-xs-4 pt5">
             <div class="pull-right">
@@ -966,6 +974,11 @@ var app = {
                 _this.ajax_get_items_pagination(1);
             });
 
+            /* Content type filter */
+            $(document).on('change', '#content_type_filter', function(){
+                _this.ajax_get_items_pagination(1);
+            });
+
             $(document).on('click', '.pagination-nav .pagination li.unactive', function(){
                 var page = $(this).attr('p');
                 _this.ajax_get_items_pagination(page);
@@ -982,6 +995,7 @@ var app = {
                     page: page,
                     search: $('.post_search_text').val(),
                     grid:_grid_view,
+                    content_type_id: $('#content_type_filter').val(),
                 };
 
                 $('form.post-list input').val(JSON.stringify(post_data));

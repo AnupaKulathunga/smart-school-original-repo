@@ -96,8 +96,14 @@ class Content extends Admin_Controller
                 $where_search['search'] = $_POST['data']['search'];
             }
             $data['grid_view'] = $_POST['data']['grid'];
-            /* Retrieve all the posts */ 
-            $contents = $this->uploadcontent_model->getlimitwithsearch($staff_id, $per_page, $start, $where_search);
+
+            $content_type_id = null;
+            if (!empty($_POST['data']['content_type_id'])) {
+                $content_type_id = $_POST['data']['content_type_id'];
+            }
+
+            /* Retrieve all the posts */
+            $contents = $this->uploadcontent_model->getlimitwithsearch($staff_id, $per_page, $start, $where_search, $content_type_id);
 
             $data['all_contents'] = $contents['total_rows'];
 
