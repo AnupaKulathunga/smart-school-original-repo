@@ -14,6 +14,7 @@ class Conference extends Admin_Controller
         parent::__construct();
         $this->load->library('zoom_mail_sms');
         $this->load->model(array('conference_model', 'conferencehistory_model', 'zoomsetting_model'));
+        $this->load->model(array('tvet_programme_model', 'tvet_qualification_model', 'tvet_level_model', 'tvet_cohort_model', 'tvet_lecturer_allocation_model'));
         $this->conference_setting = $this->zoomsetting_model->get();
         $this->sch_setting_detail = $this->setting_model->getSetting();
         if ($this->router->fetch_method() != "index") {
@@ -966,6 +967,286 @@ class Conference extends Admin_Controller
             $array                   = array('status' => '1', 'page' => $data['page']);
             echo json_encode($data);
         }
+    }
+
+    // ==========================================
+    // Microsoft Teams Integration (TVET Architecture)
+    // ==========================================
+    public function teams_settings()
+    {
+        if (!$this->rbac->hasPrivilege('setting', 'can_view')) {
+            access_denied();
+        }
+        $this->session->set_userdata('top_menu', 'teams_live_classes');
+        $this->session->set_userdata('sub_menu', 'teams_live_classes/teams_settings');
+
+        $data = array();
+        $data['teams_settings'] = $this->zoomsetting_model->getTeamsSettings();
+
+        if ($this->input->server('REQUEST_METHOD') == 'POST') {
+            $data_insert = array(
+                'teams_tenant_id' => $this->input->post('teams_tenant_id'),
+                'teams_client_id' => $this->input->post('teams_client_id'),
+                'teams_client_secret' => $this->input->post('teams_client_secret'),
+                'teams_organizer_id' => $this->input->post('teams_organizer_id'),
+            );
+            $this->zoomsetting_model->updateTeamsSettings($data_insert);
+            $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('update_message') . '</div>');
+            redirect('admin/conference/teams_settings');
+        }
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/conference/teams_settings', $data);
+        $this->load->view('layout/footer', $data);
+    }
+
+    public function teams_classes()
+    {
+        if (!$this->rbac->hasPrivilege('live_classes', 'can_view')) {
+            access_denied();
+        }
+        $this->session->set_userdata('top_menu', 'teams_live_classes');
+        $this->session->set_userdata('sub_menu', 'teams_live_classes/teams_classes');
+
+        $data = array();
+        $data['logged_staff_id'] = $this->customlib->getStaffID();
+        $role = json_decode($this->customlib->getStaffRole());
+        $data['role'] = $role;
+
+        // Get Teams live classes
+        if ($role->id == 7) {
+            $data['conferences'] = $this->conference_model->getTeamsClasses();
+        } else {
+            $data['conferences'] = $this->conference_model->getTeamsClasses($data['logged_staff_id']);
+        }
+
+        // TVET data for add form
+        $data['cohorts'] = $this->tvet_cohort_model->getAll();
+        $data['superadmin_visible'] = $this->customlib->superadmin_visible();
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/conference/teams_classes', $data);
+        $this->load->view('layout/footer', $data);
+    }
+
+    public function teams_meeting()
+    {
+        if (!$this->rbac->hasPrivilege('live_meeting', 'can_view')) {
+            access_denied();
+        }
+        $this->session->set_userdata('top_menu', 'teams_live_classes');
+        $this->session->set_userdata('sub_menu', 'teams_live_classes/teams_meeting');
+
+        $data = array();
+        $data['logged_staff_id'] = $this->customlib->getStaffID();
+        $role = json_decode($this->customlib->getStaffRole());
+        $data['role'] = $role;
+
+        if ($role->id == 7) {
+            $data['conferences'] = $this->conference_model->getTeamsMeetings();
+        } else {
+            $data['conferences'] = $this->conference_model->getTeamsMeetings($data['logged_staff_id']);
+        }
+
+        $data['staffList'] = $this->staff_model->get();
+        $data['superadmin_visible'] = $this->customlib->superadmin_visible();
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/conference/teams_meeting', $data);
+        $this->load->view('layout/footer', $data);
+    }
+
+    public function addTeamsClass()
+    {
+        $response = array();
+        $this->form_validation->set_rules('title', $this->lang->line('class') . ' ' . $this->lang->line('title'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('date', $this->lang->line('date'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('cohort_id[]', $this->lang->line('cohort'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('duration', $this->lang->line('duration'), 'required|trim|xss_clean');
+
+        if ($this->form_validation->run() == false) {
+            $data = array(
+                'title' => form_error('title'),
+                'date' => form_error('date'),
+                'cohort_id' => form_error('cohort_id[]'),
+                'duration' => form_error('duration'),
+            );
+            $response = array('status' => 0, 'error' => $data);
+        } else {
+            $teams_settings = $this->zoomsetting_model->getTeamsSettings();
+            if (empty($teams_settings) || empty($teams_settings->teams_tenant_id)) {
+                $response = array('status' => 0, 'error' => array('Teams API credentials not configured. Please configure in Settings.'));
+            } else {
+                $params = array(
+                    'tenant_id' => $teams_settings->teams_tenant_id,
+                    'client_id' => $teams_settings->teams_client_id,
+                    'client_secret' => $teams_settings->teams_client_secret,
+                );
+                $this->load->library('teams_api', $params);
+
+                $meeting_data = array(
+                    'title' => $this->input->post('title'),
+                    'date' => date('Y-m-d H:i:s', $this->customlib->dateTimeformat($this->input->post('date'))),
+                    'duration' => $this->input->post('duration'),
+                    'organizer_id' => $teams_settings->teams_organizer_id,
+                    'timezone' => $this->customlib->getTimeZone(),
+                );
+
+                $teams_response = $this->teams_api->createMeeting($meeting_data);
+
+                if ($teams_response['status']) {
+                    $insert_array = array(
+                        'staff_id' => $this->customlib->getStaffID(),
+                        'title' => $this->input->post('title'),
+                        'date' => date('Y-m-d H:i:s', $this->customlib->dateTimeformat($this->input->post('date'))),
+                        'duration' => $this->input->post('duration'),
+                        'password' => '',
+                        'created_id' => $this->customlib->getStaffID(),
+                        'api_type' => 'global',
+                        'host_video' => 1,
+                        'client_video' => 1,
+                        'description' => $this->input->post('description'),
+                        'timezone' => $this->customlib->getTimeZone(),
+                        'platform' => 'teams',
+                        'purpose' => 'class',
+                        'tvet_module_id' => $this->input->post('tvet_module_id') ? $this->input->post('tvet_module_id') : null,
+                        'return_response' => json_encode($teams_response['data']),
+                    );
+                    $cohorts = $this->input->post('cohort_id[]');
+                    $result = $this->conference_model->addWithCohorts($insert_array, $cohorts);
+
+                    if ($result) {
+                        $response = array('status' => 1, 'message' => $this->lang->line('success_message'));
+                    } else {
+                        $response = array('status' => 0, 'error' => array('Failed to save conference record'));
+                    }
+                } else {
+                    $error_msg = isset($teams_response['message']) ? $teams_response['message'] : 'Failed to create Teams meeting';
+                    $response = array('status' => 0, 'error' => array($error_msg));
+                }
+            }
+        }
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode($response));
+    }
+
+    public function addTeamsMeeting()
+    {
+        $response = array();
+        $this->form_validation->set_rules('title', $this->lang->line('meeting') . ' ' . $this->lang->line('title'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('date', $this->lang->line('date'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('duration', $this->lang->line('duration'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('staff[]', $this->lang->line('staff'), 'required|trim|xss_clean');
+
+        if ($this->form_validation->run() == false) {
+            $data = array(
+                'title' => form_error('title'),
+                'date' => form_error('date'),
+                'duration' => form_error('duration'),
+                'staff[]' => form_error('staff[]'),
+            );
+            $response = array('status' => 0, 'error' => $data);
+        } else {
+            $teams_settings = $this->zoomsetting_model->getTeamsSettings();
+            if (empty($teams_settings) || empty($teams_settings->teams_tenant_id)) {
+                $response = array('status' => 0, 'error' => array('Teams API credentials not configured. Please configure in Settings.'));
+            } else {
+                $params = array(
+                    'tenant_id' => $teams_settings->teams_tenant_id,
+                    'client_id' => $teams_settings->teams_client_id,
+                    'client_secret' => $teams_settings->teams_client_secret,
+                );
+                $this->load->library('teams_api', $params);
+
+                $meeting_data = array(
+                    'title' => $this->input->post('title'),
+                    'date' => date('Y-m-d H:i:s', $this->customlib->dateTimeformat($this->input->post('date'))),
+                    'duration' => $this->input->post('duration'),
+                    'organizer_id' => $teams_settings->teams_organizer_id,
+                    'timezone' => $this->customlib->getTimeZone(),
+                );
+
+                $teams_response = $this->teams_api->createMeeting($meeting_data);
+
+                if ($teams_response['status']) {
+                    $insert_array = array(
+                        'title' => $this->input->post('title'),
+                        'date' => date('Y-m-d H:i:s', $this->customlib->dateTimeformat($this->input->post('date'))),
+                        'duration' => $this->input->post('duration'),
+                        'password' => '',
+                        'created_id' => $this->customlib->getStaffID(),
+                        'api_type' => 'global',
+                        'host_video' => 1,
+                        'client_video' => 1,
+                        'description' => $this->input->post('description'),
+                        'timezone' => $this->customlib->getTimeZone(),
+                        'platform' => 'teams',
+                        'purpose' => 'meeting',
+                        'return_response' => json_encode($teams_response['data']),
+                    );
+                    $staff = $this->input->post('staff[]');
+                    $this->conference_model->addmeeting($insert_array, $staff);
+
+                    $response = array('status' => 1, 'message' => $this->lang->line('success_message'));
+                } else {
+                    $error_msg = isset($teams_response['message']) ? $teams_response['message'] : 'Failed to create Teams meeting';
+                    $response = array('status' => 0, 'error' => array($error_msg));
+                }
+            }
+        }
+
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode($response));
+    }
+
+    public function deleteTeams($id)
+    {
+        $result = $this->conference_model->get($id);
+        if (empty($result)) {
+            $this->session->set_flashdata('msg', '<div class="alert alert-danger">Record not found.</div>');
+            redirect($_SERVER['HTTP_REFERER'], 'refresh');
+        }
+
+        $return_response = json_decode($result->return_response);
+        $api_delete_ok = true;
+        if (!empty($return_response->id)) {
+            $teams_settings = $this->zoomsetting_model->getTeamsSettings();
+            if (!empty($teams_settings) && !empty($teams_settings->teams_tenant_id)) {
+                $params = array(
+                    'tenant_id' => $teams_settings->teams_tenant_id,
+                    'client_id' => $teams_settings->teams_client_id,
+                    'client_secret' => $teams_settings->teams_client_secret,
+                );
+                $this->load->library('teams_api', $params);
+                $response = $this->teams_api->deleteMeeting($return_response->id, $teams_settings->teams_organizer_id);
+                if (isset($response['status']) && !$response['status']) {
+                    $api_delete_ok = false;
+                    $error_msg = isset($response['message']) ? $response['message'] : 'Failed to delete Teams meeting from API';
+                    $this->session->set_flashdata('msg', '<div class="alert alert-warning">' . $error_msg . ' <a href="' . base_url('admin/conference/deleteTeams/' . $id) . '">Force delete from application</a></div>');
+                }
+            }
+        }
+
+        if ($api_delete_ok) {
+            $this->conference_model->remove($id);
+            $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('delete_message') . '</div>');
+        }
+        redirect($_SERVER['HTTP_REFERER'], 'refresh');
+    }
+
+    public function getCohortsByLevel()
+    {
+        $level_id = $this->input->get('level_id');
+        $cohorts = $this->tvet_cohort_model->getByLevel($level_id);
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode($cohorts));
     }
 
 }

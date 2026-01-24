@@ -53,4 +53,24 @@ class Zoomsetting_model extends MY_Model
         }
     }
 
+    public function getTeamsSettings()
+    {
+        $this->db->select('teams_tenant_id, teams_client_id, teams_client_secret, teams_organizer_id');
+        $this->db->from('zoom_settings');
+        $query = $this->db->get();
+        return $query->row();
+    }
+
+    public function updateTeamsSettings($data)
+    {
+        $q = $this->db->get('zoom_settings');
+        if ($q->num_rows() > 0) {
+            $results = $q->row();
+            $this->db->where('id', $results->id);
+            $this->db->update('zoom_settings', $data);
+        } else {
+            $this->db->insert('zoom_settings', $data);
+        }
+    }
+
 }

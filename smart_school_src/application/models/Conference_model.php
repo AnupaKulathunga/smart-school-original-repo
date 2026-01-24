@@ -248,4 +248,90 @@ class Conference_model extends MY_Model {
        return $staffarray;
     }
 
+    // ==========================================
+    // TVET / Teams Integration Methods
+    // ==========================================
+
+    public function addWithCohorts($data, $cohorts)
+    {
+        $this->db->trans_start();
+        $this->db->trans_strict(false);
+        $data['session_id'] = $this->current_session;
+        $this->db->insert($this->table, $data);
+        $inserted_id = $this->db->insert_id();
+        if (!empty($cohorts)) {
+            $insert_cohorts = array();
+            foreach ($cohorts as $cohort_id) {
+                $insert_cohorts[] = array('conference_id' => $inserted_id, 'cohort_id' => $cohort_id);
+            }
+            $this->db->insert_batch('conference_cohorts', $insert_cohorts);
+        }
+        $message = INSERT_RECORD_CONSTANT . " On " . $this->table . " id " . $inserted_id;
+        $action = "Insert";
+        $record_id = $inserted_id;
+        $this->log($message, $record_id, $action);
+
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === false) {
+            $this->db->trans_rollback();
+            return false;
+        } else {
+            return $inserted_id;
+        }
+    }
+
+    public function getTeamsClasses($staff_id = null)
+    {
+        $this->db->select('conferences.*, create_by.name as create_by_name, create_by.surname as create_by_surname, create_by.employee_id as create_by_employee_id, create_by_role.name as create_by_role_name, staff_roles.role_id');
+        $this->db->from('conferences');
+        $this->db->join('staff as create_by', 'create_by.id = conferences.created_id');
+        $this->db->join('staff_roles', 'staff_roles.staff_id = create_by.id');
+        $this->db->join('roles as create_by_role', 'create_by_role.id = staff_roles.role_id');
+        $this->db->where('conferences.platform', 'teams');
+        $this->db->where('conferences.session_id', $this->current_session);
+        if (!empty($staff_id)) {
+            $this->db->where('conferences.created_id', $staff_id);
+        }
+        $this->db->order_by('conferences.date', 'DESC');
+        $query = $this->db->get();
+        if ($query->num_rows() > 0) {
+            $result = $query->result();
+            foreach ($result as $row) {
+                $row->cohorts = $this->getCohortsByConferenceID($row->id);
+            }
+            return $result;
+        }
+        return array();
+    }
+
+    public function getCohortsByConferenceID($conference_id)
+    {
+        $this->db->select('conference_cohorts.*, tvet_cohort.name as cohort_name, tvet_cohort.code as cohort_code, tvet_level.name as level_name, tvet_qualification.name as qualification_name');
+        $this->db->from('conference_cohorts');
+        $this->db->join('tvet_cohort', 'tvet_cohort.id = conference_cohorts.cohort_id');
+        $this->db->join('tvet_level', 'tvet_level.id = tvet_cohort.level_id');
+        $this->db->join('tvet_qualification', 'tvet_qualification.id = tvet_level.qualification_id');
+        $this->db->where('conference_cohorts.conference_id', $conference_id);
+        return $this->db->get()->result();
+    }
+
+    public function getTeamsMeetings($staff_id = null)
+    {
+        $this->db->select('conferences.*, create_by.name as create_by_name, create_by.surname as create_by_surname, create_by.employee_id as create_by_employee_id, create_by_role.name as create_by_role_name, staff_roles.role_id');
+        $this->db->from('conferences');
+        $this->db->join('staff as create_by', 'create_by.id = conferences.created_id');
+        $this->db->join('staff_roles', 'staff_roles.staff_id = create_by.id');
+        $this->db->join('roles as create_by_role', 'create_by_role.id = staff_roles.role_id');
+        $this->db->where('conferences.platform', 'teams');
+        $this->db->where('conferences.purpose', 'meeting');
+        if (!empty($staff_id)) {
+            $this->db->group_start();
+            $this->db->where('conferences.created_id', $staff_id);
+            $this->db->or_where('conferences.id IN (SELECT conference_id FROM conference_staff WHERE staff_id = ' . intval($staff_id) . ')', null, false);
+            $this->db->group_end();
+        }
+        $this->db->order_by('conferences.date', 'DESC');
+        return $this->db->get()->result();
+    }
+
 }
