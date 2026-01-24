@@ -1,6 +1,6 @@
 FROM php:8.1-apache
 
-# Install PHP extensions required by Smart School
+# Install PHP extensions and mysql-client required by Smart School
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     libonig-dev \
     libcurl4-openssl-dev \
+    default-mysql-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         mysqli \
@@ -38,8 +39,9 @@ RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini" \
     && sed -i 's/post_max_size = 8M/post_max_size = 64M/' "$PHP_INI_DIR/php.ini" \
     && sed -i 's/memory_limit = 128M/memory_limit = 256M/' "$PHP_INI_DIR/php.ini"
 
-# Copy custom entrypoint
+# Copy custom entrypoint and license generator
 COPY docker/docker-entrypoint.sh /usr/local/bin/custom-entrypoint.sh
+COPY docker/generate_license.php /usr/local/bin/generate_license.php
 RUN chmod +x /usr/local/bin/custom-entrypoint.sh
 
 # Set working directory
