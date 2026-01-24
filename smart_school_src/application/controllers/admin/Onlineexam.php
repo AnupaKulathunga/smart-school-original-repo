@@ -14,6 +14,7 @@ class Onlineexam extends Admin_Controller
         $this->sch_setting_detail = $this->setting_model->getSetting();
         $this->load->library('mailsmsconf');
         $this->load->library('media_storage');
+        $this->load->model('exam_moderation_model');
     }
 
     public function index()
@@ -106,6 +107,27 @@ class Onlineexam extends Admin_Controller
                     $download_btn = "";
                 }
 
+                $preview_btn = " <a href='" . base_url() . "admin/onlineexam/preview/" . $subject_value->id . "' data-toggle='tooltip' class='btn btn-default btn-xs' title='" . $this->lang->line('preview') . "'><i class='fa fa-eye'></i></a>";
+
+                // Moderation status badge
+                $moderation_badge = '';
+                if (isset($subject_value->moderation_status)) {
+                    switch ($subject_value->moderation_status) {
+                        case 'pending_moderation':
+                            $moderation_badge = " <span class='label label-warning'>" . $this->lang->line('pending') . "</span>";
+                            break;
+                        case 'approved':
+                            $moderation_badge = " <span class='label label-success'>" . $this->lang->line('approved') . "</span>";
+                            break;
+                        case 'rejected':
+                            $moderation_badge = " <span class='label label-danger'>" . $this->lang->line('rejected') . "</span>";
+                            break;
+                        case 'draft':
+                            $moderation_badge = " <span class='label label-default'>" . $this->lang->line('draft') . "</span>";
+                            break;
+                    }
+                }
+
                 if ($this->rbac->hasPrivilege('online_examination', 'can_edit')) {
                     $editbtn = " <button type='button' data-toggle='tooltip' class='btn btn-default btn-xs question-btn-edit' data-recordid=" . $subject_value->id . "  title='" . $this->lang->line('edit_exam') . "'  ><i class='fa fa fa-pencil'></i></button>";
                 }else{
@@ -131,7 +153,7 @@ class Onlineexam extends Admin_Controller
 
                 $row = array();
 
-                $row[]     = $title . $description;
+                $row[]     = $title . $description . $moderation_badge;
                 $row[]     = $is_quiz;
                 $row[]     = $descriptive_ques;
                 $row[]     = $subject_value->attempt;
@@ -141,7 +163,7 @@ class Onlineexam extends Admin_Controller
                 $row[]     = $is_active;
                 $row[]     = $publish_result;
                 $row[]     = $subject_value->description;
-                $row[]     = $download_btn . " " . $assign . " " . $addquestion_btn . " " . $editbtn . " " . $question_list . " " . $deletebtn;
+                $row[]     = $preview_btn . " " . $download_btn . " " . $assign . " " . $addquestion_btn . " " . $editbtn . " " . $question_list . " " . $deletebtn;
                 $dt_data[] = $row;
             }
         }
@@ -1229,6 +1251,145 @@ class Onlineexam extends Admin_Controller
 
             $array = array('status' => 1, 'error' => '', 'message' => $this->lang->line('delete_message'));
         }
+        echo json_encode($array);
+    }
+
+    // ==========================================
+    // Item 3: Exam Preview as Student
+    // ==========================================
+    public function preview($exam_id)
+    {
+        if (!$this->rbac->hasPrivilege('online_examination', 'can_view')) {
+            access_denied();
+        }
+        $this->session->set_userdata('top_menu', 'Online_Examinations');
+        $this->session->set_userdata('sub_menu', 'Online_Examinations/Onlineexam');
+
+        $data = array();
+        $exam = $this->onlineexam_model->getexamdetails($exam_id);
+        if (empty($exam)) {
+            redirect('admin/onlineexam');
+        }
+        $data['exam'] = $exam;
+        $data['questions'] = $this->onlineexam_model->getExamQuestions($exam_id, $exam->is_random_question);
+        $questionOpt = $this->customlib->getQuesOption();
+        $data['questionOpt'] = $questionOpt;
+        $data['question_true_false'] = $this->config->item('question_true_false');
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/onlineexam/preview', $data);
+        $this->load->view('layout/footer', $data);
+    }
+
+    // ==========================================
+    // Item 4: Exam Moderation Workflow
+    // ==========================================
+    public function submit_for_moderation($exam_id)
+    {
+        if (!$this->rbac->hasPrivilege('online_examination', 'can_edit')) {
+            access_denied();
+        }
+        $this->exam_moderation_model->updateExamStatus($exam_id, 'pending_moderation');
+        $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('success_message') . '</div>');
+        redirect('admin/onlineexam');
+    }
+
+    public function moderation()
+    {
+        if (!$this->rbac->hasPrivilege('exam_moderation', 'can_view')) {
+            access_denied();
+        }
+        $this->session->set_userdata('top_menu', 'Online_Examinations');
+        $this->session->set_userdata('sub_menu', 'Online_Examinations/moderation');
+
+        $data = array();
+        $data['pending_exams'] = $this->exam_moderation_model->getPendingExams();
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/onlineexam/moderation', $data);
+        $this->load->view('layout/footer', $data);
+    }
+
+    public function moderation_review($exam_id)
+    {
+        if (!$this->rbac->hasPrivilege('exam_moderation', 'can_view')) {
+            access_denied();
+        }
+        $this->session->set_userdata('top_menu', 'Online_Examinations');
+        $this->session->set_userdata('sub_menu', 'Online_Examinations/moderation');
+
+        $data = array();
+        $exam = $this->onlineexam_model->getexamdetails($exam_id);
+        if (empty($exam)) {
+            redirect('admin/onlineexam/moderation');
+        }
+        $data['exam'] = $exam;
+        $data['questions'] = $this->onlineexam_model->getExamQuestions($exam_id, $exam->is_random_question);
+        $data['comments'] = $this->exam_moderation_model->getCommentsByExam($exam_id);
+        $questionOpt = $this->customlib->getQuesOption();
+        $data['questionOpt'] = $questionOpt;
+        $data['question_true_false'] = $this->config->item('question_true_false');
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/onlineexam/moderation_review', $data);
+        $this->load->view('layout/footer', $data);
+    }
+
+    public function moderation_action()
+    {
+        if (!$this->rbac->hasPrivilege('exam_moderation', 'can_edit')) {
+            access_denied();
+        }
+
+        $exam_id = $this->input->post('exam_id');
+        $action = $this->input->post('action');
+        $comment = $this->input->post('comment');
+
+        $userdata = $this->customlib->getUserData();
+        $staff_id = $userdata['id'];
+
+        if (!empty($comment)) {
+            $comment_data = array(
+                'exam_id' => $exam_id,
+                'moderator_staff_id' => $staff_id,
+                'comment' => $comment,
+                'action' => $action,
+            );
+            $this->exam_moderation_model->addComment($comment_data);
+        }
+
+        if ($action == 'approve') {
+            $this->exam_moderation_model->updateExamStatus($exam_id, 'approved');
+        } elseif ($action == 'reject') {
+            $this->exam_moderation_model->updateExamStatus($exam_id, 'rejected');
+        }
+
+        $array = array('status' => 'success', 'message' => $this->lang->line('success_message'));
+        echo json_encode($array);
+    }
+
+    public function moderation_comment()
+    {
+        if (!$this->rbac->hasPrivilege('exam_moderation', 'can_view')) {
+            access_denied();
+        }
+
+        $exam_id = $this->input->post('exam_id');
+        $question_id = $this->input->post('question_id');
+        $comment = $this->input->post('comment');
+
+        $userdata = $this->customlib->getUserData();
+        $staff_id = $userdata['id'];
+
+        $comment_data = array(
+            'exam_id' => $exam_id,
+            'moderator_staff_id' => $staff_id,
+            'question_id' => $question_id,
+            'comment' => $comment,
+            'action' => 'comment',
+        );
+        $this->exam_moderation_model->addComment($comment_data);
+
+        $array = array('status' => 'success', 'message' => $this->lang->line('success_message'));
         echo json_encode($array);
     }
 

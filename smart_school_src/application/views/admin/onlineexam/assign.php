@@ -227,6 +227,9 @@ if ($student['onlineexam_student_session_id'] != 0) {
                         errorMsg(message);
                     } else {
                         successMsg(data.message);
+                        setTimeout(function(){
+                            window.location.href = "<?php echo site_url('admin/onlineexam'); ?>";
+                        }, 1500);
                     }
 
                     $this.button('reset');

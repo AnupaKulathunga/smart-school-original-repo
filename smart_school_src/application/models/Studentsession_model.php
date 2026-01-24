@@ -197,4 +197,22 @@ class Studentsession_model extends CI_Model
         return $query->row();
     }
 
+    public function searchStudentByKeyword($keyword, $session_id)
+    {
+        $this->db->select('student_session.id as student_session_id, students.firstname, students.lastname, students.admission_no, classes.class, sections.section');
+        $this->db->from('student_session');
+        $this->db->join('students', 'students.id = student_session.student_id');
+        $this->db->join('classes', 'classes.id = student_session.class_id');
+        $this->db->join('sections', 'sections.id = student_session.section_id');
+        $this->db->where('student_session.session_id', $session_id);
+        $this->db->group_start();
+        $this->db->like('students.firstname', $keyword);
+        $this->db->or_like('students.lastname', $keyword);
+        $this->db->or_like('students.admission_no', $keyword);
+        $this->db->group_end();
+        $this->db->limit(10);
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
 }

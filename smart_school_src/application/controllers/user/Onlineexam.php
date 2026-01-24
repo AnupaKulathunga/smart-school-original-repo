@@ -13,6 +13,7 @@ class Onlineexam extends Student_Controller
         $this->sch_setting_detail = $this->setting_model->getSetting();
         $this->config->load("mailsms");
         $this->load->library("datatables");
+        $this->load->model("student_accommodation_model");
     }
 
     public function index()
@@ -195,7 +196,17 @@ class Onlineexam extends Student_Controller
         $total_remaining_seconds = round((strtotime($exam->exam_to) - strtotime(date('Y-m-d H:i:s'))) / 3600 * 60 * 60, 1);
         $exam_duration           = ($total_remaining_seconds < getSecondsFromHMS($exam->duration)) ? getHMSFromSeconds($total_remaining_seconds) : $exam->duration;
 
-        echo json_encode(array('status' => 0, 'exam' => $exam, 'duration' => $exam_duration, 'page' => $pag_content, 'question_status' => $question_status, 'total_question' => count($data['questions'])));
+        // Apply disability/accessibility accommodations (extra time)
+        $extra_time_msg = '';
+        $extra_time_percent = $this->student_accommodation_model->getActiveExtraTime($student_session_id);
+        if ($extra_time_percent > 0) {
+            $duration_seconds = getSecondsFromHMS($exam_duration);
+            $extra_seconds = round($duration_seconds * ($extra_time_percent / 100));
+            $exam_duration = getHMSFromSeconds($duration_seconds + $extra_seconds);
+            $extra_time_msg = round($extra_seconds / 60) . ' ' . $this->lang->line('minutes');
+        }
+
+        echo json_encode(array('status' => 0, 'exam' => $exam, 'duration' => $exam_duration, 'page' => $pag_content, 'question_status' => $question_status, 'total_question' => count($data['questions']), 'extra_time_msg' => $extra_time_msg));
     }
 
     public function downloadattachment($doc)
