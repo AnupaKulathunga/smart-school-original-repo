@@ -50,7 +50,9 @@ class Tvet_lecturer_allocation_model extends CI_Model
         $this->db->join('tvet_level_module', 'tvet_level_module.id = tvet_lecturer_allocation.level_module_id');
         $this->db->where('tvet_lecturer_allocation.staff_id', $staff_id);
         $this->db->where('tvet_lecturer_allocation.active', 1);
-        $this->db->order_by('tvet_lecturer_allocation.academic_year DESC, tvet_cohort.name, tvet_level_module.module_name', 'ASC');
+        $this->db->order_by('tvet_lecturer_allocation.academic_year', 'DESC');
+        $this->db->order_by('tvet_cohort.name', 'ASC');
+        $this->db->order_by('tvet_level_module.module_name', 'ASC');
         return $this->db->get()->result_array();
     }
 

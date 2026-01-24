@@ -35,7 +35,7 @@ class Site extends Public_Controller
             if ($this->config->item('installed') == false && $this->config->item('migration_enabled') == false) {
                 redirect(base_url() . 'install/start');
             } else {
-                if (is_dir(APPPATH . 'controllers/install')) {
+                if (is_dir(APPPATH . 'controllers/install') && !file_exists(FCPATH . 'docker_installed.php')) {
                     echo '<h3>Delete the install folder from application/controllers/install</h3>';
                     die;
                 }

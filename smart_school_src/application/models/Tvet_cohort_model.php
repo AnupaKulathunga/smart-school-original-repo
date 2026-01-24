@@ -18,7 +18,11 @@ class Tvet_cohort_model extends CI_Model
         if ($active_only) {
             $this->db->where('tvet_cohort.active', 1);
         }
-        $this->db->order_by('tvet_programme.name, tvet_qualification.name, tvet_level.sequence, tvet_cohort.intake_year DESC, tvet_cohort.name', 'ASC');
+        $this->db->order_by('tvet_programme.name', 'ASC');
+        $this->db->order_by('tvet_qualification.name', 'ASC');
+        $this->db->order_by('tvet_level.sequence', 'ASC');
+        $this->db->order_by('tvet_cohort.intake_year', 'DESC');
+        $this->db->order_by('tvet_cohort.name', 'ASC');
         return $this->db->get()->result_array();
     }
 
@@ -31,7 +35,8 @@ class Tvet_cohort_model extends CI_Model
     {
         $this->db->where('level_id', $level_id);
         $this->db->where('active', 1);
-        $this->db->order_by('intake_year DESC, name', 'ASC');
+        $this->db->order_by('intake_year', 'DESC');
+        $this->db->order_by('name', 'ASC');
         return $this->db->get('tvet_cohort')->result_array();
     }
 

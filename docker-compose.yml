@@ -1,0 +1,57 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./smart_school_src:/var/www/html/smart_school_src
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html/smart_school_src
+    networks:
+      - smartschool
+
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password --sql-mode=""
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: smart_school
+      MYSQL_USER: smartschool
+      MYSQL_PASSWORD: smartschool123
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./smart_school_src/application/controllers/install/database.sql:/docker-entrypoint-initdb.d/01_database.sql
+      - ./smart_school_src/application/migrations/001_add_tvet_tables.sql:/docker-entrypoint-initdb.d/02_tvet_tables.sql
+      - ./docker/init/03_admin_user.sql:/docker-entrypoint-initdb.d/03_admin_user.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - smartschool
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: smartschool
+      PMA_PASSWORD: smartschool123
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - smartschool
+
+volumes:
+  db_data:
+
+networks:
+  smartschool:
