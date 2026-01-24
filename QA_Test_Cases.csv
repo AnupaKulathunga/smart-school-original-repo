@@ -1,0 +1,194 @@
+Test ID,Feature,Source,Section,Test Case,Steps,Expected Result,Actual Result,Status (PASS/FAIL),Notes
+,,,,,,,,
+,SECTION A: TVET CORE MODULE (Spec PDF - Milestone 1),,,,Login: admin@admin.com / Admin@123,,,
+,,,,,,,,
+A1.1,TVET Sidebar Menu,PDF Sec 6,Admin Sidebar,TVET Management menu visible with all sub-items,"1. Login as admin
+2. Check left sidebar for TVET Management","Menu visible with sub-items: Dashboard | Programmes | Qualifications | Levels | Cohorts | Module Mapping | Lecturer Allocation",,,
+A1.2,TVET Sidebar Menu,PDF Sec 6,Admin Sidebar,All TVET pages load without errors,"1. Click each sub-menu item one by one
+2. Verify no 404 or PHP errors","Each page loads correctly",,,
+,,,,,,,,
+A2.1,TVET Dashboard,PDF Sec 6,Dashboard,Dashboard shows TVET summary stats,"1. Click TVET Management > Dashboard","Summary cards for Programmes / Qualifications / Levels / Cohorts counts",,,
+,,,,,,,,
+A3.1,TVET Programmes,PDF Sec 4,Programme - List,Programme listing page loads,"1. Click TVET Management > Programmes","Table listing with Add button visible",,,
+A3.2,TVET Programmes,PDF Sec 4,Programme - Add,Add programme (NATED),"1. Click Add
+2. Name=NATED | Code=NATED | Description=National Accredited
+3. Save","Programme created and appears in listing",,,Test data from PDF Sec 8
+A3.3,TVET Programmes,PDF Sec 4,Programme - Add,Add programme (NCV),"1. Click Add
+2. Name=NC(V) | Code=NCV
+3. Save","Second programme created",,,
+A3.4,TVET Programmes,PDF Sec 4,Programme - Edit,Edit programme name,"1. Click Edit on NATED
+2. Change Description
+3. Save","Updated successfully",,,
+A3.5,TVET Programmes,PDF Sec 4,Programme - Delete,Delete programme with no children,"1. Create test programme
+2. Delete it","Removed from listing with success message",,,
+A3.6,TVET Programmes,PDF Sec 4,Programme - Validation,Submit empty programme form,"1. Click Add
+2. Leave fields empty
+3. Submit","Validation errors shown for required fields",,,
+,,,,,,,,
+A4.1,TVET Qualifications,PDF Sec 4,Qualification - List,Qualification listing with programme column,"1. Click Qualifications","Listing shows Programme column",,,
+A4.2,TVET Qualifications,PDF Sec 4,Qualification - Add,Add Business Management under NATED,"1. Click Add
+2. Programme=NATED
+3. Name=Business Management | Code=BM
+4. Save","Qualification linked to NATED programme",,,Test data from PDF Sec 8
+A4.3,TVET Qualifications,PDF Sec 4,Qualification - Add,Add Engineering Studies under NCV,"1. Click Add
+2. Programme=NC(V)
+3. Name=Engineering Studies | Code=ENG
+4. Save","Qualification linked to NCV programme",,,
+A4.4,TVET Qualifications,PDF Sec 4,Qualification - Cascade,Programme dropdown shows all programmes,"1. Open Add form
+2. Check Programme dropdown","Shows NATED and NC(V)",,,
+A4.5,TVET Qualifications,PDF Sec 4,Qualification - Edit,Edit qualification,"1. Edit Business Management
+2. Change code
+3. Save","Updated successfully",,,
+A4.6,TVET Qualifications,PDF Sec 4,Qualification - Delete,Delete qualification with no children,"1. Create test qualification
+2. Delete it","Removed from listing",,,
+,,,,,,,,
+A5.1,TVET Levels,PDF Sec 4,Level - List,Level listing with qualification column,"1. Click Levels","Listing shows Qualification and Programme columns",,,
+A5.2,TVET Levels,PDF Sec 4,Level - Add,Add N4 under Business Management,"1. Click Add
+2. Qualification=Business Management
+3. Name=N4 | Code=N4
+4. Save","Level linked to Business Management",,,Test data from PDF Sec 8
+A5.3,TVET Levels,PDF Sec 4,Level - Add,Add N5 level,"1. Click Add
+2. Qualification=Business Management
+3. Name=N5
+4. Save","Second level created",,,
+A5.4,TVET Levels,PDF Sec 4,Level - Cascade,Qualification dropdown populated,"1. Open Add form
+2. Check dropdown","Shows all qualifications",,,
+A5.5,TVET Levels,PDF Sec 4,Level - Edit,Edit level name,"1. Edit N4 level
+2. Change code
+3. Save","Updated successfully",,,
+A5.6,TVET Levels,PDF Sec 4,Level - Delete,Delete level with no children,"1. Create test level
+2. Delete it","Removed from listing",,,
+,,,,,,,,
+A6.1,TVET Cohorts,PDF Sec 4,Cohort - List,Cohort listing with level and qualification info,"1. Click Cohorts","Listing shows Level and Qualification columns",,,
+A6.2,TVET Cohorts,PDF Sec 4,Cohort - Add,Add Group A (2026) under N4,"1. Click Add
+2. Level=N4
+3. Name=Group A (2026 intake) | Code=BM-N4-A
+4. Save","Cohort linked to N4 level",,,Test data from PDF Sec 8
+A6.3,TVET Cohorts,PDF Sec 4,Cohort - Add,Add Evening cohort,"1. Click Add
+2. Level=N4
+3. Name=Evening | Code=BM-N4-EVE
+4. Save","Second cohort under same level",,,
+A6.4,TVET Cohorts,PDF Sec 4,Cohort - Cascade,Level dropdown populated,"1. Open Add form
+2. Check dropdown","Shows all levels (N4 / N5)",,,
+A6.5,TVET Cohorts,PDF Sec 4,Cohort - Edit,Edit cohort dates,"1. Edit Group A
+2. Change start/end dates
+3. Save","Updated successfully",,,
+A6.6,TVET Cohorts,PDF Sec 4,Cohort - Delete,Delete empty cohort,"1. Create test cohort
+2. Delete it","Removed from listing",,,
+A6.7,TVET Cohorts,PDF Appendix,Cohort - Roster,View student roster for cohort,"1. Click Roster/View on Group A cohort","Student list displayed (empty if no enrollments yet)",,,
+,,,,,,,,
+A7.1,Module Mapping,PDF Sec 4,Mapping - Page,Module mapping page loads,"1. Click Module Mapping","Page with level selection dropdown",,,
+A7.2,Module Mapping,PDF Sec 4,Mapping - Select Level,Select N4 and view available modules,"1. Select Level=N4
+2. Click Search","Available subjects/modules shown for mapping",,,
+A7.3,Module Mapping,PDF Sec 4,Mapping - Assign,"Map modules to N4 (e.g. BMN4 FMN4 MCN4 EBMN4)","1. Select modules from list
+2. Save mapping","Modules linked to N4 level successfully",,,Test data from PDF Sec 8
+,,,,,,,,
+A8.1,Lecturer Allocation,PDF Sec 4,Allocation - Page,Lecturer allocation page loads,"1. Click Lecturer Allocation","Page with allocation form and listing table",,,
+A8.2,Lecturer Allocation,PDF Sec 4,Allocation - Add,Allocate lecturer to cohort + module,"1. Select Cohort=Group A
+2. Select Module
+3. Select Staff member
+4. Save","Allocation created with success message",,,
+A8.3,Lecturer Allocation,PDF Sec 4,Allocation - List,View existing allocations,"1. Check allocation table","Shows: Lecturer | Cohort | Module | Programme",,,
+A8.4,Lecturer Allocation,PDF Sec 4,Allocation - Delete,Remove an allocation,"1. Click Delete on allocation
+2. Confirm","Removed from listing",,,
+,,,,,,,,
+,SECTION B: WORKSHOP REQUIREMENTS (Video Recording),,,,See transcript line references in Notes,,,
+,,,,,,,,
+B1.1,Content Category Filter,Video L41-90,Admin - Content List,Content type dropdown filter exists on admin listing,"1. Go to Admin > Content > Upload Content
+2. Look for Content Type dropdown above the listing","Dropdown shows all content types (study material / past paper / etc.)",,,Graham: 'must be dropped down to filter according to the category'
+B1.2,Content Category Filter,Video L89-90,Admin - Filter Action,Filter content by selecting a category,"1. Select 'Study Material' from Content Type dropdown
+2. Observe listing","Only study material items shown in listing",,,
+B1.3,Content Category Filter,Video L89-90,Admin - Filter Reset,Reset filter to show all,"1. Select blank/All option from dropdown","All content types shown again",,,
+,,,,,,,,
+B2.1,Content View Tracking,Video L121-129,Student - New Badge,Student sees NEW badge on unviewed content,"1. Login as student
+2. Go to Download Center/Content","Blue 'New' label badge on items not yet viewed",,,Graham: 'must be something that show this one they view it. This one is new'
+B2.2,Content View Tracking,Video L121-129,Student - Badge Disappears,Badge disappears after viewing/downloading,"1. Click to download a content item with New badge
+2. Go back to content list","New badge is gone for that item",,,
+B2.3,Content View Tracking,Video L121-129,Admin - View Count,Admin sees view count per content item,"1. Login as admin
+2. Check content listing","View count column shows number of student views",,,
+,,,,,,,,
+B3.1,Online Exam - Redirect After Assign,Video L199-209,Admin - Assign and Redirect,After assigning students redirect to exam listing,"1. Go to Online Exam > select an exam > Assign
+2. Select class/section > Search
+3. Check students > Save","Success message shown then redirects to Online Exam listing page",,,Graham: 'after you save it should come back so you can continue'
+,,,,,,,,
+B4.1,Online Exam Preview,Video L220-268,Admin - Preview Button,Preview button/icon exists on exam listing,"1. Go to Admin > Online Exam
+2. Look for Preview icon on an exam with questions","Preview icon/button visible",,,Graham: 'teacher must just see that quickly... switch view'
+B4.2,Online Exam Preview,Video L220-268,Admin - Preview Content,Preview shows exam as student sees it,"1. Click Preview on an exam
+2. Check display","Questions shown read-only with options and marks (disabled inputs)",,,Graham: 'see this examination for the child... if everything is in order'
+B4.3,Online Exam Preview,Video L236-253,Admin - No Submit,Preview cannot be submitted,"1. On preview page try to interact","All inputs disabled. No submit button. Read-only view",,,
+,,,,,,,,
+B5.1,Zip Upload Fix,Video L288-293,Admin - Upload Zip,Upload .zip file as content,"1. Go to Content > Upload Content
+2. Select a .zip file
+3. Fill fields and submit","Zip uploaded without MIME type error",,,Graham: 'zip file must not give a problem'
+B5.2,Zip Upload Fix,Video L288-293,Student - Download,Student downloads the zip file,"1. Login as student
+2. Find zip content
+3. Download","File downloads correctly and opens as valid zip",,,
+,,,,,,,,
+B6.1,Assignment Rename,Video L301-304,Admin - Labels,Homework section shows Assignment throughout,"1. Navigate to Homework/Assignment section in admin
+2. Check page title and all labels","All references show 'Assignment' not 'Homework'",,,Graham: 'change from homework to assignment'
+B6.2,Assignment Rename,Video L301-304,Student - Labels,Student portal shows Assignment,"1. Login as student
+2. Navigate to Assignment section","Page title and labels show 'Assignment'",,,
+,,,,,,,,
+B7.1,Exam Moderation,Video L375-414,Admin - Submit for Moderation,Submit exam paper for moderation,"1. Go to Online Exam
+2. Find exam in 'draft' status
+3. Submit for moderation","Status changes to 'pending_moderation'",,,Graham: 'questions must go through someone called a moderator'
+B7.2,Exam Moderation,Video L390-407,Admin - Moderation Review Page,Open moderation review for pending exam,"1. Click moderation/review link on pending exam","Review page shows all questions with comment fields and approve/reject buttons",,,Graham: 'check the overall paper'
+B7.3,Exam Moderation,Video L407,Admin - Add Comment,Add moderator comment on a question,"1. Type comment for a question
+2. Submit","Comment saved with moderator name and timestamp",,,Graham: 'approve a column if they approve that question or comment about it'
+B7.4,Exam Moderation,Video L407-411,Admin - Approve Paper,Approve the exam paper,"1. Click Approve on review page
+2. Confirm","Status changes to 'approved' - students can now write",,,Graham: 'this paper is now passed for it to be written by the class'
+B7.5,Exam Moderation,Video L407-411,Admin - Reject Paper,Reject the exam paper,"1. Click Reject with reason
+2. Confirm","Status changes to 'rejected' with reason recorded",,,
+,,,,,,,,
+B8.1,Student Accommodation,Video L416-442,Admin - Add Record,Add disability accommodation for student,"1. Go to Accommodation section
+2. Click Add
+3. Student | Type=extra_time | Percent=25%
+4. Save","Record created and visible in listing",,,Graham: 'if the student has got disability... rules that apply'
+B8.2,Student Accommodation,Video L436,Admin - Edit,Edit accommodation percentage,"1. Edit existing record
+2. Change percent to 50%
+3. Save","Updated successfully",,,
+B8.3,Student Accommodation,Video L436,Admin - Deactivate,Toggle accommodation active/inactive,"1. Toggle status to inactive","Record shows as inactive",,,
+B8.4,Student Accommodation,Video L436,Exam - Extra Time Applied,Accommodated student gets extra exam time,"1. Login as student with 25% extra_time accommodation
+2. Start a 30-minute online exam","Timer shows 37.5 minutes (30 + 25%)",,,Graham: 'examination is 30 minutes maybe the student must get 45 minutes'
+,,,,,,,,
+B9.1,Teams Integration,Video L444-456,Admin - Sidebar Menu,Teams Live Classes in sidebar (replaces Google Meet),"1. Check sidebar","'Teams Live Classes' menu with: Live Class | Live Meeting | Setting",,,Graham: 'instead of Google Meet we put Teams instead'
+B9.2,Teams Integration,Video L444-456,Admin - Settings Page,Teams settings form loads,"1. Click Teams Live Classes > Setting","Form fields: Tenant ID | Client ID | Client Secret | Organizer ID. Purple Teams branding",,,
+B9.3,Teams Integration,Video L444-456,Admin - Save Settings,Save Teams API credentials,"1. Enter test values in all 4 fields
+2. Click Save
+3. Refresh page","Values persist after reload",,,
+B9.4,Teams Integration,Video L444-456,Admin - Live Class Page,Live class listing page loads,"1. Click Teams > Live Class","Page with listing table and Create button",,,
+B9.5,Teams Integration,Video L444-456,Admin - Create Class Modal,Create modal uses TVET cohorts (not class/section),"1. Click Create button on Live Class page","Modal shows: Title | Date | Duration | TVET Cohort checkboxes grouped by Programme",,,TVET-aligned per spec
+B9.6,Teams Integration,Video L444-456,Admin - Submit Class,Submit create class form,"1. Fill Title/Date/Duration
+2. Select cohorts
+3. Submit","Success message if creds valid OR clear error message if invalid (no PHP crash)",,,
+B9.7,Teams Integration,Video L444-456,Admin - Live Meeting Page,Live meeting listing page loads,"1. Click Teams > Live Meeting","Page with listing table and Create button",,,
+B9.8,Teams Integration,Video L444-456,Admin - Create Meeting Modal,Create meeting modal shows staff list,"1. Click Create on Meeting page","Modal shows: Title | Date | Duration | Staff checkboxes",,,
+B9.9,Teams Integration,Video L444-456,Admin - Submit Meeting,Submit create meeting form,"1. Fill form
+2. Select staff
+3. Submit","Success or clear error message",,,
+B9.10,Teams Integration,Video L444-456,Admin - Delete Entry,Delete a Teams class/meeting,"1. Click Delete on an entry
+2. Confirm","Entry removed with success message. If API fails: warning with force-delete option",,,
+B9.11,Teams Integration,Video L444-456,Admin - Status Change,Change status of Teams entry,"1. Change status dropdown
+2. Submit","Status updated (awaiting/finished/cancelled)",,,
+,,,,,,,,
+,SECTION C: ADDITIONAL DEV FIXES,,,,,,,
+,,,,,,,,
+C1.1,Zoom API Error Handling,Dev Fix,Admin - Invalid Creds,Zoom meeting with bad API keys shows friendly error,"1. Set invalid Zoom API credentials
+2. Try creating a Live Class","User-friendly error message (not raw PHP exception)",,,
+C1.2,Zoom API Error Handling,Dev Fix,Admin - Empty Settings,Zoom meeting with no credentials configured,"1. Leave Zoom settings empty
+2. Try creating Live Class","Clear message: 'API credentials not configured'",,,
+C2.1,Content Sharing Fix,Dev Fix,Admin - Share,Share content to multiple class/sections works,"1. Admin > Content
+2. Share to multiple sections
+3. Save","Content shared successfully without errors",,,
+C2.2,Content Sharing Fix,Dev Fix,Student - View Shared,Student in shared section sees content,"1. Login as student in shared section
+2. Check content list","Shared content appears in list",,,
+,,,,,,,,
+,SECTION D: NOT IN CURRENT SCOPE (Future Phases),,,,,,,
+,,,,,,,,
+D1.1,TVET Student Enrolment,PDF Milestone 2,Future,Enrol students into Programme/Level/Cohort,NOT IMPLEMENTED - Future Phase,,,,Milestone 2
+D1.2,TVET Enrolment Status,PDF Milestone 2,Future,Active/Completed/Dropped/Suspended tracking,NOT IMPLEMENTED - Future Phase,,,,Milestone 2
+D2.1,TVET Timetable,PDF Milestone 3,Future,Timetable per Cohort + Module + Lecturer,NOT IMPLEMENTED - Future Phase,,,,Milestone 3
+D3.1,TVET Assessments,PDF Milestone 4,Future,Assessment types: Test/Practical/Exam/POE,NOT IMPLEMENTED - Future Phase,,,,Milestone 4
+D4.1,TVET Reports,PDF Milestone 5,Future,Transcript / Attendance / Schedule reports,NOT IMPLEMENTED - Future Phase,,,,Milestone 5
+D5.1,Content Category Nav (Student),Video L131-143,Future,Student-side category tabs/accordion for content,NOT IN CURRENT SCOPE - Filter exists on admin only,,,,Graham: 'categories must be easy for student to find'
+D5.2,Assignment Subject Grouping,Video L353-365,Future,Visual subject-based grouping on student assignments,PARTIALLY - Subject filter dropdown exists but no visual grouping,,,,Graham: 'overall we should categorize subject'
