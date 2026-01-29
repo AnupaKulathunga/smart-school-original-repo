@@ -21,7 +21,7 @@ if(isset($content->share_date) && strtotime(date('Y-m-d')) >= strtotime($content
     <div class="col-lg-4 col-md-4 col-sm-4"><label><?php echo $this->lang->line('valid_upto'); ?></label> : <?php echo $this->customlib->dateformat($content->valid_upto); ?></div>
 
     <?php if ($superadmin_restriction == 'enabled' || $content->role_id != 7) {?>
-        <div class="col-lg-4 col-md-4 col-sm-4"><label><?php echo $this->lang->line('shared_by'); ?></label> : <?php echo $this->customlib->getStaffFullName($content->name, $content->surname, $content->employee_id); ?></div>
+        <div class="col-lg-4 col-md-4 col-sm-4"><label><?php echo $this->lang->line('shared_by'); ?></label> : <?php echo $content->name . ' ' . $content->surname; ?></div>
 
     <?php }?>
 
