@@ -244,6 +244,25 @@ function findOption($questionOpt, $find)
                 </div>
 
                 </div>
+
+                <!-- Disability Accommodation Section -->
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" class="accommodate_disabled" name="accommodate_disabled" value="1">
+                                <strong><?php echo $this->lang->line('accommodate_disabled'); ?></strong>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 accommodate-settings" style="display: none;">
+                        <div class="form-group">
+                            <label><?php echo $this->lang->line('extra_time_for_disabled'); ?> (%)</label>
+                            <input type="number" name="disabled_extra_time_percent" class="form-control input-sm" value="25" min="0" max="200" style="width: 100px; display: inline-block;">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="form-group" >
@@ -669,6 +688,15 @@ $(document).on('submit','#delete_question',function(e) {
 
                         var chk_is_random_question=(data.result.is_random_question == 0)?false:true;
                         $('input[name=is_random_question]').prop('checked',chk_is_random_question);
+
+                        // Disability accommodation settings
+                        var chk_accommodate_disabled = (data.result.accommodate_disabled == 'yes') ? true : false;
+                        $('input[name=accommodate_disabled]').prop('checked', chk_accommodate_disabled);
+                        if (chk_accommodate_disabled) {
+                            $('.accommodate-settings').show();
+                        }
+                        $('input[name=disabled_extra_time_percent]').val(data.result.disabled_extra_time_percent || 25);
+
                         $('#myModal').modal('show');
                     }
                     $this.button('reset');
@@ -964,6 +992,15 @@ $(document).on('submit','#delete_question',function(e) {
         }else{
             $("input.publish_result").removeAttr("disabled");
             $("input#auto_publish_date").removeAttr("disabled");
+        }
+    });
+
+    // Toggle accommodation settings visibility
+    $(".accommodate_disabled").change(function() {
+        if(this.checked) {
+            $(".accommodate-settings").show();
+        } else {
+            $(".accommodate-settings").hide();
         }
     });
 </script>

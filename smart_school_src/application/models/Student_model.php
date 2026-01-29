@@ -165,7 +165,7 @@ class Student_model extends MY_Model
 
     public function getByStudentSession($student_session_id)
     {
-        $this->db->select('pickup_point.name as pickup_point_name,student_session.route_pickup_point_id,student_session.transport_fees,students.app_key,vehicle_routes.route_id,vehicle_routes.vehicle_id,transport_route.route_title,vehicles.vehicle_no,hostel_rooms.room_no,vehicles.driver_name,vehicles.driver_contact,hostel.id as `hostel_id`,hostel.hostel_name,room_types.id as `room_type_id`,room_types.room_type ,students.hostel_room_id,student_session.id as `student_session_id`,student_session.fees_discount,classes.id AS `class_id`,classes.class,sections.id AS `section_id`,sections.section,class_sections.id as `class_section_id`,students.id,students.admission_no, students.roll_no,students.admission_date,students.firstname,students.middlename,students.lastname,students.image,students.mobileno, students.email ,students.state,students.city,students.pincode,students.note, students.religion, students.cast, school_houses.house_name,students.dob ,students.current_address,students.previous_school,students.guardian_is,students.parent_id,          students.permanent_address,students.category_id,students.adhar_no,students.samagra_id,students.bank_account_no,students.bank_name, students.ifsc_code ,students.guardian_name ,students.father_pic ,students.height ,students.weight,students.measurement_date, students.mother_pic ,students.guardian_pic ,students.guardian_relation,students.guardian_phone,students.guardian_address,students.is_active ,students.created_at ,students.updated_at,students.father_name,students.father_phone,students.blood_group,students.school_house_id,students.father_occupation,students.mother_name,students.mother_phone,students.mother_occupation,students.guardian_occupation,students.gender,students.guardian_is,students.rte,students.guardian_email, users.username,users.password,students.dis_reason,students.dis_note,students.app_key,students.parent_app_key')->from('students');
+        $this->db->select('pickup_point.name as pickup_point_name,student_session.route_pickup_point_id,student_session.transport_fees,students.app_key,vehicle_routes.route_id,vehicle_routes.vehicle_id,transport_route.route_title,vehicles.vehicle_no,hostel_rooms.room_no,vehicles.driver_name,vehicles.driver_contact,hostel.id as `hostel_id`,hostel.hostel_name,room_types.id as `room_type_id`,room_types.room_type ,students.hostel_room_id,student_session.id as `student_session_id`,student_session.fees_discount,classes.id AS `class_id`,classes.class,sections.id AS `section_id`,sections.section,class_sections.id as `class_section_id`,students.id,students.admission_no, students.roll_no,students.admission_date,students.firstname,students.middlename,students.lastname,students.image,students.mobileno, students.email ,students.state,students.city,students.pincode,students.note, students.religion, students.cast, school_houses.house_name,students.dob ,students.current_address,students.previous_school,students.guardian_is,students.parent_id,          students.permanent_address,students.category_id,students.adhar_no,students.samagra_id,students.bank_account_no,students.bank_name, students.ifsc_code ,students.guardian_name ,students.father_pic ,students.height ,students.weight,students.measurement_date, students.mother_pic ,students.guardian_pic ,students.guardian_relation,students.guardian_phone,students.guardian_address,students.is_active ,students.created_at ,students.updated_at,students.father_name,students.father_phone,students.blood_group,students.school_house_id,students.father_occupation,students.mother_name,students.mother_phone,students.mother_occupation,students.guardian_occupation,students.gender,students.guardian_is,students.rte,students.guardian_email, users.username,users.password,students.dis_reason,students.dis_note,students.app_key,students.parent_app_key,students.is_disabled,students.disability_type_id,students.disability_details')->from('students');
         $this->db->join('student_session', 'student_session.student_id = students.id');
         $this->db->join('classes', 'student_session.class_id = classes.id');
         $this->db->join('sections', 'sections.id = student_session.section_id');
@@ -239,7 +239,7 @@ class Student_model extends MY_Model
 
     public function get($id = null)
     {
-        $this->db->select('pickup_point.name as pickup_point_name,student_session.route_pickup_point_id,student_session.transport_fees,students.app_key,students.parent_app_key,student_session.vehroute_id,vehicle_routes.route_id,vehicle_routes.vehicle_id,transport_route.route_title,vehicles.vehicle_no,hostel_rooms.room_no,vehicles.driver_name,vehicles.driver_contact,vehicles.vehicle_model,vehicles.manufacture_year,vehicles.driver_licence,vehicles.vehicle_photo,hostel.id as `hostel_id`,hostel.hostel_name,room_types.id as `room_type_id`,room_types.room_type ,students.hostel_room_id,student_session.id as `student_session_id`,student_session.fees_discount,classes.id AS `class_id`,classes.class,sections.id AS `section_id`,sections.section,students.id,students.admission_no,students.roll_no,students.admission_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.image,students.mobileno, students.email ,students.state,students.city,students.pincode,students.note,students.religion,students.cast, school_houses.house_name,students.dob,students.current_address,students.previous_school,students.guardian_is,students.parent_id,  students.permanent_address,students.category_id,students.adhar_no,students.samagra_id,students.bank_account_no,students.bank_name, students.ifsc_code,students.guardian_name,students.father_pic ,students.height,students.weight,students.measurement_date, students.mother_pic,students.guardian_pic,students.guardian_relation,students.guardian_phone,students.guardian_address,students.is_active ,students.created_at ,students.updated_at,students.father_name,students.father_phone,students.blood_group,students.school_house_id,students.father_occupation,students.mother_name,students.mother_phone,students.mother_occupation,students.guardian_occupation,students.gender,students.guardian_is,students.rte,students.guardian_email, users.username,users.password,users.id as user_id,students.dis_reason,students.dis_note,students.disable_at,students.about,students.designation,class_sections.id as `class_section_id`')->from('students');
+        $this->db->select('pickup_point.name as pickup_point_name,student_session.route_pickup_point_id,student_session.transport_fees,students.app_key,students.parent_app_key,student_session.vehroute_id,vehicle_routes.route_id,vehicle_routes.vehicle_id,transport_route.route_title,vehicles.vehicle_no,hostel_rooms.room_no,vehicles.driver_name,vehicles.driver_contact,vehicles.vehicle_model,vehicles.manufacture_year,vehicles.driver_licence,vehicles.vehicle_photo,hostel.id as `hostel_id`,hostel.hostel_name,room_types.id as `room_type_id`,room_types.room_type ,students.hostel_room_id,student_session.id as `student_session_id`,student_session.fees_discount,classes.id AS `class_id`,classes.class,sections.id AS `section_id`,sections.section,students.id,students.admission_no,students.roll_no,students.admission_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.image,students.mobileno, students.email ,students.state,students.city,students.pincode,students.note,students.religion,students.cast, school_houses.house_name,students.dob,students.current_address,students.previous_school,students.guardian_is,students.parent_id,  students.permanent_address,students.category_id,students.adhar_no,students.samagra_id,students.bank_account_no,students.bank_name, students.ifsc_code,students.guardian_name,students.father_pic ,students.height,students.weight,students.measurement_date, students.mother_pic,students.guardian_pic,students.guardian_relation,students.guardian_phone,students.guardian_address,students.is_active ,students.created_at ,students.updated_at,students.father_name,students.father_phone,students.blood_group,students.school_house_id,students.father_occupation,students.mother_name,students.mother_phone,students.mother_occupation,students.guardian_occupation,students.gender,students.guardian_is,students.rte,students.guardian_email, users.username,users.password,users.id as user_id,students.dis_reason,students.dis_note,students.disable_at,students.about,students.designation,class_sections.id as `class_section_id`,students.is_disabled,students.disability_type_id,students.disability_details,disability_types.name as disability_type_name')->from('students');
         $this->db->join('student_session', 'student_session.student_id = students.id');
         $this->db->join('classes', 'student_session.class_id = classes.id');
         $this->db->join('sections', 'sections.id = student_session.section_id');
@@ -254,6 +254,7 @@ class Student_model extends MY_Model
         $this->db->join('vehicles', 'vehicles.id = vehicle_routes.vehicle_id', 'left');
         $this->db->join('school_houses', 'school_houses.id = students.school_house_id', 'left');
         $this->db->join('users', 'users.user_id = students.id', 'left');
+        $this->db->join('disability_types', 'disability_types.id = students.disability_type_id', 'left');
         $this->db->where('student_session.session_id', $this->current_session);
         $this->db->where('users.role', 'student');
         if ($id != null) {
@@ -1577,6 +1578,66 @@ class Student_model extends MY_Model
             $result = array();
         }
         return $result;
+    }
+
+    /**
+     * Get students with disabilities by class and section
+     * This queries students where is_disabled = 'yes'
+     */
+    public function getDisabledStudentsByClassSection($class = null, $section = null, $disability_type_id = null)
+    {
+        $this->db->select('classes.id AS `class_id`,students.id,student_session.id as student_session_id,classes.class,sections.id AS `section_id`,sections.section,students.admission_no, students.roll_no,students.firstname,students.middlename,students.lastname,students.image,students.mobileno, students.email,students.dob,students.father_name,students.guardian_name,students.guardian_phone,students.is_active,students.gender,students.is_disabled,students.disability_type_id,students.disability_details,disability_types.name as disability_type_name,disability_types.default_extra_time_percent');
+        $this->db->from('students');
+        $this->db->join('student_session', 'student_session.student_id = students.id');
+        $this->db->join('classes', 'student_session.class_id = classes.id');
+        $this->db->join('sections', 'sections.id = student_session.section_id');
+        $this->db->join('disability_types', 'disability_types.id = students.disability_type_id', 'left');
+        $this->db->where('student_session.session_id', $this->current_session);
+        $this->db->where('students.is_active', 'yes');
+        $this->db->where('students.is_disabled', 'yes');
+        if ($class != null) {
+            $this->db->where('student_session.class_id', $class);
+        }
+        if ($section != null) {
+            $this->db->where('student_session.section_id', $section);
+        }
+        if ($disability_type_id != null) {
+            $this->db->where('students.disability_type_id', $disability_type_id);
+        }
+        $this->db->order_by('students.id', 'desc');
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * Get students with disabilities by full text search
+     */
+    public function getDisabledStudentsFullText($searchterm)
+    {
+        $this->db->select('classes.id AS `class_id`,students.id,student_session.id as student_session_id,classes.class,sections.id AS `section_id`,sections.section,students.admission_no, students.roll_no,students.firstname,students.middlename,students.lastname,students.image,students.mobileno, students.email,students.dob,students.father_name,students.guardian_name,students.guardian_phone,students.is_active,students.gender,students.is_disabled,students.disability_type_id,students.disability_details,disability_types.name as disability_type_name,disability_types.default_extra_time_percent');
+        $this->db->from('students');
+        $this->db->join('student_session', 'student_session.student_id = students.id');
+        $this->db->join('classes', 'student_session.class_id = classes.id');
+        $this->db->join('sections', 'sections.id = student_session.section_id');
+        $this->db->join('disability_types', 'disability_types.id = students.disability_type_id', 'left');
+        $this->db->where('student_session.session_id', $this->current_session);
+        $this->db->where('students.is_active', 'yes');
+        $this->db->where('students.is_disabled', 'yes');
+        $this->db->group_start();
+        $this->db->like('students.firstname', $searchterm);
+        $this->db->or_like('students.middlename', $searchterm);
+        $this->db->or_like('students.lastname', $searchterm);
+        $this->db->or_like('students.admission_no', $searchterm);
+        $this->db->or_like('students.mobileno', $searchterm);
+        $this->db->or_like('students.father_name', $searchterm);
+        $this->db->or_like('students.guardian_name', $searchterm);
+        $this->db->or_like('disability_types.name', $searchterm);
+        $this->db->group_end();
+        $this->db->order_by('students.id', 'desc');
+
+        $query = $this->db->get();
+        return $query->result_array();
     }
 
     public function getClassSection($id)

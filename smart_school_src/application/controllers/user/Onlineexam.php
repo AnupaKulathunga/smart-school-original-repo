@@ -13,7 +13,6 @@ class Onlineexam extends Student_Controller
         $this->sch_setting_detail = $this->setting_model->getSetting();
         $this->config->load("mailsms");
         $this->load->library("datatables");
-        $this->load->model("student_accommodation_model");
     }
 
     public function index()
@@ -44,6 +43,24 @@ class Onlineexam extends Student_Controller
         $exam                        = $this->onlineexam_model->getexamdetails($id);
         $data['exam']                = $exam;
         $data['student']             = $student;
+
+        // Calculate adjusted duration for disabled students
+        $adjusted_duration = $exam->duration;
+        $extra_time_message = '';
+        if (isset($exam->accommodate_disabled) && $exam->accommodate_disabled == 'yes') {
+            if (isset($student['is_disabled']) && $student['is_disabled'] == 'yes') {
+                $extra_percent = isset($exam->disabled_extra_time_percent) ? intval($exam->disabled_extra_time_percent) : 25;
+                if ($extra_percent > 0) {
+                    $duration_seconds = getSecondsFromHMS($exam->duration);
+                    $extra_seconds = round($duration_seconds * ($extra_percent / 100));
+                    $adjusted_duration = getHMSFromSeconds($duration_seconds + $extra_seconds);
+                    $extra_time_message = $this->lang->line('you_have_been_granted') . ' ' . round($extra_seconds / 60) . ' ' . $this->lang->line('minutes') . ' ' . $this->lang->line('extra_time');
+                }
+            }
+        }
+        $data['adjusted_duration'] = $adjusted_duration;
+        $data['extra_time_message'] = $extra_time_message;
+
         $questionOpt                 = $this->customlib->getQuesOption();
         $data['questionOpt']         = $questionOpt;
         if (!empty($online_exam_validate)) {
@@ -196,17 +213,33 @@ class Onlineexam extends Student_Controller
         $total_remaining_seconds = round((strtotime($exam->exam_to) - strtotime(date('Y-m-d H:i:s'))) / 3600 * 60 * 60, 1);
         $exam_duration           = ($total_remaining_seconds < getSecondsFromHMS($exam->duration)) ? getHMSFromSeconds($total_remaining_seconds) : $exam->duration;
 
-        // Apply disability/accessibility accommodations (extra time)
-        $extra_time_msg = '';
-        $extra_time_percent = $this->student_accommodation_model->getActiveExtraTime($student_session_id);
-        if ($extra_time_percent > 0) {
-            $duration_seconds = getSecondsFromHMS($exam_duration);
-            $extra_seconds = round($duration_seconds * ($extra_time_percent / 100));
-            $exam_duration = getHMSFromSeconds($duration_seconds + $extra_seconds);
-            $extra_time_msg = round($extra_seconds / 60) . ' ' . $this->lang->line('minutes');
+        // Apply extra time for disabled students if exam has accommodation enabled
+        $extra_time_message = '';
+        if (isset($exam->accommodate_disabled) && $exam->accommodate_disabled == 'yes') {
+            // Check if student is disabled
+            $student = $this->student_model->getByStudentSession($student_session_id);
+            if (isset($student['is_disabled']) && $student['is_disabled'] == 'yes') {
+                $extra_percent = isset($exam->disabled_extra_time_percent) ? intval($exam->disabled_extra_time_percent) : 25;
+
+                // Get disability type default if student has one and exam doesn't specify
+                if ($extra_percent == 0 && !empty($student['disability_type_id'])) {
+                    $this->load->model('disability_type_model');
+                    $disability_type = $this->disability_type_model->get($student['disability_type_id']);
+                    if ($disability_type) {
+                        $extra_percent = $disability_type->default_extra_time_percent;
+                    }
+                }
+
+                if ($extra_percent > 0) {
+                    $duration_seconds = getSecondsFromHMS($exam_duration);
+                    $extra_seconds = round($duration_seconds * ($extra_percent / 100));
+                    $exam_duration = getHMSFromSeconds($duration_seconds + $extra_seconds);
+                    $extra_time_message = round($extra_seconds / 60) . ' ' . $this->lang->line('minutes') . ' ' . $this->lang->line('extra_time');
+                }
+            }
         }
 
-        echo json_encode(array('status' => 0, 'exam' => $exam, 'duration' => $exam_duration, 'page' => $pag_content, 'question_status' => $question_status, 'total_question' => count($data['questions']), 'extra_time_msg' => $extra_time_msg));
+        echo json_encode(array('status' => 0, 'exam' => $exam, 'duration' => $exam_duration, 'page' => $pag_content, 'question_status' => $question_status, 'total_question' => count($data['questions']), 'extra_time_message' => $extra_time_message));
     }
 
     public function downloadattachment($doc)
@@ -225,6 +258,11 @@ class Onlineexam extends Student_Controller
         $questionList          = $this->onlineexam_model->getstudentexamlist($student_session_id);
         $m                     = json_decode($questionList);
         $currency_symbol       = $this->customlib->getSchoolCurrencyFormat();
+
+        // Get student disability status for accommodation calculation
+        $student = $this->student_model->getByStudentSession($student_session_id);
+        $is_disabled_student = isset($student['is_disabled']) && $student['is_disabled'] == 'yes';
+
         $dt_data               = array();
         if (!empty($m->data)) {
             foreach ($m->data as $key => $value) {
@@ -247,12 +285,23 @@ class Onlineexam extends Student_Controller
 
                 $viewbtn = " <a href=" . base_url() . 'user/onlineexam/view/' . $value->id . " class='btn btn-default btn-xs' data-toggle='tooltip'  title=" . $this->lang->line('view') . " '   ><i class='fa fa fa-eye'></i></a>";
 
+                // Calculate adjusted duration for disabled students
+                $display_duration = $value->duration;
+                if ($is_disabled_student && isset($value->accommodate_disabled) && $value->accommodate_disabled == 'yes') {
+                    $extra_percent = isset($value->disabled_extra_time_percent) ? intval($value->disabled_extra_time_percent) : 25;
+                    if ($extra_percent > 0) {
+                        $duration_seconds = getSecondsFromHMS($value->duration);
+                        $extra_seconds = round($duration_seconds * ($extra_percent / 100));
+                        $display_duration = getHMSFromSeconds($duration_seconds + $extra_seconds);
+                    }
+                }
+
                 $row   = array();
                 $row[] = $title . $description;
                 $row[] = $is_quiz;
                 $row[] = $this->customlib->dateyyyymmddToDateTimeformat($value->exam_from, false);
                 $row[] = $this->customlib->dateyyyymmddToDateTimeformat($value->exam_to, false);
-                $row[] = $value->duration;
+                $row[] = $display_duration;
                 $row[] = $value->attempt;
                 $row[] = $value->counter;
 
@@ -283,6 +332,11 @@ class Onlineexam extends Student_Controller
         $questionList          = $this->onlineexam_model->getstudentclosedexamlist($student_session_id);
         $m                     = json_decode($questionList);
         $currency_symbol       = $this->customlib->getSchoolCurrencyFormat();
+
+        // Get student disability status for accommodation calculation
+        $student = $this->student_model->getByStudentSession($student_session_id);
+        $is_disabled_student = isset($student['is_disabled']) && $student['is_disabled'] == 'yes';
+
         $dt_data               = array();
         if (!empty($m->data)) {
             foreach ($m->data as $key => $value) {
@@ -304,12 +358,24 @@ class Onlineexam extends Student_Controller
                 }
 
                 $viewbtn = " <a href=" . base_url() . 'user/onlineexam/view/' . $value->id . " class='btn btn-default btn-xs' data-toggle='tooltip'  title=" . $this->lang->line('view') . " '   ><i class='fa fa fa-eye'></i></a>";
+
+                // Calculate adjusted duration for disabled students
+                $display_duration = $value->duration;
+                if ($is_disabled_student && isset($value->accommodate_disabled) && $value->accommodate_disabled == 'yes') {
+                    $extra_percent = isset($value->disabled_extra_time_percent) ? intval($value->disabled_extra_time_percent) : 25;
+                    if ($extra_percent > 0) {
+                        $duration_seconds = getSecondsFromHMS($value->duration);
+                        $extra_seconds = round($duration_seconds * ($extra_percent / 100));
+                        $display_duration = getHMSFromSeconds($duration_seconds + $extra_seconds);
+                    }
+                }
+
                 $row     = array();
                 $row[]   = $title . $description;
                 $row[]   = $is_quiz;
                 $row[]   = $this->customlib->dateyyyymmddToDateTimeformat($value->exam_from, false);
                 $row[]   = $this->customlib->dateyyyymmddToDateTimeformat($value->exam_to, false);
-                $row[]   = $value->duration;
+                $row[]   = $display_duration;
                 $row[]   = $value->attempt;
                 $row[]   = $value->counter;
 

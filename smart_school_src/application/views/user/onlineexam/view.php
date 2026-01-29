@@ -133,7 +133,11 @@ if (($exam->auto_publish_date != "0000-00-00" && $exam->auto_publish_date != "" 
 }
     ?>
                                  <dt class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><?php echo $this->lang->line('duration') ?></dt>
-                                 <dd class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><?php echo $exam->duration; ?></dd>
+                                 <dd class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><?php echo isset($adjusted_duration) ? $adjusted_duration : $exam->duration; ?></dd>
+<?php if (!empty($extra_time_message)) { ?>
+                                 <dt class="col-sm-6 col-xs-12 col-md-6 col-lg-6"></dt>
+                                 <dd class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><span class="badge badge-success"><?php echo $extra_time_message; ?></span></dd>
+<?php } ?>
                                    <dt class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><?php echo $this->lang->line('answer_word_limit') ?></dt>
                                  <dd class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><?php echo ($exam->answer_word_count == "-1") ? $this->lang->line('no_limit') : $exam->answer_word_count; ?></dd>
                                  <dt class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><?php echo $this->lang->line('passing') ?>   (%)</dt>

@@ -444,6 +444,10 @@ class Student extends Admin_Controller
 
         $custom_fields           = $this->customfield_model->getByBelong('students');
 
+        // Load disability types
+        $this->load->model('disability_type_model');
+        $data['disability_types'] = $this->disability_type_model->getActive();
+
         foreach ($custom_fields as $custom_fields_key => $custom_fields_value) {
             if ($custom_fields_value['validation']) {
                 $custom_fields_id   = $custom_fields_value['id'];
@@ -451,7 +455,7 @@ class Student extends Admin_Controller
                 $this->form_validation->set_rules("custom_fields[students][" . $custom_fields_id . "]", $custom_fields_name, 'trim|required');
             }
         }
-		
+
         // $resource_params = ['resource' => 'no_of_student'];
         // $storage_params = [
             // 'resource' => 'storage',
@@ -597,8 +601,11 @@ class Student extends Admin_Controller
 						'hostel_room_id'    => $hostel_room_id,
 						'note'              => $this->input->post('note'),
 						'is_active'         => 'yes',
+						'is_disabled'       => $this->input->post('is_disabled') ? $this->input->post('is_disabled') : 'no',
+						'disability_type_id' => $this->input->post('is_disabled') == 'yes' ? $this->input->post('disability_type_id') : null,
+						'disability_details' => $this->input->post('is_disabled') == 'yes' ? $this->input->post('disability_details') : null,
 					);
-		
+
 					if ($this->sch_setting_detail->guardian_occupation) {
 						$data_insert['guardian_occupation'] = $this->input->post('guardian_occupation');
 					}
@@ -1402,6 +1409,10 @@ class Student extends Admin_Controller
         $custom_fields              = $this->customfield_model->getByBelong('students');
         $data['sch_setting']        = $this->sch_setting_detail;
 
+        // Load disability types
+        $this->load->model('disability_type_model');
+        $data['disability_types']   = $this->disability_type_model->getActive();
+
         //***fees discount***//
         $data['student_fees_discount']  = $this->feediscount_model->getStudentFeesDiscount($student['student_session_id']); //edit
         $feesdiscount_result            = $this->feediscount_model->get();
@@ -1542,6 +1553,18 @@ class Student extends Admin_Controller
                 'note'              => $this->input->post('note'),
                 'is_active'         => 'yes',
             );
+
+            // Add disability fields
+            $is_disabled = $this->input->post('is_disabled');
+            $data['is_disabled'] = $is_disabled ? $is_disabled : 'no';
+            if ($is_disabled == 'yes') {
+                $data['disability_type_id'] = $this->input->post('disability_type_id') ? $this->input->post('disability_type_id') : null;
+                $data['disability_details'] = $this->input->post('disability_details');
+            } else {
+                $data['disability_type_id'] = null;
+                $data['disability_details'] = null;
+            }
+
             if ($this->sch_setting_detail->guardian_occupation) {
                 $data['guardian_occupation'] = $this->input->post('guardian_occupation');
             }

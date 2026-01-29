@@ -937,6 +937,61 @@ echo set_value('rte') == "no" ? "checked" : "";
 <?php }?>
                                             </div>
                                         </div>
+
+                                        <!-- Disability Information Section -->
+                                        <div class="tshadow bozero">
+                                            <h4 class="pagetitleh2"><?php echo $this->lang->line('disability_information'); ?></h4>
+                                            <div class="row around10">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label><?php echo $this->lang->line('has_disability'); ?></label>
+                                                        <div>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" name="is_disabled" value="no" <?php echo set_value('is_disabled', 'no') == 'no' ? 'checked' : ''; ?> onchange="toggleDisabilityFields()"> <?php echo $this->lang->line('no'); ?>
+                                                            </label>
+                                                            <label class="radio-inline">
+                                                                <input type="radio" name="is_disabled" value="yes" <?php echo set_value('is_disabled') == 'yes' ? 'checked' : ''; ?> onchange="toggleDisabilityFields()"> <?php echo $this->lang->line('yes'); ?>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 disability-fields" style="display: none;">
+                                                    <div class="form-group">
+                                                        <label><?php echo $this->lang->line('disability_type'); ?></label>
+                                                        <select name="disability_type_id" id="disability_type_id" class="form-control">
+                                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
+                                                            <?php
+                                                            $this->load->model('disability_type_model');
+                                                            $disability_types = $this->disability_type_model->getActive();
+                                                            foreach ($disability_types as $dt) { ?>
+                                                                <option value="<?php echo $dt->id; ?>" <?php echo set_value('disability_type_id') == $dt->id ? 'selected' : ''; ?>><?php echo $dt->name; ?> (<?php echo $dt->default_extra_time_percent; ?>% extra time)</option>
+                                                            <?php } ?>
+                                                        </select>
+                                                        <span class="text-danger"><?php echo form_error('disability_type_id'); ?></span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 disability-fields" style="display: none;">
+                                                    <div class="form-group">
+                                                        <label><?php echo $this->lang->line('disability_details'); ?></label>
+                                                        <textarea name="disability_details" class="form-control" rows="2" placeholder="<?php echo $this->lang->line('disability_details'); ?>"><?php echo set_value('disability_details'); ?></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <script>
+                                        function toggleDisabilityFields() {
+                                            var isDisabled = $('input[name="is_disabled"]:checked').val();
+                                            if (isDisabled === 'yes') {
+                                                $('.disability-fields').show();
+                                            } else {
+                                                $('.disability-fields').hide();
+                                            }
+                                        }
+                                        $(document).ready(function() {
+                                            toggleDisabilityFields();
+                                        });
+                                        </script>
+
                                         <div id='upload_documents_hide_show'>
 <?php if ($sch_setting->upload_documents) {?>
                                                 <div class="row">

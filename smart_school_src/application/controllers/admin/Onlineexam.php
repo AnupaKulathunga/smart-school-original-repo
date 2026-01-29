@@ -813,6 +813,17 @@ class Onlineexam extends Admin_Controller
             if (isset($_POST['is_random_question'])) {
                 $is_random_question = 1;
             }
+
+            // Disability accommodation settings
+            $accommodate_disabled = 'no';
+            $disabled_extra_time_percent = 25;
+            if (isset($_POST['accommodate_disabled'])) {
+                $accommodate_disabled = 'yes';
+                $disabled_extra_time_percent = intval($this->input->post('disabled_extra_time_percent'));
+                if ($disabled_extra_time_percent < 0) $disabled_extra_time_percent = 0;
+                if ($disabled_extra_time_percent > 200) $disabled_extra_time_percent = 200;
+            }
+
             if (isset($_POST['auto_publish_date']) && $_POST['auto_publish_date'] != "") {
 
                 $auto_publish_date = date('Y-m-d H:i:s', $this->customlib->dateTimeformatTwentyfourhour($this->input->post('auto_publish_date'), false));
@@ -836,6 +847,8 @@ class Onlineexam extends Admin_Controller
                 'is_neg_marking'     => $is_neg_marking,
                 'is_random_question' => $is_random_question,
                 'passing_percentage' => $this->input->post('passing_percentage'),
+                'accommodate_disabled' => $accommodate_disabled,
+                'disabled_extra_time_percent' => $disabled_extra_time_percent,
             );
             if (isset($_POST['is_quiz']) && $_POST['is_quiz'] != "") {
                 $insert_data['publish_result']    = 0;

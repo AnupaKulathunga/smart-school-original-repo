@@ -805,6 +805,57 @@ $currency_symbol = $admin_session['currency_symbol'];
                                     </table>
                                 </div>
                             </div>
+
+                            <!-- Disability Information Section -->
+                            <div class="tshadow mb25 bozero">
+                                <h3 class="pagetitleh2"><?php echo $this->lang->line('disability_information'); ?></h3>
+                                <div class="table-responsive around10 pt0">
+                                    <table class="table3 table-hover table-striped tmb0">
+                                        <tbody>
+                                            <tr>
+                                                <td width="35%"><?php echo $this->lang->line('has_disability'); ?></td>
+                                                <td class="col-md-5">
+                                                    <?php
+                                                    if (isset($student['is_disabled']) && $student['is_disabled'] == 'yes') {
+                                                        echo '<span class="label label-warning">' . $this->lang->line('yes') . '</span>';
+                                                    } else {
+                                                        echo '<span class="label label-success">' . $this->lang->line('no') . '</span>';
+                                                    }
+                                                    ?>
+                                                </td>
+                                            </tr>
+                                            <?php if (isset($student['is_disabled']) && $student['is_disabled'] == 'yes') { ?>
+                                            <tr>
+                                                <td><?php echo $this->lang->line('disability_type'); ?></td>
+                                                <td>
+                                                    <?php
+                                                    if (!empty($student['disability_type_name'])) {
+                                                        echo $student['disability_type_name'];
+                                                    } else {
+                                                        echo '-';
+                                                    }
+                                                    ?>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><?php echo $this->lang->line('disability_details'); ?></td>
+                                                <td>
+                                                    <?php
+                                                    if (!empty($student['disability_details'])) {
+                                                        echo $student['disability_details'];
+                                                    } else {
+                                                        echo '-';
+                                                    }
+                                                    ?>
+                                                </td>
+                                            </tr>
+                                            <?php } ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <!-- End Disability Information Section -->
+
                         </div>
 
                         <?php if ($this->module_lib->hasModule('behaviour_records')) {

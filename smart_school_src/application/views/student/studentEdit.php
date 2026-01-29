@@ -998,6 +998,43 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Disability Information Section -->
+                            <div class="tshadow bozero">
+                                <h3 class="pagetitleh2"><?php echo $this->lang->line('disability_information'); ?></h3>
+                                <div class="around10">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label><?php echo $this->lang->line('has_disability'); ?></label>
+                                                <div class="radio" style="margin-top: 2px;">
+                                                    <label><input class="radio-inline" type="radio" name="is_disabled" value="yes" onclick="toggleDisabilityFields()" <?php echo (isset($student['is_disabled']) && $student['is_disabled'] == 'yes') ? 'checked' : ''; ?>><?php echo $this->lang->line('yes'); ?></label>
+                                                    <label><input class="radio-inline" type="radio" name="is_disabled" value="no" onclick="toggleDisabilityFields()" <?php echo (!isset($student['is_disabled']) || $student['is_disabled'] == 'no') ? 'checked' : ''; ?>><?php echo $this->lang->line('no'); ?></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4" id="disability_type_field" style="<?php echo (isset($student['is_disabled']) && $student['is_disabled'] == 'yes') ? '' : 'display:none;'; ?>">
+                                            <div class="form-group">
+                                                <label><?php echo $this->lang->line('disability_type'); ?></label>
+                                                <select name="disability_type_id" class="form-control">
+                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
+                                                    <?php if (isset($disability_types) && !empty($disability_types)) { foreach ($disability_types as $dtype) { ?>
+                                                    <option value="<?php echo $dtype->id; ?>" <?php echo (isset($student['disability_type_id']) && $student['disability_type_id'] == $dtype->id) ? 'selected' : ''; ?>><?php echo $dtype->name; ?></option>
+                                                    <?php } } ?>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4" id="disability_details_field" style="<?php echo (isset($student['is_disabled']) && $student['is_disabled'] == 'yes') ? '' : 'display:none;'; ?>">
+                                            <div class="form-group">
+                                                <label><?php echo $this->lang->line('disability_details'); ?></label>
+                                                <textarea class="form-control" rows="2" name="disability_details"><?php echo isset($student['disability_details']) ? $student['disability_details'] : ''; ?></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End Disability Information Section -->
+
                             <div class="box-footer pr0 pb0">
                                 <button type="submit" id="submitbtn" class="btn btn-info pull-right"><?php echo $this->lang->line('save'); ?></button>
                             </div>
@@ -1010,6 +1047,17 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
 </div>
 
 <script type="text/javascript">
+
+    function toggleDisabilityFields() {
+        var isDisabled = $('input[name="is_disabled"]:checked').val();
+        if (isDisabled === 'yes') {
+            $('#disability_type_field').show();
+            $('#disability_details_field').show();
+        } else {
+            $('#disability_type_field').hide();
+            $('#disability_details_field').hide();
+        }
+    }
 
     $(document).ready(function () {
         var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';

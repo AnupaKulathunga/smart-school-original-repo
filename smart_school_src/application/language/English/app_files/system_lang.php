@@ -2503,3 +2503,28 @@ $lang['all_subjects'] = "All Subjects";
 $lang['select_subject'] = "Select Subject";
 $lang['content_subject'] = "Content Subject";
 $lang['share_to_cohort'] = "Share to Cohort";
+
+#Disability Support
+$lang['disability_types'] = "Disability Types";
+$lang['disability_type'] = "Disability Type";
+$lang['add_disability_type'] = "Add Disability Type";
+$lang['edit_disability_type'] = "Edit Disability Type";
+$lang['disability_type_list'] = "Disability Type List";
+$lang['disability_types_list'] = "Disability Types List";
+$lang['disabled_students_report'] = "Disabled Students Report";
+$lang['disabled_students_list'] = "Disabled Students List";
+$lang['students_with_disabilities'] = "Students with Disabilities";
+$lang['students_with_disabilities_list'] = "Students with Disabilities List";
+$lang['default_extra_time'] = "Default Extra Time";
+$lang['extra_time_help'] = "Percentage of additional time granted for exams (e.g., 25 = 25% extra time)";
+$lang['cannot_delete_type_in_use'] = "Cannot delete: This disability type is assigned to students";
+$lang['disability_information'] = "Disability Information";
+$lang['has_disability'] = "Has Disability";
+$lang['disability_details'] = "Disability Details";
+$lang['accommodate_disabled'] = "Accommodate Disabled Students";
+$lang['accommodate_disabled_help'] = "If enabled, students marked as disabled will receive extra time for this exam";
+$lang['extra_time_for_disabled'] = "Extra Time for Disabled";
+$lang['you_have_been_granted_extra_time'] = "You have been granted extra time due to your registered accommodation";
+$lang['you_have_been_granted'] = "You have been granted";
+$lang['select_disability_type'] = "Select Disability Type";
+$lang['no_details'] = "No details provided";
