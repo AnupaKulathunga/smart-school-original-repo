@@ -32,7 +32,15 @@
                 <?php } ?>
             </select>
         </div>
-        <div class="col-lg-6 col-md-6 col-sm-4 col-xs-4 pt5">
+        <div class="col-lg-2 col-md-2 col-sm-4 col-xs-4">
+            <select id="subject_filter" class="form-control input-sm">
+                <option value=""><?php echo $this->lang->line('all'); ?> <?php echo $this->lang->line('subjects'); ?></option>
+                <?php if(isset($subjects) && !empty($subjects)) foreach ($subjects as $subject) { ?>
+                    <option value="<?php echo $subject['id']; ?>"><?php echo $subject['name']; ?></option>
+                <?php } ?>
+            </select>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 pt5">
             <div class="pull-right">
                 <div class="btn-group">
                     <button class="btn btn-default btn-sm" title="<?php echo $this->lang->line('list_view'); ?>" id="list">
@@ -156,6 +164,19 @@ foreach ($content_types as $content_type_key => $content_type_value) {
 }
 ?>
                            </select>
+                      </div>
+            </div>
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                   <div class="form-group">
+                        <label><?php echo $this->lang->line('subject'); ?></label>
+                        <select name="subject_id" class="form-control select2">
+                            <option value=""><?php echo $this->lang->line('select'); ?></option>
+                            <?php if(isset($subjects) && !empty($subjects)) foreach ($subjects as $subject) { ?>
+                                <option value="<?php echo $subject['id']; ?>">
+                                    <?php echo $subject['name']; ?> (<?php echo $subject['code']; ?>)
+                                </option>
+                            <?php } ?>
+                        </select>
                       </div>
             </div>
          </div>
@@ -979,6 +1000,11 @@ var app = {
                 _this.ajax_get_items_pagination(1);
             });
 
+            /* Subject filter */
+            $(document).on('change', '#subject_filter', function(){
+                _this.ajax_get_items_pagination(1);
+            });
+
             $(document).on('click', '.pagination-nav .pagination li.unactive', function(){
                 var page = $(this).attr('p');
                 _this.ajax_get_items_pagination(page);
@@ -996,6 +1022,7 @@ var app = {
                     search: $('.post_search_text').val(),
                     grid:_grid_view,
                     content_type_id: $('#content_type_filter').val(),
+                    subject_id: $('#subject_filter').val(),
                 };
 
                 $('form.post-list input').val(JSON.stringify(post_data));

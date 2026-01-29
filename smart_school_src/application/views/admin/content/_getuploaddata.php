@@ -113,9 +113,10 @@
                     <th width="30">#</th>
                     <th width="30"><?php echo $this->lang->line('document'); ?></th>
                     <th width="30"><?php echo $this->lang->line('content_type'); ?></th>
+                    <th width="30"><?php echo $this->lang->line('subject'); ?></th>
                     <th width="30"><?php echo $this->lang->line('size'); ?></th>
                     <th width="30"><?php echo $this->lang->line('upload_by'); ?></th>
-                    <th width="30" class="pull-right"><?php echo $this->lang->line('created_on'); ?></th>    
+                    <th width="30" class="pull-right"><?php echo $this->lang->line('created_on'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -172,6 +173,7 @@
                         <?php echo ($content_value->file_type == "video") ? "<a href=" . $content_value->vid_url . " target='_blank'>" . $content_value->vid_title . "</a>" : "<a href='javascript:void(0);'>" . $content_value->real_name . "</a>" ?>
                     </td>
                     <td><?php echo $content_value->content_type; ?></td>
+                    <td><?php echo isset($content_value->subject_name) && $content_value->subject_name ? $content_value->subject_name : '-'; ?></td>
                     <td><?php echo ($content_value->file_type == "video") ? $this->lang->line('n_a') : format_file_size($content_value->file_size); ?></td>
                     <td><?php echo $this->customlib->getStaffFullName($content_value->staff_name,$content_value->surname,$content_value->employee_id);  ?></td>                
                     <td  class="pull-right"><?php echo $this->customlib->dateyyyymmddToDateTimeformat($content_value->created_at); ?></td>

@@ -20,11 +20,13 @@ class Uploadcontent_model extends MY_Model
      */
     public function get($id = null)
     {
-        $this->db->select()->from('upload_contents');
+        $this->db->select('upload_contents.*, subjects.name as subject_name, subjects.code as subject_code');
+        $this->db->from('upload_contents');
+        $this->db->join('subjects', 'subjects.id = upload_contents.subject_id', 'left');
         if ($id != null) {
-            $this->db->where('id', $id);
+            $this->db->where('upload_contents.id', $id);
         } else {
-            $this->db->order_by('id');
+            $this->db->order_by('upload_contents.id');
         }
         $query = $this->db->get();
         if ($id != null) {
@@ -176,12 +178,12 @@ class Uploadcontent_model extends MY_Model
         }
     }
      
-    public function getlimitwithsearch($staff_id, $limit = null, $start = null, $where_condition = array(), $content_type_id = null)
+    public function getlimitwithsearch($staff_id, $limit = null, $start = null, $where_condition = array(), $content_type_id = null, $subject_id = null)
     {
 
         $getStaffRole = $this->customlib->getStaffRole();
         $staffrole    = json_decode($getStaffRole);
-        $query        = $this->db->select('upload_contents.*,staff.name as `staff_name`,staff.surname as `surname`,staff.employee_id as `employee_id`,content_types.name as `content_type`');
+        $query        = $this->db->select('upload_contents.*, staff.name as `staff_name`, staff.surname as `surname`, staff.employee_id as `employee_id`, content_types.name as `content_type`, subjects.name as subject_name, subjects.code as subject_code');
         if (!empty($where_condition)) {
             $query->group_start(); // Open bracket
             $query->like('img_name', $where_condition['search']);
@@ -191,10 +193,13 @@ class Uploadcontent_model extends MY_Model
             $query->or_like('staff.name', $where_condition['search']);
             $query->or_like('staff.surname', $where_condition['search']);
             $query->or_like('staff.employee_id', $where_condition['search']);
+            $query->or_like('subjects.name', $where_condition['search']);
+            $query->or_like('subjects.code', $where_condition['search']);
             $query->group_end(); // Close bracket
         }
         $query->join('staff', 'staff.id=upload_contents.upload_by');
         $query->join('content_types', 'content_types.id=upload_contents.content_type_id');
+        $query->join('subjects', 'subjects.id = upload_contents.subject_id', 'left');
         $query->from('upload_contents');
 
         if ($staffrole->id != "7") {
@@ -205,13 +210,17 @@ class Uploadcontent_model extends MY_Model
             $query->where('upload_contents.content_type_id', $content_type_id);
         }
 
+        if (!empty($subject_id)) {
+            $query->where('upload_contents.subject_id', $subject_id);
+        }
+
         $num_rows = $query->count_all_results('', false);
 
         if (!is_null($limit) && !is_null($start)) {
             $query->limit($limit, $start);
         }
 
-        $query->order_by("id", "desc");
+        $query->order_by("upload_contents.id", "desc");
         $query = $query->get();
         return ['count' => $num_rows, 'total_rows' => $query->result()];
 

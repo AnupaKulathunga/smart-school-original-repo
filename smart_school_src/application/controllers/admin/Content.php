@@ -11,8 +11,8 @@ class Content extends Admin_Controller
     {
         parent::__construct();
         $this->load->library('Enc_lib');
-        $this->load->library('media_storage'); 
-        $this->load->model(array('contenttype_model', 'uploadcontent_model', 'sharecontent_model'));
+        $this->load->library('media_storage');
+        $this->load->model(array('contenttype_model', 'uploadcontent_model', 'sharecontent_model', 'subject_model', 'tvet_cohort_model'));
     }
 
     function list() {
@@ -32,6 +32,7 @@ class Content extends Admin_Controller
         $data['content_types']          = $content_types;
         $data['superadmin_restriction'] = $this->customlib->superadmin_visible();
         $data['branch_url']             = $this->customlib->getBaseUrl();
+        $data['cohorts']                = $this->tvet_cohort_model->getAll();
         $this->load->view('layout/header');
         $this->load->view('admin/content/list', $data);
         $this->load->view('layout/footer');
@@ -56,7 +57,8 @@ class Content extends Admin_Controller
         $content_types                  = $this->contenttype_model->get();
         $data['content_types']          = $content_types;
         $data['superadmin_restriction'] = $this->customlib->superadmin_visible();
-        $data['branch_url']=$this->customlib->getBaseUrl();
+        $data['branch_url']             = $this->customlib->getBaseUrl();
+        $data['subjects']               = $this->subject_model->get();
         $this->load->view('layout/header');
         $this->load->view('admin/content/upload', $data);
         $this->load->view('layout/footer');
@@ -102,8 +104,13 @@ class Content extends Admin_Controller
                 $content_type_id = $_POST['data']['content_type_id'];
             }
 
+            $subject_id = null;
+            if (!empty($_POST['data']['subject_id'])) {
+                $subject_id = $_POST['data']['subject_id'];
+            }
+
             /* Retrieve all the posts */
-            $contents = $this->uploadcontent_model->getlimitwithsearch($staff_id, $per_page, $start, $where_search, $content_type_id);
+            $contents = $this->uploadcontent_model->getlimitwithsearch($staff_id, $per_page, $start, $where_search, $content_type_id, $subject_id);
 
             $data['all_contents'] = $contents['total_rows'];
 
@@ -232,6 +239,7 @@ class Content extends Admin_Controller
                                 'thumb_path'      => $value['thumb_path'],
                                 'dir_path'        => $value['dir_path'],
                                 'content_type_id' => $this->input->post('content_type'),
+                                'subject_id'      => $this->input->post('subject_id') ?: null,
                                 'upload_by'       => $this->customlib->getStaffID(),
                                 'created_at'      => date('Y-m-d H:i:s'),
                             );
@@ -297,6 +305,7 @@ class Content extends Admin_Controller
                             'thumb_path'      => $upload_response->thumb_path,
                             'dir_path'        => $upload_response->dir_path,
                             'content_type_id' => $this->input->post('content_type'),
+                            'subject_id'      => $this->input->post('subject_id') ?: null,
                             'upload_by'       => $this->customlib->getStaffID(),
                             'created_at'      => date('Y-m-d H:i:s'),
                         );
@@ -391,6 +400,12 @@ class Content extends Admin_Controller
             if (!isset($class_sections)) {
                 $this->form_validation->set_rules('class_sections', $this->lang->line('section'), 'required|trim|xss_clean');
             }
+        } elseif ($send_to == "cohort") {
+
+            $cohort_ids = $this->input->post('cohort_id');
+            if (!isset($cohort_ids)) {
+                $this->form_validation->set_rules('cohort_ids', $this->lang->line('cohort'), 'required|trim|xss_clean');
+            }
         }
 
         if ($this->form_validation->run() == false) {
@@ -400,6 +415,7 @@ class Content extends Admin_Controller
                 'send_to'             => form_error('send_to'),
                 'groups'              => form_error('groups'),
                 'class_sections'      => form_error('class_sections'),
+                'cohort_ids'          => form_error('cohort_ids'),
                 'users_array'         => form_error('users_array'),
                 'selected_contents[]' => form_error('selected_contents[]'),
             );
@@ -482,6 +498,14 @@ class Content extends Admin_Controller
                 foreach ($class_sections as $class_section_key => $class_section_value) {
                     $insert_content_for[] = array(
                         'class_section_id' => $class_section_value,
+                        'share_content_id' => 0,
+                    );
+                }
+            } elseif ($insert_data['send_to'] == "cohort") {
+                $cohort_ids = $this->input->post('cohort_id');
+                foreach ($cohort_ids as $cohort_key => $cohort_value) {
+                    $insert_content_for[] = array(
+                        'cohort_id'        => $cohort_value,
                         'share_content_id' => 0,
                     );
                 }
