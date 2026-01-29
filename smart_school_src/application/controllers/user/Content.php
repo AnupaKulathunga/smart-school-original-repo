@@ -12,7 +12,7 @@ class Content extends Student_Controller
         parent::__construct();
         $this->load->library('media_storage');
         $this->load->library('enc_lib');
-        $this->load->model(array('contenttype_model', 'uploadcontent_model', 'sharecontent_model', 'content_view_model'));
+        $this->load->model(array('contenttype_model', 'uploadcontent_model', 'sharecontent_model', 'content_view_model', 'tvet_student_enrolment_model'));
     }
 
     function list() {
@@ -20,7 +20,18 @@ class Content extends Student_Controller
         $this->session->set_userdata('top_menu', 'Downloads');
         $this->session->set_userdata('sub_menu', 'content/index');
         $data = array();
-        $this->load->view('layout/student/header');
+        $data['role'] = $this->customlib->getUserRole();
+
+        // Load content types for filter dropdown
+        $data['content_types'] = $this->contenttype_model->get();
+
+        // Load all subjects for the filter dropdown (simple query for student view)
+        $this->db->select('id, name, code');
+        $this->db->from('subjects');
+        $this->db->where('is_active', 'yes');
+        $this->db->order_by('name', 'ASC');
+        $data['subjects'] = $this->db->get()->result_array();
+        $this->load->view('layout/student/header', $data);
         $this->load->view('user/content/list', $data);
         $this->load->view('layout/student/footer');
 
@@ -30,13 +41,34 @@ class Content extends Student_Controller
     {
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $role                  = $this->customlib->getUserRole();
+        $subject_id            = $this->input->post('subject_id');
+        $content_type_id       = $this->input->post('content_type_id');
+
+        // Get student's TVET cohort IDs if enrolled
+        $cohort_ids = array();
+        if (isset($this->tvet_student_enrolment_model)) {
+            $student_id = $this->customlib->getStudentSessionUserID();
+            $cohort_ids = $this->tvet_student_enrolment_model->getStudentCohortIds($student_id);
+        }
+
         if ($role == "student") {
-
-            $m = $this->sharecontent_model->getStudentsharelist($this->customlib->getStudentSessionUserID(), $student_current_class->class_id, $student_current_class->section_id);
-
+            $m = $this->sharecontent_model->getStudentsharelist(
+                $this->customlib->getStudentSessionUserID(),
+                $student_current_class->class_id,
+                $student_current_class->section_id,
+                $cohort_ids,
+                $subject_id,
+                $content_type_id
+            );
         } elseif ($role == "parent") {
-
-            $m = $this->sharecontent_model->getParentsharelist($this->customlib->getUsersID(), $student_current_class->class_id, $student_current_class->section_id);
+            $m = $this->sharecontent_model->getParentsharelist(
+                $this->customlib->getUsersID(),
+                $student_current_class->class_id,
+                $student_current_class->section_id,
+                $cohort_ids,
+                $subject_id,
+                $content_type_id
+            );
         }
 
         $superadmin_visible =    $this->Setting_model->get();
@@ -56,6 +88,24 @@ class Content extends Student_Controller
                 }
                 $row       = array();
                 $row[]     = $title;
+
+                // Content type column
+                $content_type_display = '';
+                if (isset($value->content_type_name) && !empty($value->content_type_name)) {
+                    $content_type_display = $value->content_type_name;
+                }
+                $row[]     = $content_type_display;
+
+                // Subject column
+                $subject_display = '';
+                if (isset($value->subject_name) && !empty($value->subject_name)) {
+                    $subject_display = $value->subject_name;
+                    if (isset($value->subject_code) && !empty($value->subject_code)) {
+                        $subject_display .= ' (' . $value->subject_code . ')';
+                    }
+                }
+                $row[]     = $subject_display;
+
                 $viewbtn   = "<a href='" . site_url('user/content/view/') . $value->id . "'   class='btn btn-default btn-xs'  data-toggle='tooltip' title='" . $this->lang->line('view') . "'><i class='fa fa-eye'></i></a>";
                 $row[]     = $this->customlib->dateformat($value->share_date);
                 $row[]     = $this->customlib->dateformat($value->valid_upto);
@@ -63,7 +113,8 @@ class Content extends Student_Controller
                 if($superadmin_restriction == 'disabled' && $value->role_id == 7){
                         $row[]     =  '';
                 }else{
-                        $row[]     = $value->name .' '. $value->surname . ' (' . $value->employee_id . ')';
+                        // Only show name for students - don't expose employee IDs
+                        $row[]     = $value->name .' '. $value->surname;
                 }
 
                 $row[]     = $viewbtn;
@@ -84,6 +135,7 @@ class Content extends Student_Controller
     {
         $data['title']      = 'Upload Content';
         $data['title_list'] = 'Upload Content List';
+        $data['role'] = $this->customlib->getUserRole();
         $data['content']    = $this->sharecontent_model->getShareContentWithDocuments($id);
         $superadmin_visible =    $this->Setting_model->get();
         $data['superadmin_restriction'] =   $superadmin_visible[0]['superadmin_restriction'];
@@ -93,7 +145,7 @@ class Content extends Student_Controller
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $this->content_view_model->trackView($id, $student_current_class->student_session_id);
 
-        $this->load->view('layout/student/header');
+        $this->load->view('layout/student/header', $data);
         $this->load->view('user/content/view', $data);
         $this->load->view('layout/student/footer');
     }
@@ -122,13 +174,14 @@ class Content extends Student_Controller
     {
         $data['title']      = 'Upload Content';
         $data['title_list'] = 'Upload Content List';
+        $data['role'] = $this->customlib->getUserRole();
         $list               = $this->content_model->get();
         $data['list']       = $list;
         $ght                = $this->customlib->getcontenttype();
         $data['ght']        = $ght;
         $class              = $this->class_model->get();
         $data['classlist']  = $class;
-        $this->load->view('layout/student/header');
+        $this->load->view('layout/student/header', $data);
         $this->load->view('user/content/createcontent', $data);
         $this->load->view('layout/student/footer');
     }
@@ -146,10 +199,11 @@ class Content extends Student_Controller
         $student_id            = $this->customlib->getStudentSessionUserID();
         $student               = $this->student_model->get($student_id);
         $data['title_list']    = 'List of Assignment';
+        $data['role'] = $this->customlib->getUserRole();
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $list                  = $this->content_model->getListByCategoryforUser($student_current_class->class_id, $student_current_class->section_id, "assignments");
         $data['list']          = $list;
-        $this->load->view('layout/student/header');
+        $this->load->view('layout/student/header', $data);
         $this->load->view('user/content/assignment', $data);
         $this->load->view('layout/student/footer');
     }
@@ -161,10 +215,11 @@ class Content extends Student_Controller
         $student_id            = $this->customlib->getStudentSessionUserID();
         $student               = $this->student_model->get($student_id);
         $data['title_list']    = 'List of Assignment';
+        $data['role'] = $this->customlib->getUserRole();
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $list                  = $this->content_model->getListByCategoryforUser($student_current_class->class_id, $student_current_class->section_id, "study_material");
         $data['list']          = $list;
-        $this->load->view('layout/student/header');
+        $this->load->view('layout/student/header', $data);
         $this->load->view('user/content/studymaterial', $data);
         $this->load->view('layout/student/footer');
     }
@@ -176,10 +231,11 @@ class Content extends Student_Controller
         $student_id            = $this->customlib->getStudentSessionUserID();
         $student               = $this->student_model->get($student_id);
         $data['title_list']    = 'List of Syllabus';
+        $data['role'] = $this->customlib->getUserRole();
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $list                  = $this->content_model->getListByCategoryforUser($student_current_class->class_id, $student_current_class->section_id, "syllabus");
         $data['list']          = $list;
-        $this->load->view('layout/student/header');
+        $this->load->view('layout/student/header', $data);
         $this->load->view('user/content/syllabus', $data);
         $this->load->view('layout/student/footer');
     }
@@ -191,10 +247,11 @@ class Content extends Student_Controller
         $student_id            = $this->customlib->getStudentSessionUserID();
         $student               = $this->student_model->get($student_id);
         $data['title_list']    = 'List of Other Download';
+        $data['role'] = $this->customlib->getUserRole();
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $list                  = $this->content_model->getListByCategoryforUser($student_current_class->class_id, $student_current_class->section_id, "other_download");
         $data['list']          = $list;
-        $this->load->view('layout/student/header');
+        $this->load->view('layout/student/header', $data);
         $this->load->view('user/content/other', $data);
         $this->load->view('layout/student/footer');
     }

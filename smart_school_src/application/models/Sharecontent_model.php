@@ -198,26 +198,68 @@ class Sharecontent_model extends MY_Model
           return $query->result();
     }
 
-    public function getStudentsharelist($student_id,$class_id,$section_id)
+    public function getStudentsharelist($student_id, $class_id, $section_id, $cohort_ids = array(), $subject_id = null, $content_type_id = null)
     {
-        $sql="SELECT `share_contents`.*, `staff`.`name`, `staff`.`surname`, `staff`.`employee_id`, staff_roles.role_id FROM `share_contents` JOIN `staff` ON `share_contents`.`created_by` = `staff`.`id` JOIN `staff_roles` ON `staff_roles`.`staff_id` = `staff`.`id` WHERE share_contents.id in (SELECT share_content_id FROM `share_content_for` WHERE group_id ='student' or student_id='".$student_id."' or class_section_id=(SELECT class_sections.id from class_sections WHERE class_sections.class_id='".$class_id."' and class_sections.section_id='".$section_id."'))";      
+        // Build cohort condition if cohort_ids provided
+        $cohort_condition = '';
+        if (!empty($cohort_ids) && is_array($cohort_ids)) {
+            $escaped_cohort_ids = array_map(function($id) {
+                return $this->db->escape($id);
+            }, $cohort_ids);
+            $cohort_condition = " or cohort_id IN (" . implode(',', $escaped_cohort_ids) . ")";
+        }
+
+        // Build subject filter condition
+        $subject_condition = '';
+        if (!empty($subject_id)) {
+            $subject_condition = " AND share_contents.id IN (SELECT share_upload_contents.share_content_id FROM share_upload_contents JOIN upload_contents ON upload_contents.id = share_upload_contents.upload_content_id WHERE upload_contents.subject_id = " . $this->db->escape($subject_id) . ")";
+        }
+
+        // Build content type filter condition
+        $content_type_condition = '';
+        if (!empty($content_type_id)) {
+            $content_type_condition = " AND share_contents.id IN (SELECT share_upload_contents.share_content_id FROM share_upload_contents JOIN upload_contents ON upload_contents.id = share_upload_contents.upload_content_id WHERE upload_contents.content_type_id = " . $this->db->escape($content_type_id) . ")";
+        }
+
+        $sql="SELECT `share_contents`.*, `staff`.`name`, `staff`.`surname`, `staff`.`employee_id`, staff_roles.role_id, (SELECT subjects.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_name, (SELECT subjects.code FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_code, (SELECT content_types.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN content_types ON content_types.id = uc.content_type_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as content_type_name FROM `share_contents` JOIN `staff` ON `share_contents`.`created_by` = `staff`.`id` JOIN `staff_roles` ON `staff_roles`.`staff_id` = `staff`.`id` WHERE share_contents.id in (SELECT share_content_id FROM `share_content_for` WHERE group_id ='student' or student_id='".$this->db->escape_str($student_id)."' or class_section_id=(SELECT class_sections.id from class_sections WHERE class_sections.class_id='".$this->db->escape_str($class_id)."' and class_sections.section_id='".$this->db->escape_str($section_id)."')".$cohort_condition.")" . $subject_condition . $content_type_condition;
         $this->datatables->query($sql)
         ->sort('share_contents.id', 'desc')
         ->searchable('title,send_to,share_date,valid_upto,description,staff.name,staff.surname')
-        ->orderable('title,share_date,valid_upto,staff.name,staff.surname')            
-        ->query_where_enable(TRUE);       
-        return $this->datatables->generate('json');  
+        ->orderable('title,share_date,valid_upto,staff.name,staff.surname')
+        ->query_where_enable(TRUE);
+        return $this->datatables->generate('json');
     }
     
-    public function getParentsharelist($user_parent_id,$class_id,$section_id)
+    public function getParentsharelist($user_parent_id, $class_id, $section_id, $cohort_ids = array(), $subject_id = null, $content_type_id = null)
     {
-        $sql="SELECT `share_contents`.*, `staff`.`name`, `staff`.`surname`, `staff`.`employee_id`, staff_roles.role_id FROM `share_contents` JOIN `staff` ON `share_contents`.`created_by` = `staff`.`id` JOIN `staff_roles` ON `staff_roles`.`staff_id` = `staff`.`id` WHERE share_contents.id in (SELECT share_content_id FROM `share_content_for` WHERE group_id ='parent' or user_parent_id='".$user_parent_id."' or class_section_id=(SELECT class_sections.id from class_sections WHERE class_sections.class_id='".$class_id."' and class_sections.section_id='".$section_id."')) ";      
+        // Build cohort condition if cohort_ids provided
+        $cohort_condition = '';
+        if (!empty($cohort_ids) && is_array($cohort_ids)) {
+            $escaped_cohort_ids = array_map(function($id) {
+                return $this->db->escape($id);
+            }, $cohort_ids);
+            $cohort_condition = " or cohort_id IN (" . implode(',', $escaped_cohort_ids) . ")";
+        }
+
+        // Build subject filter condition
+        $subject_condition = '';
+        if (!empty($subject_id)) {
+            $subject_condition = " AND share_contents.id IN (SELECT share_upload_contents.share_content_id FROM share_upload_contents JOIN upload_contents ON upload_contents.id = share_upload_contents.upload_content_id WHERE upload_contents.subject_id = " . $this->db->escape($subject_id) . ")";
+        }
+
+        // Build content type filter condition
+        $content_type_condition = '';
+        if (!empty($content_type_id)) {
+            $content_type_condition = " AND share_contents.id IN (SELECT share_upload_contents.share_content_id FROM share_upload_contents JOIN upload_contents ON upload_contents.id = share_upload_contents.upload_content_id WHERE upload_contents.content_type_id = " . $this->db->escape($content_type_id) . ")";
+        }
+
+        $sql="SELECT `share_contents`.*, `staff`.`name`, `staff`.`surname`, `staff`.`employee_id`, staff_roles.role_id, (SELECT subjects.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_name, (SELECT subjects.code FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_code, (SELECT content_types.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN content_types ON content_types.id = uc.content_type_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as content_type_name FROM `share_contents` JOIN `staff` ON `share_contents`.`created_by` = `staff`.`id` JOIN `staff_roles` ON `staff_roles`.`staff_id` = `staff`.`id` WHERE share_contents.id in (SELECT share_content_id FROM `share_content_for` WHERE group_id ='parent' or user_parent_id='".$this->db->escape_str($user_parent_id)."' or class_section_id=(SELECT class_sections.id from class_sections WHERE class_sections.class_id='".$this->db->escape_str($class_id)."' and class_sections.section_id='".$this->db->escape_str($section_id)."')".$cohort_condition.")" . $subject_condition . $content_type_condition;
         $this->datatables->query($sql)
        ->sort('share_contents.id', 'desc')
         ->searchable('title,send_to,share_date,valid_upto,description,staff.name,staff.surname')
         ->orderable('title,send_to,share_date,valid_upto,staff.name')
-        ->query_where_enable(TRUE);       
-        return $this->datatables->generate('json');   
+        ->query_where_enable(TRUE);
+        return $this->datatables->generate('json');
     }
 
 }
