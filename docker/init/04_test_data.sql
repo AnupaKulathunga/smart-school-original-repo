@@ -185,11 +185,180 @@ SELECT 1, 'BMN4 Mid-Year Test', 'Business Management N4 mid-year examination', 1
     (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), NOW()
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam` WHERE `id` = 1);
 
--- NOTE: Exam questions require proper question bank setup
--- The onlineexam_questions table links to question_id from question_bank table
+-- ============================================================
+-- 13. Question Bank - Sample Questions for Exams
+-- ============================================================
+
+-- Multiple Choice Questions (MCQ) - question_type = 'singlechoice'
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 1, 1, 1, 'singlechoice', 'low', 1, 1,
+    'What is the primary function of management?',
+    'Planning and organizing resources',
+    'Selling products to customers',
+    'Manufacturing goods',
+    'Accounting for finances',
+    '',
+    'opt_a', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 1);
+
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 2, 1, 1, 'singlechoice', 'medium', 1, 1,
+    'Which of the following is NOT a management function?',
+    'Planning',
+    'Organizing',
+    'Coding',
+    'Controlling',
+    '',
+    'opt_c', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 2);
+
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 3, 1, 1, 'singlechoice', 'medium', 1, 1,
+    'A SWOT analysis examines:',
+    'Sales, Workers, Output, Training',
+    'Strengths, Weaknesses, Opportunities, Threats',
+    'Staff, Wages, Operations, Technology',
+    'Systems, Workflows, Objectives, Tasks',
+    '',
+    'opt_b', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 3);
+
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 4, 1, 1, 'singlechoice', 'high', 1, 1,
+    'What type of organizational structure has employees reporting to multiple managers?',
+    'Functional structure',
+    'Divisional structure',
+    'Matrix structure',
+    'Flat structure',
+    '',
+    'opt_c', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 4);
+
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 5, 1, 1, 'singlechoice', 'low', 1, 1,
+    'Leadership is best defined as:',
+    'Forcing employees to work harder',
+    'Influencing others to achieve organizational goals',
+    'Monitoring employee attendance',
+    'Calculating company profits',
+    '',
+    'opt_b', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 5);
+
+-- Multiple Answer Questions - question_type = 'multichoice'
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 6, 1, 1, 'multichoice', 'medium', 1, 1,
+    'Select ALL that are considered external factors in a PESTLE analysis:',
+    'Political factors',
+    'Employee motivation',
+    'Economic conditions',
+    'Technological changes',
+    'Internal policies',
+    'opt_a,opt_c,opt_d', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 6);
+
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 7, 1, 1, 'multichoice', 'high', 1, 1,
+    'Which of the following are characteristics of a good business objective? (Select all that apply)',
+    'Specific',
+    'Measurable',
+    'Vague',
+    'Time-bound',
+    '',
+    'opt_a,opt_b,opt_d', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 7);
+
+-- True/False Questions - question_type = 'true_false'
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 8, 1, 1, 'true_false', 'low', 1, 1,
+    'Delegation means assigning tasks to subordinates while retaining overall responsibility.',
+    'True',
+    'False',
+    '',
+    '',
+    '',
+    'opt_a', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 8);
+
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 9, 1, 1, 'true_false', 'low', 1, 1,
+    'Managers at all levels require the same balance of technical and conceptual skills.',
+    'True',
+    'False',
+    '',
+    '',
+    '',
+    'opt_b', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 9);
+
+INSERT INTO `questions` (`id`, `staff_id`, `subject_id`, `question_type`, `level`, `class_id`, `section_id`,
+    `question`, `opt_a`, `opt_b`, `opt_c`, `opt_d`, `opt_e`, `correct`, `descriptive_word_limit`, `created_at`)
+SELECT 10, 1, 1, 'true_false', 'medium', 1, 1,
+    'A mission statement describes what the organization wants to become in the future.',
+    'True',
+    'False',
+    '',
+    '',
+    '',
+    'opt_b', 0, NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `questions` WHERE `id` = 10);
 
 -- ============================================================
--- 13. Grant Teacher permissions for Teams Live Classes
+-- 14. Link Questions to Exams (onlineexam_questions)
+-- ============================================================
+
+-- Add questions to the sample exam (exam ID = 1)
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 1, 1, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 10.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 1);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 2, 2, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 10.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 2);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 3, 3, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 10.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 3);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 4, 4, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 15.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 4);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 5, 5, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 10.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 5);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 6, 6, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 15.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 6);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 7, 7, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 15.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 7);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 8, 8, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 5.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 8);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 9, 9, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 5.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 9);
+
+INSERT INTO `onlineexam_questions` (`id`, `question_id`, `onlineexam_id`, `session_id`, `marks`, `neg_marks`, `is_active`, `created_at`)
+SELECT 10, 10, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 5.00, 0.00, '1', NOW()
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 10);
+
+-- ============================================================
+-- 15. Grant Teacher permissions for Teams Live Classes
 -- ============================================================
 INSERT INTO `roles_permissions` (`role_id`, `perm_cat_id`, `can_view`, `can_add`, `can_edit`, `can_delete`, `created_at`)
 SELECT 2, 5011, 1, 0, 1, 0, NOW() FROM DUAL

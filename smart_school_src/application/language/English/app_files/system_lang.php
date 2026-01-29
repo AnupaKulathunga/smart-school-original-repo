@@ -2481,6 +2481,10 @@ $lang['tvet_reports'] = "TVET Reports";
 #Feature Enhancements
 $lang['preview'] = "Preview";
 $lang['this_is_preview_mode'] = "This is a read-only preview showing how students will see this exam.";
+$lang['student_view'] = "Student View";
+$lang['preview_mode'] = "Preview Mode";
+$lang['this_is_exactly_how_students_will_see_this_exam'] = "This is exactly how students will see this exam";
+$lang['student_will_type_answer_here'] = "Student will type answer here...";
 $lang['student_answer_area'] = "Student answer area";
 $lang['exam_moderation'] = "Exam Moderation";
 $lang['review'] = "Review";

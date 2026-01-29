@@ -109,6 +109,8 @@ class Onlineexam extends Admin_Controller
 
                 $preview_btn = " <a href='" . base_url() . "admin/onlineexam/preview/" . $subject_value->id . "' data-toggle='tooltip' class='btn btn-default btn-xs' title='" . $this->lang->line('preview') . "'><i class='fa fa-eye'></i></a>";
 
+                $student_view_btn = " <a href='" . base_url() . "admin/onlineexam/student_view/" . $subject_value->id . "' data-toggle='tooltip' class='btn btn-info btn-xs' title='" . $this->lang->line('student_view') . "'><i class='fa fa-desktop'></i></a>";
+
                 // Moderation status badge
                 $moderation_badge = '';
                 if (isset($subject_value->moderation_status)) {
@@ -163,7 +165,7 @@ class Onlineexam extends Admin_Controller
                 $row[]     = $is_active;
                 $row[]     = $publish_result;
                 $row[]     = $subject_value->description;
-                $row[]     = $preview_btn . " " . $download_btn . " " . $assign . " " . $addquestion_btn . " " . $editbtn . " " . $question_list . " " . $deletebtn;
+                $row[]     = $preview_btn . $student_view_btn . " " . $download_btn . " " . $assign . " " . $addquestion_btn . " " . $editbtn . " " . $question_list . " " . $deletebtn;
                 $dt_data[] = $row;
             }
         }
@@ -1278,6 +1280,35 @@ class Onlineexam extends Admin_Controller
 
         $this->load->view('layout/header', $data);
         $this->load->view('admin/onlineexam/preview', $data);
+        $this->load->view('layout/footer', $data);
+    }
+
+    /**
+     * Student View - Shows exam exactly as students see it
+     * Full-screen modal interface with timer, question navigation
+     */
+    public function student_view($exam_id)
+    {
+        if (!$this->rbac->hasPrivilege('online_examination', 'can_view')) {
+            access_denied();
+        }
+        $this->session->set_userdata('top_menu', 'Online_Examinations');
+        $this->session->set_userdata('sub_menu', 'Online_Examinations/Onlineexam');
+
+        $data = array();
+        $exam = $this->onlineexam_model->getexamdetails($exam_id);
+        if (empty($exam)) {
+            redirect('admin/onlineexam');
+        }
+        $data['exam'] = $exam;
+        $data['questions'] = $this->onlineexam_model->getExamQuestions($exam_id, $exam->is_random_question);
+        $questionOpt = $this->customlib->getQuesOption();
+        $data['questionOpt'] = $questionOpt;
+        $data['question_true_false'] = $this->config->item('question_true_false');
+        $data['admin_logo'] = $this->setting_model->getAdminlogo();
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/onlineexam/student_view', $data);
         $this->load->view('layout/footer', $data);
     }
 
