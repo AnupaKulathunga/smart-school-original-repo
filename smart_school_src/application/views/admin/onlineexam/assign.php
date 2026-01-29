@@ -147,6 +147,25 @@ if ($student['onlineexam_student_session_id'] != 0) {
     </section>
 </div>
 
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirm-assign" tabindex="-1" role="dialog" aria-labelledby="confirmAssignLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="confirmAssignLabel"><?php echo $this->lang->line('confirmation'); ?></h4>
+            </div>
+            <div class="modal-body">
+                <p><?php echo $this->lang->line('are_you_sure'); ?></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo $this->lang->line('cancel'); ?></button>
+                <button type="button" class="btn btn-primary btn-confirm-assign" data-loading-text="<i class='fa fa-spinner fa-spin'></i> <?php echo $this->lang->line('please_wait'); ?>"><?php echo $this->lang->line('save'); ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
     var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';
     var class_id = '<?php echo set_value('class_id', 0) ?>';
@@ -206,40 +225,46 @@ if ($student['onlineexam_student_session_id'] != 0) {
         }
     });
 
+    // Show confirmation modal on form submit
     $("#assign_form").submit(function (e) {
-        if (confirm("<?php echo $this->lang->line('are_you_sure'); ?>")) {
-            var $this = $('.allot-fees');
-            $.ajax({
-                type: "POST",
-                dataType: 'Json',
-                url: $("#assign_form").attr('action'),
-                data: $("#assign_form").serialize(), // serializes the form's elements.
-                beforeSend: function () {
-                    $this.button('loading');
-                },
-                success: function (data)
-                {
-                    if (data.status == "fail") {
-                        var message = "";
-                        $.each(data.error, function (index, value) {
-                            message += value;
-                        });
-                        errorMsg(message);
-                    } else {
-                        successMsg(data.message);
-                        setTimeout(function(){
-                            window.location.href = "<?php echo site_url('admin/onlineexam'); ?>";
-                        }, 1500);
-                    }
-
-                    $this.button('reset');
-                },
-                complete: function () {
-                    $this.button('reset');
-                }
-            });
-        }
         e.preventDefault();
+        $('#confirm-assign').modal('show');
+    });
 
+    // Handle confirm button click in modal
+    $(document).on('click', '.btn-confirm-assign', function () {
+        var $this = $(this);
+        var $saveBtn = $('.allot-fees');
+        $.ajax({
+            type: "POST",
+            dataType: 'Json',
+            url: $("#assign_form").attr('action'),
+            data: $("#assign_form").serialize(),
+            beforeSend: function () {
+                $this.button('loading');
+                $saveBtn.button('loading');
+            },
+            success: function (data) {
+                if (data.status == "fail") {
+                    var message = "";
+                    $.each(data.error, function (index, value) {
+                        message += value;
+                    });
+                    $('#confirm-assign').modal('hide');
+                    errorMsg(message);
+                } else {
+                    $('#confirm-assign').modal('hide');
+                    // Store success message in localStorage to show after redirect
+                    localStorage.setItem('flash_success_msg', data.message);
+                    window.location.href = "<?php echo site_url('admin/onlineexam'); ?>";
+                }
+                $this.button('reset');
+                $saveBtn.button('reset');
+            },
+            complete: function () {
+                $this.button('reset');
+                $saveBtn.button('reset');
+            }
+        });
     });
 </script>
