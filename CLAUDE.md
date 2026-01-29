@@ -303,3 +303,27 @@ From documentation:
 - File upload validation via `upload` library
 - Password encryption via custom Enc_lib library
 - Role-based access control (RBAC) for all admin features
+
+## Development Best Practices
+
+### Thorough Change Implementation
+
+When fixing or modifying something, **always check ALL related places** where the same issue might exist:
+
+1. **View Consistency**: If changing how data is displayed (e.g., list view), check detail/view pages, modals, print views, and export functions
+2. **Role-Based Views**: Changes often need to be applied differently for admin vs user (student/parent) views:
+   - Admin views: `application/views/admin/`
+   - User views: `application/views/user/`
+   - Consider what information is appropriate for each role
+3. **Related Controllers**: If modifying a controller method, check related methods (list, view, edit, delete, ajax endpoints)
+4. **Models**: If changing data structure, check all model methods that use that data
+
+### Information Disclosure
+
+- **Never expose internal IDs to end users**: Employee IDs, database IDs, and internal references should not be shown to students/parents
+- **Admin vs Student data visibility**: Admin views can show more detail (employee IDs, internal codes), student views should only show what's necessary (names, dates, content)
+- **Sensitive data patterns to watch**:
+  - Employee IDs (e.g., `employee_id`)
+  - Internal user IDs
+  - System configuration values
+  - Debug information
