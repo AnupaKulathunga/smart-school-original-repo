@@ -127,6 +127,15 @@ if ($this->session->flashdata('success_msg')) {
     <?php
 }
 ?>
+        // Check for localStorage flash messages (from AJAX redirects)
+        if (localStorage.getItem('flash_success_msg')) {
+            successMsg(localStorage.getItem('flash_success_msg'));
+            localStorage.removeItem('flash_success_msg');
+        }
+        if (localStorage.getItem('flash_error_msg')) {
+            errorMsg(localStorage.getItem('flash_error_msg'));
+            localStorage.removeItem('flash_error_msg');
+        }
     });
 
     function complete_event(id, status) {
