@@ -2,6 +2,15 @@
 # CodeCanyon Product - Configured for fresh installation capability
 
 # ====================
+# Plan & Working Files
+# ====================
+*.plan.md
+*_PLAN.md
+QA_FIX_PLAN.md
+*.xlsx
+QA_Test_Cases*.xlsx
+
+# ====================
 # Environment & System Files
 # ====================
 .DS_Store

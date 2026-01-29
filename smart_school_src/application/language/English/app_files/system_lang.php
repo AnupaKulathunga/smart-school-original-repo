@@ -2493,3 +2493,9 @@ $lang['inactive'] = "Inactive";
 $lang['teams_setup_info'] = "To use Microsoft Teams, register an app in Azure AD with OnlineMeetings.ReadWrite.All permission. Enter the credentials below.";
 $lang['new'] = "New";
 $lang['minutes'] = "minutes";
+
+#Content Subject Classification
+$lang['all_subjects'] = "All Subjects";
+$lang['select_subject'] = "Select Subject";
+$lang['content_subject'] = "Content Subject";
+$lang['share_to_cohort'] = "Share to Cohort";

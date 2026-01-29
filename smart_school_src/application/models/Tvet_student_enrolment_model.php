@@ -90,4 +90,22 @@ class Tvet_student_enrolment_model extends CI_Model
         $this->db->where('status', 'Active');
         return $this->db->count_all_results('tvet_student_enrolment');
     }
+
+    /**
+     * Get cohort IDs for a specific student
+     *
+     * @param int $student_id The student ID
+     * @return array Array of cohort IDs
+     */
+    public function getStudentCohortIds($student_id)
+    {
+        $this->db->select('cohort_id');
+        $this->db->from('tvet_student_enrolment');
+        $this->db->where('student_id', $student_id);
+        $this->db->where('status', 'Active');
+        $this->db->where('cohort_id IS NOT NULL', null, false);
+        $query = $this->db->get();
+        $result = $query->result_array();
+        return array_column($result, 'cohort_id');
+    }
 }
