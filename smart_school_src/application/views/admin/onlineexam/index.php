@@ -444,6 +444,27 @@ foreach ($classList as $class_key => $class_value) {
   </div>
 </div>
 
+<!-- Submit for Moderation Confirmation Modal -->
+<div class="modal fade" id="submitModerationModal" tabindex="-1" role="dialog" aria-labelledby="submitModerationLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="submitModerationLabel"><i class="fa fa-question-circle"></i> <?php echo $this->lang->line('confirm'); ?></h4>
+            </div>
+            <div class="modal-body">
+                <p><?php echo $this->lang->line('are_you_sure'); ?></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo $this->lang->line('cancel'); ?></button>
+                <button type="button" class="btn btn-primary" id="confirmSubmitModerationBtn">
+                    <i class="fa fa-paper-plane"></i> <?php echo $this->lang->line('submit_for_moderation'); ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     $(document).ready(function () {
 
@@ -499,7 +520,7 @@ $(document).on('submit','#delete_question',function(e) {
       }
     },
     error: function (xhr) { // if error occured
-    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+    errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
     $this.button('reset');
     },
     complete: function () {
@@ -548,6 +569,10 @@ $(document).on('submit','#delete_question',function(e) {
                     .removeAttr('checked')
                     .removeAttr('selected')
                     .end();
+
+            // Reset publish checkbox state and remove moderation notice
+            $('input[name=is_active]').prop('disabled', false);
+            $('.publish-moderation-notice').remove();
         });
 
         $('#myGenerateRankModal').on('hidden.bs.modal', function () {
@@ -558,6 +583,22 @@ $(document).on('submit','#delete_question',function(e) {
         $(document).on('click', '.question-btn', function () {
             var recordid = $(this).data('recordid');
             $('input[name=recordid]').val(recordid);
+
+            // New exams (recordid=0) - restore HTML default values and set moderation restrictions
+            if (recordid == 0) {
+                // Restore HTML default values (these were cleared by modal reset)
+                $('#word_limit').val($('#word_limit').attr('value') || '-1');
+                $('input[name=disabled_extra_time_percent]').val($('input[name=disabled_extra_time_percent]').attr('value') || '25');
+                $('input[name=accommodate_disabled]').prop('checked', false);
+                $('.accommodate-settings').hide();
+
+                // New exams cannot be published - must go through moderation first
+                $('input[name=is_active]').prop('disabled', true);
+                $('input[name=is_active]').prop('checked', false);
+                $('.publish-moderation-notice').remove();
+                $('input[name=is_active]').closest('label').after('<span class="publish-moderation-notice text-danger" style="margin-left:5px;" data-toggle="tooltip" title="<?php echo $this->lang->line('exam_must_be_approved'); ?>"><i class="fa fa-lock"></i> <?php echo $this->lang->line('moderation_required'); ?></span>');
+            }
+
             $('#myModal').modal('show');
         });
 
@@ -616,7 +657,7 @@ $(document).on('submit','#delete_question',function(e) {
                     $this.button('reset');
                 },
                 error: function (xhr) { // if error occured
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+                    errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
                     $this.button('reset');
                 },
                 complete: function () {
@@ -658,7 +699,24 @@ $(document).on('submit','#delete_question',function(e) {
                         $('#exam_from').data("DateTimePicker").date(date_exam_from);
                         $('#exam').val(data.result.exam);
                         $('#attempt').val(data.result.attempt);
-                        CKEDITOR.instances['description'].setData(data.result.description);
+
+                        // Set CKEditor content with fallback for timing issues
+                        var descriptionContent = data.result.description || '';
+                        try {
+                            if (CKEDITOR.instances['description'] && CKEDITOR.instances['description'].status == 'ready') {
+                                CKEDITOR.instances['description'].setData(descriptionContent);
+                            } else {
+                                // Fallback: set after a short delay
+                                setTimeout(function() {
+                                    if (CKEDITOR.instances['description']) {
+                                        CKEDITOR.instances['description'].setData(descriptionContent);
+                                    }
+                                }, 300);
+                            }
+                        } catch(e) {
+                            // Final fallback: set textarea value directly
+                            $('textarea[name=description]').val(descriptionContent);
+                        }
 
                         var is_quiz=(data.result.is_quiz == 0)?false:true;
 
@@ -697,12 +755,23 @@ $(document).on('submit','#delete_question',function(e) {
                         }
                         $('input[name=disabled_extra_time_percent]').val(data.result.disabled_extra_time_percent || 25);
 
+                        // Moderation status - disable publish checkbox if not approved
+                        var moderation_status = data.result.moderation_status || 'draft';
+                        if (moderation_status !== 'approved') {
+                            $('input[name=is_active]').prop('disabled', true);
+                            $('.publish-moderation-notice').remove();
+                            $('input[name=is_active]').closest('label').after('<span class="publish-moderation-notice text-danger" style="margin-left:5px;" data-toggle="tooltip" title="<?php echo $this->lang->line('exam_must_be_approved'); ?>"><i class="fa fa-lock"></i> <?php echo $this->lang->line('moderation_required'); ?></span>');
+                        } else {
+                            $('input[name=is_active]').prop('disabled', false);
+                            $('.publish-moderation-notice').remove();
+                        }
+
                         $('#myModal').modal('show');
                     }
                     $this.button('reset');
                 },
                 error: function (xhr) { // if error occured
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+                    errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
                     $this.button('reset');
                 },
                 complete: function () {
@@ -739,7 +808,7 @@ $(document).on('submit','#delete_question',function(e) {
             },
             error: function (xhr) { // if error occured
                 submit_button.button('reset');
-                alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+                errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
             },
             complete: function () {
@@ -784,7 +853,7 @@ $(document).on('submit','#delete_question',function(e) {
             },
             error: function (xhr) { // if error occured
                 submit_button.button('reset');
-                alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+                errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
             },
             complete: function () {
@@ -819,7 +888,7 @@ $(document).on('submit','#delete_question',function(e) {
                 }
             },
             error: function (xhr) { // if error occured
-               alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+               errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
             },
             complete: function () {
@@ -864,7 +933,7 @@ $(document).on('submit','#delete_question',function(e) {
                 }
             },
             error: function (xhr) { // if error occured
-                alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+                errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
             },
             complete: function () {
@@ -934,7 +1003,7 @@ $(document).on('submit','#delete_question',function(e) {
                     $this.button('reset');
                 },
                 error: function (xhr) { // if error occured
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+                    errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
                     $this.button('reset');
                 },
                 complete: function () {
@@ -973,7 +1042,7 @@ $(document).on('submit','#delete_question',function(e) {
             },
             error: function (xhr) { // if error occured
                 this_obj.removeClass('modal_loading');
-                alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+                errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
             },
             complete: function () {
@@ -1012,58 +1081,133 @@ $(document).on('submit','#delete_question',function(e) {
         $("a[href='#tab_3']").on('shown.bs.tab', function (e) {
             initDatatable('closed-exam-list','admin/onlineexam/getclosedexamlist',[],[],100); // for closed exam
         });
+
+        // Submit for Moderation button handler - show modal
+        var pendingModerationExamId = null;
+        var $pendingModerationBtn = null;
+
+        $(document).on('click', '.submit-moderation-btn', function(e) {
+            e.preventDefault();
+            pendingModerationExamId = $(this).data('exam-id');
+            $pendingModerationBtn = $(this);
+            $('#submitModerationModal').modal('show');
+        });
+
+        // Confirm submit for moderation from modal
+        $(document).on('click', '#confirmSubmitModerationBtn', function() {
+            var $modalBtn = $(this);
+            $modalBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> <?php echo $this->lang->line('please_wait'); ?>');
+
+            $.ajax({
+                url: baseurl + 'admin/onlineexam/submit_for_moderation',
+                type: 'POST',
+                dataType: 'json',
+                data: { exam_id: pendingModerationExamId },
+                success: function(data) {
+                    $('#submitModerationModal').modal('hide');
+                    if (data.status == 'success') {
+                        successMsg(data.message);
+                        table.ajax.reload(null, false);
+                    } else {
+                        errorMsg(data.message || '<?php echo $this->lang->line('error_occurred_please_try_again'); ?>');
+                    }
+                    $modalBtn.prop('disabled', false).html('<i class="fa fa-paper-plane"></i> <?php echo $this->lang->line('submit_for_moderation'); ?>');
+                },
+                error: function() {
+                    $('#submitModerationModal').modal('hide');
+                    errorMsg('<?php echo $this->lang->line('error_occurred_please_try_again'); ?>');
+                    $modalBtn.prop('disabled', false).html('<i class="fa fa-paper-plane"></i> <?php echo $this->lang->line('submit_for_moderation'); ?>');
+                }
+            });
+        });
+
+        // Reset modal on close
+        $('#submitModerationModal').on('hidden.bs.modal', function() {
+            $('#confirmSubmitModerationBtn').prop('disabled', false).html('<i class="fa fa-paper-plane"></i> <?php echo $this->lang->line('submit_for_moderation'); ?>');
+            pendingModerationExamId = null;
+            $pendingModerationBtn = null;
+        });
     });
 </script>
 
+<!-- Bulk Delete Confirmation Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1" role="dialog" aria-labelledby="bulkDeleteLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="bulkDeleteLabel"><i class="fa fa-exclamation-triangle text-danger"></i> <?php echo $this->lang->line('confirm'); ?></h4>
+            </div>
+            <div class="modal-body">
+                <p><?php echo $this->lang->line('are_you_sure_you_want_to_delete'); ?></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo $this->lang->line('cancel'); ?></button>
+                <button type="button" class="btn btn-danger" id="confirmBulkDeleteBtn">
+                    <i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
+    var bulkDeleteForm = null;
+
     $("#deletebulk").submit(function (e) {
-        e.preventDefault(); // avoid to execute the actual submit of the form.
+        e.preventDefault();
         var checkCount = $("input[name='exam[]']:checked").length;
 
-        if (checkCount == 0)
-        {
-            alert("<?php echo $this->lang->line('atleast_one_student_should_be_select'); ?>");
-
+        if (checkCount == 0) {
+            warningMsg("<?php echo $this->lang->line('atleast_one_student_should_be_select'); ?>");
         } else {
-            if (confirm("<?php echo $this->lang->line('are_you_sure_you_want_to_delete'); ?>")) {
-
-                var form = $(this);
-                var url = form.attr('action');
-                var submit_button = form.find(':submit');
-
-                $.ajax({
-                    type: "POST",
-                    url: url,
-                    data: form.serialize(), // serializes the form's elements.
-                    dataType: "JSON", // serializes the form's elements.
-                    beforeSend: function () {
-                        submit_button.button('loading');
-                    },
-                    success: function (data)
-                    {
-                        var message = "";
-                        if (!data.status) {
-                            $.each(data.error, function (index, value) {
-                                message += value;
-                            });
-
-                            errorMsg(message);
-
-                        } else {
-                            successMsg(data.message);
-                            location.reload();
-                        }
-                    },
-                    error: function (xhr) { // if error occured
-                        submit_button.button('reset');
-                        alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-                    },
-                    complete: function () {
-                        submit_button.button('reset');
-                    }
-                });
-            }
+            bulkDeleteForm = $(this);
+            $('#bulkDeleteModal').modal('show');
         }
+    });
+
+    // Confirm bulk delete from modal
+    $('#confirmBulkDeleteBtn').on('click', function() {
+        var $btn = $(this);
+        var form = bulkDeleteForm;
+        var url = form.attr('action');
+        var submit_button = form.find(':submit');
+
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> <?php echo $this->lang->line('please_wait'); ?>');
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: form.serialize(),
+            dataType: "JSON",
+            success: function (data) {
+                $('#bulkDeleteModal').modal('hide');
+                var message = "";
+                if (!data.status) {
+                    $.each(data.error, function (index, value) {
+                        message += value;
+                    });
+                    errorMsg(message);
+                } else {
+                    successMsg(data.message);
+                    location.reload();
+                }
+            },
+            error: function (xhr) {
+                $('#bulkDeleteModal').modal('hide');
+                errorMsg("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
+            },
+            complete: function () {
+                submit_button.button('reset');
+                $btn.prop('disabled', false).html('<i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>');
+            }
+        });
+    });
+
+    // Reset modal on close
+    $('#bulkDeleteModal').on('hidden.bs.modal', function() {
+        $('#confirmBulkDeleteBtn').prop('disabled', false).html('<i class="fa fa-trash"></i> <?php echo $this->lang->line('delete'); ?>');
+        bulkDeleteForm = null;
     });
 
    $("input[name='checkAll']").click(function () {

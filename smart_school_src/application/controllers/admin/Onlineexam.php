@@ -113,21 +113,31 @@ class Onlineexam extends Admin_Controller
 
                 // Moderation status badge
                 $moderation_badge = '';
-                if (isset($subject_value->moderation_status)) {
-                    switch ($subject_value->moderation_status) {
-                        case 'pending_moderation':
-                            $moderation_badge = " <span class='label label-warning'>" . $this->lang->line('pending') . "</span>";
-                            break;
-                        case 'approved':
-                            $moderation_badge = " <span class='label label-success'>" . $this->lang->line('approved') . "</span>";
-                            break;
-                        case 'rejected':
-                            $moderation_badge = " <span class='label label-danger'>" . $this->lang->line('rejected') . "</span>";
-                            break;
-                        case 'draft':
-                            $moderation_badge = " <span class='label label-default'>" . $this->lang->line('draft') . "</span>";
-                            break;
-                    }
+                $moderation_btn = '';
+                $moderation_status = isset($subject_value->moderation_status) ? $subject_value->moderation_status : 'draft';
+
+                switch ($moderation_status) {
+                    case 'pending_moderation':
+                        $moderation_badge = " <span class='label label-warning'>" . $this->lang->line('pending_moderation') . "</span>";
+                        break;
+                    case 'approved':
+                        $moderation_badge = " <span class='label label-success'>" . $this->lang->line('approved') . "</span>";
+                        break;
+                    case 'rejected':
+                        $moderation_badge = " <span class='label label-danger'>" . $this->lang->line('rejected') . "</span>";
+                        // Add View Feedback button for rejected exams
+                        if ($this->rbac->hasPrivilege('online_examination', 'can_view')) {
+                            $moderation_btn = " <a href='" . base_url() . "admin/onlineexam/teacher_feedback/" . $subject_value->id . "' class='btn btn-warning btn-xs' data-toggle='tooltip' title='" . $this->lang->line('view_feedback') . "'><i class='fa fa-comments-o'></i></a>";
+                        }
+                        break;
+                    case 'draft':
+                    default:
+                        $moderation_badge = " <span class='label label-default'>" . $this->lang->line('draft') . "</span>";
+                        // Add Submit for Moderation button for draft exams
+                        if ($this->rbac->hasPrivilege('online_examination', 'can_edit')) {
+                            $moderation_btn = " <button type='button' class='btn btn-primary btn-xs submit-moderation-btn' data-toggle='tooltip' data-exam-id='" . $subject_value->id . "' title='" . $this->lang->line('submit_for_moderation') . "'><i class='fa fa-send'></i></button>";
+                        }
+                        break;
                 }
 
                 if ($this->rbac->hasPrivilege('online_examination', 'can_edit')) {
@@ -165,7 +175,7 @@ class Onlineexam extends Admin_Controller
                 $row[]     = $is_active;
                 $row[]     = $publish_result;
                 $row[]     = $subject_value->description;
-                $row[]     = $preview_btn . $student_view_btn . " " . $download_btn . " " . $assign . " " . $addquestion_btn . " " . $editbtn . " " . $question_list . " " . $deletebtn;
+                $row[]     = $preview_btn . $student_view_btn . " " . $download_btn . " " . $assign . " " . $addquestion_btn . " " . $editbtn . " " . $question_list . $moderation_btn . " " . $deletebtn;
                 $dt_data[] = $row;
             }
         }
@@ -798,8 +808,27 @@ class Onlineexam extends Admin_Controller
             $is_random_question = 0;
             $is_quiz            = 0;
             $auto_publish_date  = "";
+
+            // Check moderation status - ONLY APPROVED exams can be published
+            $id = $this->input->post('recordid');
+            $can_publish = false;
+
+            if ($id != 0) {
+                // Existing exam - check if it's approved
+                $existing_exam = $this->onlineexam_model->get($id);
+                // Note: get() returns an object when ID is provided
+                if ($existing_exam && isset($existing_exam->moderation_status) && $existing_exam->moderation_status == 'approved') {
+                    $can_publish = true;
+                }
+            }
+            // New exams ($id == 0) cannot be published - they start as draft
+
             if (isset($_POST['is_active'])) {
-                $is_active = 1;
+                // Only allow is_active = 1 if exam is approved
+                if ($can_publish) {
+                    $is_active = 1;
+                }
+                // If not approved, is_active stays 0 regardless of checkbox
             }
             if (isset($_POST['publish_result'])) {
                 $publish_result = 1;
@@ -1328,14 +1357,62 @@ class Onlineexam extends Admin_Controller
     // ==========================================
     // Item 4: Exam Moderation Workflow
     // ==========================================
-    public function submit_for_moderation($exam_id)
+    public function submit_for_moderation($exam_id = null)
     {
         if (!$this->rbac->hasPrivilege('online_examination', 'can_edit')) {
             access_denied();
         }
+
+        // Support both GET (with URL parameter) and POST (AJAX)
+        if ($exam_id === null) {
+            $exam_id = $this->input->post('exam_id');
+        }
+
+        if (empty($exam_id)) {
+            if ($this->input->is_ajax_request()) {
+                echo json_encode(array('status' => 'error', 'message' => 'Invalid exam ID'));
+                return;
+            }
+            redirect('admin/onlineexam');
+        }
+
         $this->exam_moderation_model->updateExamStatus($exam_id, 'pending_moderation');
-        $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('success_message') . '</div>');
-        redirect('admin/onlineexam');
+
+        if ($this->input->is_ajax_request()) {
+            $array = array('status' => 'success', 'message' => $this->lang->line('success_message'));
+            echo json_encode($array);
+        } else {
+            $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('success_message') . '</div>');
+            redirect('admin/onlineexam');
+        }
+    }
+
+    /**
+     * Teacher feedback view - shows moderator comments for rejected exams
+     */
+    public function teacher_feedback($exam_id)
+    {
+        if (!$this->rbac->hasPrivilege('online_examination', 'can_view')) {
+            access_denied();
+        }
+        $this->session->set_userdata('top_menu', 'Online_Examinations');
+        $this->session->set_userdata('sub_menu', 'Online_Examinations/Onlineexam');
+
+        $data = array();
+        $exam = $this->onlineexam_model->getexamdetails($exam_id);
+        if (empty($exam)) {
+            redirect('admin/onlineexam');
+        }
+        $data['exam'] = $exam;
+        $data['comments'] = $this->exam_moderation_model->getCommentsByExam($exam_id);
+        $data['questions'] = $this->onlineexam_model->getExamQuestions($exam_id, $exam->is_random_question);
+        $questionOpt = $this->customlib->getQuesOption();
+        $data['questionOpt'] = $questionOpt;
+        $data['question_true_false'] = $this->config->item('question_true_false');
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/onlineexam/teacher_feedback', $data);
+        $this->load->view('layout/footer', $data);
     }
 
     public function moderation()
