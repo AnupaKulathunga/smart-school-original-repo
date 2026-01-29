@@ -82,8 +82,8 @@ FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `subjects` WHERE `id` = 4);
 -- ============================================================
 -- 6. Create Subject Groups and assign subjects to class
 -- ============================================================
-INSERT INTO `subject_groups` (`id`, `name`, `class_id`, `section_id`, `session_id`, `description`, `is_active`, `created_at`)
-SELECT 1, 'N4 Core Modules', 1, 1, (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 'N4 Business Management Core', 'yes', NOW()
+INSERT INTO `subject_groups` (`id`, `name`, `session_id`, `description`, `created_at`)
+SELECT 1, 'N4 Core Modules', (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), 'N4 Business Management Core', NOW()
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `subject_groups` WHERE `id` = 1);
 
 INSERT INTO `subject_group_subjects` (`id`, `subject_id`, `subject_group_id`, `created_at`)
@@ -179,24 +179,14 @@ FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `content_types` WHERE `id` = 5);
 -- 12. Sample Online Exam (for preview/moderation/assign testing)
 -- ============================================================
 INSERT INTO `onlineexam` (`id`, `exam`, `description`, `attempt`, `passing_percentage`,
-    `publish_result`, `is_active`, `is_publish`, `session_id`, `created_at`)
+    `publish_result`, `is_active`, `duration`, `session_id`, `created_at`)
 SELECT 1, 'BMN4 Mid-Year Test', 'Business Management N4 mid-year examination', 1, 50,
-    0, 'no', 'unpublish',
+    0, 'no', '01:00:00',
     (SELECT id FROM sessions WHERE is_active='yes' LIMIT 1), NOW()
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam` WHERE `id` = 1);
 
--- Add exam questions
-INSERT INTO `onlineexam_questions` (`id`, `onlineexam_id`, `question`, `marks`, `created_at`)
-SELECT 1, 1, 'What is the primary function of management in a business organization?', 5, NOW()
-FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 1);
-
-INSERT INTO `onlineexam_questions` (`id`, `onlineexam_id`, `question`, `marks`, `created_at`)
-SELECT 2, 1, 'List three advantages of good financial management.', 10, NOW()
-FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 2);
-
-INSERT INTO `onlineexam_questions` (`id`, `onlineexam_id`, `question`, `marks`, `created_at`)
-SELECT 3, 1, 'Explain the difference between marketing and advertising.', 10, NOW()
-FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `onlineexam_questions` WHERE `id` = 3);
+-- NOTE: Exam questions require proper question bank setup
+-- The onlineexam_questions table links to question_id from question_bank table
 
 -- ============================================================
 -- 13. Grant Teacher permissions for Teams Live Classes
