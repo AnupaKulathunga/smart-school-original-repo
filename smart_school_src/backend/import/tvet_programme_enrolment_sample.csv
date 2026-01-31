@@ -1,0 +1,6 @@
+admission_no,programme_code,level_code,cohort,enrolment_date,notes
+STU001,NATED,N4,A,2026-01-15,N4 Engineering student - January intake
+STU002,NATED,N4,A,2026-01-15,N4 Engineering student - January intake
+STU003,NATED,N6,A,2026-01-15,N6 Business student
+STU004,NCV,NCV-L2,A,2026-01-15,NCV Level 2 student
+STU005,NATED,N4,B,2026-01-15,N4 Engineering student - Cohort B

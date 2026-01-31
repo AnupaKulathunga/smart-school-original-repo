@@ -1,0 +1,5 @@
+subject_code,level_code,cohort_name,academic_year,intake_period,delivery_mode,venue,max_students,start_date,end_date,lecturer_employee_id
+MATH,N4,A,2026,January,Full-time,Room 101,35,2026-01-15,2026-06-30,EMP001
+MATH,N4,B,2026,January,Full-time,Room 102,35,2026-01-15,2026-06-30,EMP002
+ENG,N4,A,2026,January,Full-time,Lab 201,30,2026-01-15,2026-06-30,EMP001
+MLIT,NCV-L2,A,2026,January,Full-time,Room 201,40,2026-01-15,2026-11-30,EMP003

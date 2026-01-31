@@ -511,6 +511,21 @@ if ($role == 'student' || $role == 'parent') {
                             </li>
                         <?php }?>
 
+                        <!-- TVET Portal Menu -->
+                        <li class="treeview <?php echo set_Topmenu('TVET Portal'); ?>">
+                            <a href="#">
+                                <i class="fa fa-graduation-cap ftlayer"></i> <span>TVET Portal</span> <i class="fa fa-angle-left pull-right"></i>
+                            </a>
+                            <ul class="treeview-menu">
+                                <li class="<?php echo set_Submenu('tvetportal/my_classes'); ?>"><a href="<?php echo base_url(); ?>user/tvetportal/my_classes"><i class="fa fa-angle-double-right"></i> My Classes</a></li>
+                                <li class="<?php echo set_Submenu('tvetportal/my_timetable'); ?>"><a href="<?php echo base_url(); ?>user/tvetportal/my_timetable"><i class="fa fa-angle-double-right"></i> My Timetable</a></li>
+                                <li class="<?php echo set_Submenu('tvetportal/my_attendance'); ?>"><a href="<?php echo base_url(); ?>user/tvetportal/my_attendance"><i class="fa fa-angle-double-right"></i> My Attendance</a></li>
+                                <li class="<?php echo set_Submenu('tvetportal/my_assessments'); ?>"><a href="<?php echo base_url(); ?>user/tvetportal/my_assessments"><i class="fa fa-angle-double-right"></i> My Assessments</a></li>
+                                <li class="<?php echo set_Submenu('tvetportal/my_results'); ?>"><a href="<?php echo base_url(); ?>user/tvetportal/my_results"><i class="fa fa-angle-double-right"></i> My Results</a></li>
+                                <li class="<?php echo set_Submenu('tvetportal/my_poe'); ?>"><a href="<?php echo base_url(); ?>user/tvetportal/my_poe"><i class="fa fa-angle-double-right"></i> My POE</a></li>
+                            </ul>
+                        </li>
+
                         <?php if ($this->studentmodule_lib->hasActive('notice_board')) {
         ?>
 

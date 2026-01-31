@@ -1,0 +1,9 @@
+programme_code,code,name,description,credits,notional_hours,is_core,is_active
+NATED,MATH,Mathematics,Mathematical principles and applications,20,200,1,1
+NATED,ENG,Engineering Science,Engineering Science fundamentals,20,200,1,1
+NATED,ED,Engineering Drawing,Technical drawing and CAD,15,150,0,1
+NATED,IND,Industrial Electronics,Industrial Electronics theory and practice,20,200,1,1
+NCV,MLIT,Mathematical Literacy,Mathematical literacy for vocational contexts,20,200,1,1
+NCV,LC,Life Orientation,Personal development and life skills,10,100,1,1
+NCV,ENG-NCV,English,English language and communication,20,200,1,1
+NCV,EBUS,e-Business,Digital business and e-commerce,15,150,0,1

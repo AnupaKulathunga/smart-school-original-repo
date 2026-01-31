@@ -1,0 +1,10 @@
+code,name,level_type,nqf_level,programme_code,sequence,is_active
+N1,N1 Level,NATED,2,NATED,1,1
+N2,N2 Level,NATED,3,NATED,2,1
+N3,N3 Level,NATED,4,NATED,3,1
+N4,N4 Level,NATED,5,NATED,4,1
+N5,N5 Level,NATED,5,NATED,5,1
+N6,N6 Level,NATED,5,NATED,6,1
+NCV-L2,NCV Level 2,NCV,2,NCV,1,1
+NCV-L3,NCV Level 3,NCV,3,NCV,2,1
+NCV-L4,NCV Level 4,NCV,4,NCV,3,1

@@ -1,0 +1,5 @@
+admission_no,class_code,enrolment_date,status,notes
+STU001,MATH-N4-A-2026,2026-01-15,Enrolled,First semester enrolment
+STU002,MATH-N4-A-2026,2026-01-15,Enrolled,First semester enrolment
+STU003,ENG-N4-A-2026,2026-01-15,Enrolled,Transfer student
+STU001,ENG-N4-A-2026,2026-01-15,Enrolled,Combined with Mathematics
