@@ -11,6 +11,12 @@ QA_FIX_PLAN.md
 QA_Test_Cases*.xlsx
 
 # ====================
+# Documentation & Specs (local only)
+# ====================
+docs/
+*.docx
+
+# ====================
 # Environment & System Files
 # ====================
 .DS_Store
