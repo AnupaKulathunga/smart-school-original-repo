@@ -83,7 +83,53 @@ class StudentAttendaceSetting_model extends MY_Model
         }
     }
 
-   
+    // ========================================================================
+    // TVET METHODS - Uses class_id only (no class_section_id)
+    // ========================================================================
 
+    /**
+     * Get attendance settings by class ID (TVET)
+     * Replaces getClassWiseAttendanceSettingByClassAndSection
+     *
+     * @param int $class_id Class ID
+     * @return array Attendance settings
+     */
+    public function getClassWiseAttendanceSettingByClass($class_id)
+    {
+        $this->db->select('student_attendence_schedules.*,
+            class.id as class_id, class.class_code,
+            subjects.name as subject_name, level.name as level_name')
+            ->from('student_attendence_schedules')
+            ->join('class', 'class.id = student_attendence_schedules.class_id')
+            ->join('subject_level', 'class.subject_level_id = subject_level.id')
+            ->join('subjects', 'subject_level.subject_id = subjects.id')
+            ->join('level', 'subject_level.level_id = level.id')
+            ->where('class.id', $class_id);
 
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    /**
+     * Get attendance type by class ID and time (TVET)
+     *
+     * @param int $class_id Class ID
+     * @param string $time Time to check
+     * @return object|false Attendance setting or false
+     */
+    public function getAttendanceTypeByClassTime($class_id, $time)
+    {
+        $this->db->select('*')
+            ->from('student_attendence_schedules')
+            ->where('class_id', $class_id)
+            ->where("'{$time}' BETWEEN entry_time_from AND entry_time_to");
+
+        $query = $this->db->get();
+
+        if ($query->num_rows() == 0) {
+            return false;
+        } else {
+            return $query->row();
+        }
+    }
 }

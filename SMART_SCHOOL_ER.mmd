@@ -1531,7 +1531,7 @@ erDiagram
     }
     
     EVENTS ||--|| ROLES : "visible to"
-    
+
     EVENTS {
         int id PK
         varchar event_title
@@ -1540,4 +1540,650 @@ erDiagram
         text event_description
         int role_id FK
         varchar is_active
+    }
+
+    %% ============================================
+    %% TVET COLLEGE MODULE (South Africa Focus)
+    %% ============================================
+
+    %% TVET Programme Hierarchy
+    TVET_PROGRAMME ||--o{ TVET_QUALIFICATION : "has"
+
+    TVET_PROGRAMME {
+        int id PK
+        varchar code UK
+        varchar name
+        text description
+        tinyint active
+        timestamp created_at
+    }
+
+    TVET_QUALIFICATION ||--o{ TVET_LEVEL : "has"
+
+    TVET_QUALIFICATION {
+        int id PK
+        int programme_id FK
+        varchar code
+        varchar name
+        text description
+        tinyint active
+        timestamp created_at
+    }
+
+    TVET_LEVEL ||--o{ TVET_LEVEL_MODULE : "contains"
+    TVET_LEVEL ||--o{ TVET_COHORT : "has"
+
+    TVET_LEVEL {
+        int id PK
+        int qualification_id FK
+        varchar code
+        varchar name
+        int sequence
+        tinyint active
+        timestamp created_at
+    }
+
+    TVET_LEVEL_MODULE ||--o{ TVET_LECTURER_ALLOCATION : "assigned to"
+    TVET_LEVEL_MODULE ||--o{ TVET_ASSESSMENT : "has"
+    TVET_LEVEL_MODULE ||--o{ TVET_TIMETABLE : "scheduled"
+    TVET_LEVEL_MODULE ||--o{ TVET_ATTENDANCE : "tracks"
+    TVET_LEVEL_MODULE ||--o{ TVET_ICASS_CONFIG : "configured by"
+    TVET_LEVEL_MODULE ||--o{ TVET_POE_ITEM : "evidence for"
+    SUBJECTS ||--o{ TVET_LEVEL_MODULE : "maps to"
+
+    TVET_LEVEL_MODULE {
+        int id PK
+        int level_id FK
+        int subject_id FK
+        varchar module_code
+        varchar module_name
+        int credits
+        enum semester
+        tinyint is_core
+        tinyint active
+        timestamp created_at
+    }
+
+    %% TVET Cohort & Enrolment
+    TVET_COHORT ||--o{ TVET_STUDENT_ENROLMENT : "enrolls"
+    TVET_COHORT ||--o{ TVET_LECTURER_ALLOCATION : "assigned"
+    TVET_COHORT ||--o{ TVET_ASSESSMENT : "has"
+    TVET_COHORT ||--o{ TVET_TIMETABLE : "scheduled"
+    TVET_COHORT ||--o{ TVET_ATTENDANCE : "tracks"
+
+    TVET_COHORT {
+        int id PK
+        int level_id FK
+        varchar code
+        varchar name
+        year intake_year
+        enum delivery_mode
+        date start_date
+        date end_date
+        int max_students
+        tinyint active
+        timestamp created_at
+    }
+
+    STUDENTS ||--o{ TVET_STUDENT_ENROLMENT : "enrolled"
+    TVET_STUDENT_ENROLMENT ||--o{ TVET_ATTENDANCE : "attendance"
+    TVET_STUDENT_ENROLMENT ||--o{ TVET_POE_ITEM : "submits"
+
+    TVET_STUDENT_ENROLMENT {
+        int id PK
+        int student_id FK
+        int level_id FK
+        int cohort_id FK
+        date enrolment_date
+        enum status
+        date completion_date
+        varchar student_number
+        text notes
+        timestamp created_at
+    }
+
+    %% TVET Lecturer Allocation
+    STAFF ||--o{ TVET_LECTURER_ALLOCATION : "teaches"
+
+    TVET_LECTURER_ALLOCATION {
+        int id PK
+        int staff_id FK
+        int cohort_id FK
+        int level_module_id FK
+        year academic_year
+        enum semester
+        tinyint is_primary
+        tinyint active
+        timestamp created_at
+    }
+
+    %% TVET Assessment System
+    TVET_ASSESSMENT ||--o{ TVET_ASSESSMENT_MARKS : "records"
+    TVET_ASSESSMENT ||--o{ TVET_ASSESSMENT_SCHEDULE : "scheduled"
+    TVET_ASSESSMENT ||--o{ TVET_MODERATION_LOG : "moderated"
+
+    TVET_ASSESSMENT {
+        int id PK
+        int level_module_id FK
+        int cohort_id FK
+        enum assessment_type
+        varchar title
+        text description
+        int total_marks
+        decimal weight_percentage
+        date due_date
+        year academic_year
+        enum semester
+        enum status
+        tinyint is_online
+        text instructions
+        int created_by FK
+        timestamp created_at
+    }
+
+    TVET_ASSESSMENT_SCHEDULE {
+        int id PK
+        int assessment_id FK
+        date scheduled_date
+        time start_time
+        int duration_minutes
+        varchar venue
+        int invigilator_id FK
+        text instructions
+        enum status
+        timestamp created_at
+    }
+
+    STUDENTS ||--o{ TVET_ASSESSMENT_MARKS : "scores"
+
+    TVET_ASSESSMENT_MARKS {
+        int id PK
+        int assessment_id FK
+        int student_id FK
+        decimal marks_obtained
+        text feedback
+        varchar grade
+        decimal percentage
+        tinyint is_absent
+        int graded_by FK
+        timestamp graded_at
+        timestamp created_at
+    }
+
+    %% TVET Timetable
+    STAFF ||--o{ TVET_TIMETABLE : "teaches"
+
+    TVET_TIMETABLE {
+        int id PK
+        int cohort_id FK
+        int level_module_id FK
+        int staff_id FK
+        enum day_of_week
+        time start_time
+        time end_time
+        varchar venue
+        year academic_year
+        enum semester
+        tinyint active
+        timestamp created_at
+    }
+
+    %% TVET Attendance
+    TVET_ATTENDANCE {
+        int id PK
+        int student_enrolment_id FK
+        int level_module_id FK
+        int cohort_id FK
+        date attendance_date
+        enum status
+        varchar remarks
+        int marked_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% TVET ICASS Configuration
+    TVET_ICASS_CONFIG {
+        int id PK
+        int level_module_id FK
+        varchar component_name
+        enum component_type
+        decimal weight_percentage
+        tinyint min_assessments
+        decimal pass_percentage
+        tinyint is_compulsory
+        tinyint sequence_order
+        tinyint active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% TVET Moderation Log
+    STAFF ||--o{ TVET_MODERATION_LOG : "moderates"
+
+    TVET_MODERATION_LOG {
+        int id PK
+        int assessment_id FK
+        int moderator_id FK
+        enum action
+        text comments
+        varchar previous_status
+        varchar new_status
+        timestamp created_at
+    }
+
+    %% TVET Qualification Requirements
+    TVET_QUALIFICATION ||--o{ TVET_QUALIFICATION_REQUIREMENT : "requires"
+    TVET_LEVEL_MODULE ||--o{ TVET_QUALIFICATION_REQUIREMENT : "module"
+
+    TVET_QUALIFICATION_REQUIREMENT {
+        int id PK
+        int qualification_id FK
+        int level_module_id FK
+        tinyint is_compulsory
+        varchar elective_group
+        tinyint min_electives_from_group
+        tinyint credit_value
+        int prerequisite_module_id FK
+        text notes
+        timestamp created_at
+    }
+
+    %% TVET Portfolio of Evidence
+    TVET_POE_ITEM {
+        int id PK
+        int student_enrolment_id FK
+        int level_module_id FK
+        varchar title
+        enum item_type
+        text description
+        varchar file_path
+        date submitted_date
+        enum verification_status
+        int verified_by FK
+        date verification_date
+        text verification_comment
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% ============================================
+    %% ACADEMIC MANAGEMENT MODULE (Subject-Centric)
+    %% ============================================
+
+    %% Academic Programme & Subject Structure
+    ACADEMIC_PROGRAMME ||--o{ ACADEMIC_SUBJECT : "contains"
+
+    ACADEMIC_PROGRAMME {
+        int id PK
+        varchar code UK
+        varchar name
+        text description
+        enum qualification_type
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ACADEMIC_SUBJECT ||--o{ ACADEMIC_SUBJECT_LEVEL : "at level"
+
+    ACADEMIC_SUBJECT {
+        int id PK
+        int programme_id FK
+        varchar code
+        varchar name
+        text description
+        int credits
+        int notional_hours
+        tinyint is_core
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ACADEMIC_LEVEL ||--o{ ACADEMIC_SUBJECT_LEVEL : "has subjects"
+
+    ACADEMIC_LEVEL {
+        int id PK
+        varchar code UK
+        varchar name
+        enum level_type
+        int nqf_level
+        int sequence
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ACADEMIC_SUBJECT_LEVEL ||--o{ ACADEMIC_CLASS : "taught in"
+
+    ACADEMIC_SUBJECT_LEVEL {
+        int id PK
+        int subject_id FK
+        int level_id FK
+        varchar syllabus_code
+        tinyint is_active
+        timestamp created_at
+    }
+
+    %% Academic Class (Central Unit)
+    SESSIONS ||--o{ ACADEMIC_CLASS : "session"
+    STAFF ||--o{ ACADEMIC_CLASS : "primary lecturer"
+    ACADEMIC_CLASS ||--o{ ACADEMIC_CLASS_ENROLMENT : "enrolls"
+    ACADEMIC_CLASS ||--o{ ACADEMIC_CLASS_LECTURER : "lecturers"
+    ACADEMIC_CLASS ||--o{ ACADEMIC_ATTENDANCE : "tracks"
+    ACADEMIC_CLASS ||--o{ ACADEMIC_TIMETABLE : "scheduled"
+    ACADEMIC_CLASS ||--o{ ACADEMIC_ASSESSMENT : "assessments"
+    ACADEMIC_CLASS ||--o{ ACADEMIC_ICASS_CONFIG : "icass config"
+
+    ACADEMIC_CLASS {
+        int id PK
+        varchar class_code UK
+        int subject_level_id FK
+        varchar cohort_name
+        int academic_year
+        int session_id FK
+        varchar intake_period
+        enum delivery_mode
+        int primary_lecturer_id FK
+        varchar venue
+        int max_students
+        date start_date
+        date end_date
+        enum status
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% Academic Class Enrolment
+    STUDENTS ||--o{ ACADEMIC_CLASS_ENROLMENT : "enrolled"
+    ACADEMIC_CLASS_ENROLMENT ||--o{ ACADEMIC_ATTENDANCE : "attendance"
+    ACADEMIC_CLASS_ENROLMENT ||--o{ ACADEMIC_ASSESSMENT_MARKS : "marks"
+    ACADEMIC_CLASS_ENROLMENT ||--o{ ACADEMIC_POE_ITEM : "portfolio"
+
+    ACADEMIC_CLASS_ENROLMENT {
+        int id PK
+        int student_id FK
+        int class_id FK
+        date enrolment_date
+        enum status
+        date completion_date
+        decimal final_mark
+        enum final_result
+        text notes
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% Academic Class Lecturers
+    STAFF ||--o{ ACADEMIC_CLASS_LECTURER : "assigned"
+
+    ACADEMIC_CLASS_LECTURER {
+        int id PK
+        int class_id FK
+        int staff_id FK
+        enum role
+        tinyint is_active
+        timestamp created_at
+    }
+
+    %% Academic Attendance
+    ACADEMIC_ATTENDANCE {
+        int id PK
+        int class_id FK
+        int enrolment_id FK
+        date date
+        enum status
+        varchar notes
+        int marked_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% Academic Timetable
+    ACADEMIC_TIMETABLE {
+        int id PK
+        int class_id FK
+        enum day_of_week
+        time start_time
+        time end_time
+        varchar venue
+        int lecturer_id FK
+        tinyint is_active
+        timestamp created_at
+    }
+
+    %% Academic Assessment System
+    STAFF ||--o{ ACADEMIC_ASSESSMENT : "creates"
+    STAFF ||--o{ ACADEMIC_ASSESSMENT : "moderates"
+    ACADEMIC_ASSESSMENT ||--o{ ACADEMIC_ASSESSMENT_MARKS : "records"
+    ACADEMIC_ASSESSMENT ||--o{ ACADEMIC_MODERATION_LOG : "moderated"
+
+    ACADEMIC_ASSESSMENT {
+        int id PK
+        int class_id FK
+        varchar title
+        enum assessment_type
+        enum icass_component
+        decimal total_marks
+        decimal weight_percentage
+        datetime due_date
+        text instructions
+        text attachments
+        enum moderation_status
+        int moderator_id FK
+        datetime moderation_date
+        text moderation_comments
+        tinyint is_published
+        int created_by FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% Academic Assessment Marks
+    STAFF ||--o{ ACADEMIC_ASSESSMENT_MARKS : "marked by"
+
+    ACADEMIC_ASSESSMENT_MARKS {
+        int id PK
+        int assessment_id FK
+        int enrolment_id FK
+        decimal marks_obtained
+        decimal percentage
+        varchar grade
+        text feedback
+        datetime submission_date
+        varchar submission_file
+        int marked_by FK
+        datetime marked_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% Academic Moderation Log
+    STAFF ||--o{ ACADEMIC_MODERATION_LOG : "moderates"
+
+    ACADEMIC_MODERATION_LOG {
+        int id PK
+        int assessment_id FK
+        int moderator_id FK
+        enum action
+        text comments
+        varchar previous_status
+        varchar new_status
+        timestamp created_at
+    }
+
+    %% Academic POE Items
+    STAFF ||--o{ ACADEMIC_POE_ITEM : "assesses"
+
+    ACADEMIC_POE_ITEM {
+        int id PK
+        int enrolment_id FK
+        varchar item_name
+        enum item_type
+        text description
+        varchar file_path
+        date submitted_date
+        enum status
+        int assessor_id FK
+        text assessor_comments
+        datetime assessed_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% Academic ICASS Configuration
+    ACADEMIC_ICASS_CONFIG {
+        int id PK
+        int class_id FK
+        enum component
+        enum component_type
+        decimal weight_percentage
+        decimal pass_percentage
+        varchar description
+        tinyint is_compulsory
+        timestamp created_at
+    }
+
+    %% ============================================
+    %% EXAM MODERATION & DISABILITY SUPPORT
+    %% ============================================
+
+    %% Extended Online Exam with Moderation
+    ONLINEEXAM ||--o{ EXAM_MODERATION_COMMENTS : "has comments"
+    STAFF ||--o{ EXAM_MODERATION_COMMENTS : "moderates"
+
+    EXAM_MODERATION_COMMENTS {
+        int id PK
+        int exam_id FK
+        int moderator_staff_id FK
+        int question_id
+        text comment
+        enum action
+        timestamp created_at
+    }
+
+    %% Disability Types
+    DISABILITY_TYPES ||--o{ STUDENT_ACCOMMODATIONS : "accommodates"
+
+    DISABILITY_TYPES {
+        int id PK
+        varchar name
+        text description
+        int default_extra_time_percent
+        enum is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% Student Accommodations
+    STUDENT_SESSION ||--o{ STUDENT_ACCOMMODATIONS : "has"
+
+    STUDENT_ACCOMMODATIONS {
+        int id PK
+        int student_session_id FK
+        varchar accommodation_type
+        int extra_time_percent
+        text notes
+        int approved_by_staff_id FK
+        tinyint is_active
+        timestamp created_at
+    }
+
+    %% ============================================
+    %% LEARNING CONTENT TRACKING
+    %% ============================================
+
+    %% Content Views Tracking
+    UPLOAD_CONTENTS ||--o{ CONTENT_VIEWS : "viewed"
+    STUDENT_SESSION ||--o{ CONTENT_VIEWS : "views"
+
+    CONTENT_VIEWS {
+        int id PK
+        int upload_content_id FK
+        int share_content_id
+        int student_session_id FK
+        timestamp viewed_at
+    }
+
+    %% ============================================
+    %% CONFERENCE / LIVE CLASS MODULE
+    %% ============================================
+
+    %% Conferences (Zoom/Teams)
+    STAFF ||--o{ CONFERENCES : "hosts"
+    SUBJECTS ||--o{ CONFERENCES : "subject"
+    SESSIONS ||--o{ CONFERENCES : "session"
+    CONFERENCES ||--o{ CONFERENCE_STAFF : "staff"
+    CONFERENCES ||--o{ CONFERENCES_HISTORY : "attendance"
+    CONFERENCES ||--o{ CONFERENCE_COHORTS : "for cohorts"
+    CONFERENCES ||--o{ CONFERENCE_SECTIONS : "for sections"
+
+    CONFERENCES {
+        int id PK
+        varchar purpose
+        varchar platform
+        int staff_id FK
+        int created_id FK
+        text title
+        datetime date
+        int duration
+        varchar subject
+        int class_id FK
+        int section_id FK
+        int session_id FK
+        int tvet_module_id FK
+        varchar api_type
+        int status
+        timestamp created_at
+    }
+
+    STAFF ||--o{ CONFERENCE_STAFF : "participates"
+
+    CONFERENCE_STAFF {
+        int id PK
+        int conference_id FK
+        int staff_id FK
+        timestamp created_at
+    }
+
+    STUDENTS ||--o{ CONFERENCES_HISTORY : "attends"
+
+    CONFERENCES_HISTORY {
+        int id PK
+        int conference_id FK
+        int staff_id FK
+        int student_id FK
+        int total_hit
+        timestamp created_at
+    }
+
+    TVET_COHORT ||--o{ CONFERENCE_COHORTS : "joins"
+
+    CONFERENCE_COHORTS {
+        int id PK
+        int conference_id FK
+        int cohort_id FK
+    }
+
+    CLASS_SECTIONS ||--o{ CONFERENCE_SECTIONS : "joins"
+
+    CONFERENCE_SECTIONS {
+        int id PK
+        int conference_id FK
+        int cls_section_id FK
+        timestamp created_at
+    }
+
+    %% Zoom/Teams Settings
+    ZOOM_SETTINGS {
+        int id PK
+        varchar zoom_api_key
+        varchar zoom_api_secret
+        varchar teams_tenant_id
+        varchar teams_client_id
+        varchar teams_client_secret
+        varchar teams_organizer_id
+        timestamp created_at
     }

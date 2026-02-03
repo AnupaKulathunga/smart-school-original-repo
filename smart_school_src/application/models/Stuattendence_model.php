@@ -14,18 +14,31 @@ class Stuattendence_model extends MY_Model
         $this->current_date = $this->setting_model->getDateYmd();
     }
 
+    /**
+     * Add or update attendance
+     * UPDATED: Now supports both enrolment_id (TVET) and student_session_id (legacy)
+     */
     public function addorUpdate($attendances)
     {
         $this->db->trans_start();
-        $this->db->trans_strict(false);      
+        $this->db->trans_strict(false);
 
         if(!empty($attendances)){
             foreach ($attendances as $attendance_key => $attendance_value) {
-                            
-                $this->db->where('student_session_id',  $attendance_value['student_session_id']);
+                // Support both TVET (enrolment_id) and legacy (student_session_id)
+                if (isset($attendance_value['enrolment_id'])) {
+                    // TVET: Use enrolment_id
+                    $this->db->where('enrolment_id', $attendance_value['enrolment_id']);
+                } else if (isset($attendance_value['student_session_id'])) {
+                    // Legacy: Use student_session_id
+                    $this->db->where('student_session_id', $attendance_value['student_session_id']);
+                } else {
+                    continue; // Skip if neither ID is present
+                }
+
                 $this->db->where('date', $attendance_value['date']);
                 $query = $this->db->get('student_attendences');
-                
+
                 if ($query->num_rows() > 0) {
                     // Record exists, update it
                     $this->db->where('id', $query->row()->id);
@@ -34,8 +47,7 @@ class Stuattendence_model extends MY_Model
                     // Record does not exist, insert a new one
                     $this->db->insert('student_attendences', $attendance_value);
                 }
-
-                }
+            }
         }
 
         $this->db->trans_complete();
@@ -46,7 +58,7 @@ class Stuattendence_model extends MY_Model
         } else {
             $this->db->trans_commit();
             return true;
-        }    
+        }
     }
 
     public function batch_insert($data)
@@ -329,6 +341,118 @@ class Stuattendence_model extends MY_Model
             ->where("date BETWEEN '{$date_from}' AND '{$date_to}'")
             ->get("student_attendences");
 
+        return $query->result();
+    }
+
+    // ========================================================================
+    // TVET METHODS - Uses enrolment_id instead of student_session_id
+    // ========================================================================
+
+    /**
+     * Get attendance for all students in a class on a specific date
+     * TVET: Uses class_id and enrolment_id
+     *
+     * @param int $class_id Class ID
+     * @param string $date Date in Y-m-d format
+     * @return array Array of students with attendance data
+     */
+    public function getAttendanceByClass($class_id, $date)
+    {
+        $query = $this->db->select('students.*, students.id as student_id,
+            enrolment.id as enrolment_id, enrolment.enrolment_type,
+            student_attendences.*, student_attendences.id as attendance_id,
+            attendence_type.type as attendence_type, attendence_type.key_value,
+            class.class_code, class.cohort_name,
+            subjects.name as subject_name, level.name as level_name')
+            ->from('enrolment')
+            ->join('students', 'enrolment.student_id = students.id')
+            ->join('class', 'enrolment.class_id = class.id')
+            ->join('subject_level', 'class.subject_level_id = subject_level.id')
+            ->join('subjects', 'subject_level.subject_id = subjects.id')
+            ->join('level', 'subject_level.level_id = level.id')
+            ->join('student_attendences', 'student_attendences.enrolment_id = enrolment.id
+                AND student_attendences.date = "' . $this->db->escape_str($date) . '"', 'left')
+            ->join('attendence_type', 'student_attendences.attendence_type_id = attendence_type.id', 'left')
+            ->where('class.id', $class_id)
+            ->where('enrolment.status', 'Active')
+            ->where('students.is_active', 'yes')
+            ->order_by('students.firstname, students.lastname')
+            ->get();
+
+        return $query->result_array();
+    }
+
+    /**
+     * Add or update attendance (TVET version)
+     * Supports both legacy student_session_id and new enrolment_id
+     *
+     * @param array $attendances Array of attendance records
+     * @return bool Success status
+     */
+    public function addorUpdateTVET($attendances)
+    {
+        $this->db->trans_start();
+        $this->db->trans_strict(false);
+
+        if (!empty($attendances)) {
+            foreach ($attendances as $attendance_key => $attendance_value) {
+                // Check if using enrolment_id (TVET) or student_session_id (legacy)
+                if (isset($attendance_value['enrolment_id'])) {
+                    // TVET: Use enrolment_id
+                    $this->db->where('enrolment_id', $attendance_value['enrolment_id']);
+                } else if (isset($attendance_value['student_session_id'])) {
+                    // Legacy: Use student_session_id
+                    $this->db->where('student_session_id', $attendance_value['student_session_id']);
+                } else {
+                    continue; // Skip if neither ID is present
+                }
+
+                $this->db->where('date', $attendance_value['date']);
+                $query = $this->db->get('student_attendences');
+
+                if ($query->num_rows() > 0) {
+                    // Record exists, update it
+                    $this->db->where('id', $query->row()->id);
+                    $this->db->update('student_attendences', $attendance_value);
+                } else {
+                    // Record does not exist, insert a new one
+                    $this->db->insert('student_attendences', $attendance_value);
+                }
+            }
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === false) {
+            $this->db->trans_rollback();
+            return false;
+        } else {
+            $this->db->trans_commit();
+            return true;
+        }
+    }
+
+    /**
+     * Get student attendance by enrolment ID
+     * TVET: Uses enrolment_id
+     *
+     * @param int $enrolment_id Enrolment ID
+     * @param string $date_from Start date
+     * @param string $date_to End date
+     * @return array Attendance records
+     */
+    public function getAttendanceByEnrolment($enrolment_id, $date_from = null, $date_to = null)
+    {
+        $this->db->select('student_attendences.*, attendence_type.type as att_type, attendence_type.key_value as key')
+            ->from('student_attendences')
+            ->join('attendence_type', 'attendence_type.id = student_attendences.attendence_type_id')
+            ->where('student_attendences.enrolment_id', $enrolment_id);
+
+        if ($date_from && $date_to) {
+            $this->db->where("date BETWEEN '{$date_from}' AND '{$date_to}'");
+        }
+
+        $query = $this->db->get();
         return $query->result();
     }
 }
