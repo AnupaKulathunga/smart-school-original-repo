@@ -196,16 +196,20 @@ if (!function_exists('main_menu_array')) {
                 'lessonplan'    => array('lesson','topic','copylesson','edittopic','editlesson'),                
             ), 
             
-            'academics' => array(                                 
-                'timetable'     => array('classreport','mytimetable','create'),                 
-                'teacher'       => array('assign_class_teacher','update_class_teacher'),                 
-                'stdtransfer'   => array('index'),                 
-                'subjectgroup'  => array('index','edit'),                 
-                'subject'       => array('index','edit'),                 
-                'classes'       => array('index','edit'),                 
-                'sections'      => array('index','edit'),                 
-            ), 
-            
+            'academics' => array(
+                'timetable'     => array('classreport','mytimetable','create'),
+                'teacher'       => array('assign_class_teacher','update_class_teacher'),
+                'stdtransfer'   => array('index'),
+                'subjectgroup'  => array('index','edit'),
+                'subject'       => array('index','edit'),
+                'classes'       => array('index','edit'),
+                'sections'      => array('index','edit'),
+            ),
+
+            'academic_management' => array(
+                'academic'      => array('index','programmes','programme_add','programme_edit','subjects','subject_add','subject_edit','levels','level_add','level_edit','subject_levels','subject_level_add','classes','class_add','class_edit','class_roster','enrolment','enrol_student','attendance','mark_attendance','assessments','assessment_add','assessment_edit','marks_entry','reports','moderation','icass','poe','timetable'),
+            ),
+
             'human_resource' => array(                   
                 'staff'             => array('index','profile','edit','leaverequest','rating','disablestafflist','create'),             
                 'staffattendance'   => array('index'),                 
@@ -459,6 +463,10 @@ function side_menu_list($list = -1)
 
 function access_permission_sidebar_remove_pipe($access_permissions)
 {
+    // Handle null or empty access_permissions
+    if ($access_permissions === null || $access_permissions === '') {
+        return array();
+    }
     // remove pipe sign ||
     $module_permission = array_map('trim', explode('||', preg_replace('/\(\'|\'|\)/', '', $access_permissions)));
 
@@ -467,7 +475,11 @@ function access_permission_sidebar_remove_pipe($access_permissions)
 
 function access_permission_remove_comma($m_permission_value)
 {
-    // remove pipe sign ||
+    // Handle null or empty value
+    if ($m_permission_value === null || $m_permission_value === '') {
+        return array();
+    }
+    // remove comma
     $module_permission_seprated = array_map('trim', explode(',', preg_replace('/\s+/', '', $m_permission_value)));
     return $module_permission_seprated;
 }

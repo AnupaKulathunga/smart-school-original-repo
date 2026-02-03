@@ -555,8 +555,402 @@ class Tvet extends Admin_Controller
     }
 
     // ========================================
+    // ATTENDANCE MANAGEMENT
+    // ========================================
+
+    public function attendance()
+    {
+        $data['title'] = 'Attendance Management';
+        $data['cohorts'] = $this->tvet_cohort_model->getAll();
+        $data['current_date'] = date('Y-m-d');
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/tvet/attendance/index', $data);
+        $this->load->view('layout/footer');
+    }
+
+    public function mark_attendance($cohort_id = null, $module_id = null)
+    {
+        if (!$cohort_id) {
+            redirect('admin/tvet/attendance');
+        }
+
+        $data['cohort'] = $this->tvet_cohort_model->getWithDetails($cohort_id);
+        if (!$data['cohort']) {
+            show_404();
+        }
+
+        $data['title'] = 'Mark Attendance - ' . $data['cohort']['name'];
+        $data['modules'] = $this->tvet_level_module_model->getByLevel($data['cohort']['level_id']);
+        $data['selected_module_id'] = $module_id;
+        $data['attendance_date'] = $this->input->get('date') ?: date('Y-m-d');
+
+        // Get students in cohort
+        $data['students'] = $this->tvet_student_enrolment_model->getCohortRoster($cohort_id);
+
+        // Get existing attendance for this date/module
+        if ($module_id) {
+            $this->db->select('tvet_attendance.*');
+            $this->db->from('tvet_attendance');
+            $this->db->where('cohort_id', $cohort_id);
+            $this->db->where('level_module_id', $module_id);
+            $this->db->where('attendance_date', $data['attendance_date']);
+            $existing = $this->db->get()->result_array();
+
+            $data['existing_attendance'] = [];
+            foreach ($existing as $record) {
+                $data['existing_attendance'][$record['student_enrolment_id']] = $record['status'];
+            }
+        }
+
+        $data['statuses'] = ['Present', 'Absent', 'Late', 'Excused'];
+
+        if ($this->input->server('REQUEST_METHOD') === 'POST' && $module_id) {
+            $attendance_data = $this->input->post('attendance');
+            $staff_id = $this->customlib->getStaffID();
+
+            if (!empty($attendance_data)) {
+                foreach ($attendance_data as $enrolment_id => $status) {
+                    // Check if record exists
+                    $this->db->where('student_enrolment_id', $enrolment_id);
+                    $this->db->where('level_module_id', $module_id);
+                    $this->db->where('attendance_date', $data['attendance_date']);
+                    $exists = $this->db->get('tvet_attendance')->row_array();
+
+                    if ($exists) {
+                        $this->db->where('id', $exists['id']);
+                        $this->db->update('tvet_attendance', [
+                            'status' => $status,
+                            'marked_by' => $staff_id
+                        ]);
+                    } else {
+                        $this->db->insert('tvet_attendance', [
+                            'student_enrolment_id' => $enrolment_id,
+                            'level_module_id' => $module_id,
+                            'cohort_id' => $cohort_id,
+                            'attendance_date' => $data['attendance_date'],
+                            'status' => $status,
+                            'marked_by' => $staff_id
+                        ]);
+                    }
+                }
+                $this->session->set_flashdata('msg', '<div class="alert alert-success">Attendance saved successfully</div>');
+                redirect('admin/tvet/mark_attendance/' . $cohort_id . '/' . $module_id . '?date=' . $data['attendance_date']);
+            }
+        }
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/tvet/attendance/mark', $data);
+        $this->load->view('layout/footer');
+    }
+
+    // ========================================
+    // ASSESSMENT MANAGEMENT
+    // ========================================
+
+    public function assessments()
+    {
+        $data['title'] = 'Assessment Management';
+
+        // Filters
+        $cohort_id = $this->input->get('cohort_id');
+        $module_id = $this->input->get('module_id');
+
+        $this->db->select('tvet_assessment.*, tvet_cohort.name as cohort_name, tvet_level_module.module_name,
+                          (SELECT COUNT(*) FROM tvet_assessment_marks WHERE assessment_id = tvet_assessment.id) as marks_count');
+        $this->db->from('tvet_assessment');
+        $this->db->join('tvet_cohort', 'tvet_cohort.id = tvet_assessment.cohort_id');
+        $this->db->join('tvet_level_module', 'tvet_level_module.id = tvet_assessment.level_module_id');
+
+        if ($cohort_id) {
+            $this->db->where('tvet_assessment.cohort_id', $cohort_id);
+        }
+        if ($module_id) {
+            $this->db->where('tvet_assessment.level_module_id', $module_id);
+        }
+
+        $this->db->order_by('tvet_assessment.created_at', 'DESC');
+        $data['assessments'] = $this->db->get()->result_array();
+
+        $data['cohorts'] = $this->tvet_cohort_model->getAll();
+        $data['selected_cohort_id'] = $cohort_id;
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/tvet/assessment/index', $data);
+        $this->load->view('layout/footer');
+    }
+
+    public function assessment_add()
+    {
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $this->form_validation->set_rules('cohort_id', 'Cohort', 'required|integer');
+            $this->form_validation->set_rules('level_module_id', 'Module', 'required|integer');
+            $this->form_validation->set_rules('title', 'Title', 'required|trim');
+            $this->form_validation->set_rules('assessment_type', 'Assessment Type', 'required');
+            $this->form_validation->set_rules('total_marks', 'Total Marks', 'required|integer');
+
+            if ($this->form_validation->run()) {
+                $insert = [
+                    'cohort_id'         => $this->input->post('cohort_id'),
+                    'level_module_id'   => $this->input->post('level_module_id'),
+                    'assessment_type'   => $this->input->post('assessment_type'),
+                    'title'             => $this->input->post('title'),
+                    'description'       => $this->input->post('description'),
+                    'total_marks'       => $this->input->post('total_marks'),
+                    'weight_percentage' => $this->input->post('weight_percentage') ?: 0,
+                    'due_date'          => $this->input->post('due_date') ?: null,
+                    'academic_year'     => date('Y'),
+                    'semester'          => $this->input->post('semester') ?: 'Year',
+                    'status'            => $this->input->post('status') ?: 'Draft',
+                    'is_online'         => $this->input->post('is_online') ? 1 : 0,
+                    'instructions'      => $this->input->post('instructions'),
+                    'created_by'        => $this->customlib->getStaffID()
+                ];
+
+                $this->db->insert('tvet_assessment', $insert);
+                $this->session->set_flashdata('msg', '<div class="alert alert-success">Assessment created successfully</div>');
+                redirect('admin/tvet/assessments');
+            }
+        }
+
+        $data['title'] = 'Add Assessment';
+        $data['cohorts'] = $this->tvet_cohort_model->getAll();
+        $data['assessment_types'] = ['Assignment', 'Test', 'Practical', 'Exam', 'POE', 'Project'];
+        $data['statuses'] = ['Draft', 'Published', 'Active', 'Closed', 'Archived'];
+
+        // Pre-select cohort if provided
+        $data['selected_cohort_id'] = $this->input->get('cohort_id');
+        if ($data['selected_cohort_id']) {
+            $cohort = $this->tvet_cohort_model->getWithDetails($data['selected_cohort_id']);
+            $data['modules'] = $this->tvet_level_module_model->getByLevel($cohort['level_id']);
+        }
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/tvet/assessment/add', $data);
+        $this->load->view('layout/footer');
+    }
+
+    public function assessment_edit($id)
+    {
+        $this->db->select('tvet_assessment.*, tvet_cohort.level_id');
+        $this->db->from('tvet_assessment');
+        $this->db->join('tvet_cohort', 'tvet_cohort.id = tvet_assessment.cohort_id');
+        $this->db->where('tvet_assessment.id', $id);
+        $data['assessment'] = $this->db->get()->row_array();
+
+        if (!$data['assessment']) {
+            show_404();
+        }
+
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $this->form_validation->set_rules('title', 'Title', 'required|trim');
+            $this->form_validation->set_rules('assessment_type', 'Assessment Type', 'required');
+            $this->form_validation->set_rules('total_marks', 'Total Marks', 'required|integer');
+
+            if ($this->form_validation->run()) {
+                $update = [
+                    'assessment_type'   => $this->input->post('assessment_type'),
+                    'title'             => $this->input->post('title'),
+                    'description'       => $this->input->post('description'),
+                    'total_marks'       => $this->input->post('total_marks'),
+                    'weight_percentage' => $this->input->post('weight_percentage') ?: 0,
+                    'due_date'          => $this->input->post('due_date') ?: null,
+                    'semester'          => $this->input->post('semester') ?: 'Year',
+                    'status'            => $this->input->post('status'),
+                    'is_online'         => $this->input->post('is_online') ? 1 : 0,
+                    'instructions'      => $this->input->post('instructions')
+                ];
+
+                $this->db->where('id', $id);
+                $this->db->update('tvet_assessment', $update);
+                $this->session->set_flashdata('msg', '<div class="alert alert-success">Assessment updated successfully</div>');
+                redirect('admin/tvet/assessments');
+            }
+        }
+
+        $data['title'] = 'Edit Assessment';
+        $data['cohorts'] = $this->tvet_cohort_model->getAll();
+        $data['modules'] = $this->tvet_level_module_model->getByLevel($data['assessment']['level_id']);
+        $data['assessment_types'] = ['Assignment', 'Test', 'Practical', 'Exam', 'POE', 'Project'];
+        $data['statuses'] = ['Draft', 'Published', 'Active', 'Closed', 'Archived'];
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/tvet/assessment/edit', $data);
+        $this->load->view('layout/footer');
+    }
+
+    public function assessment_delete($id)
+    {
+        // Check if marks exist
+        $this->db->where('assessment_id', $id);
+        $marks_count = $this->db->count_all_results('tvet_assessment_marks');
+
+        if ($marks_count > 0) {
+            $this->session->set_flashdata('msg', '<div class="alert alert-danger">Cannot delete assessment with existing marks</div>');
+        } else {
+            $this->db->where('id', $id);
+            $this->db->delete('tvet_assessment');
+            $this->session->set_flashdata('msg', '<div class="alert alert-success">Assessment deleted successfully</div>');
+        }
+        redirect('admin/tvet/assessments');
+    }
+
+    public function marks_entry($assessment_id)
+    {
+        $this->db->select('tvet_assessment.*, tvet_cohort.name as cohort_name, tvet_cohort.id as cohort_id, tvet_level_module.module_name');
+        $this->db->from('tvet_assessment');
+        $this->db->join('tvet_cohort', 'tvet_cohort.id = tvet_assessment.cohort_id');
+        $this->db->join('tvet_level_module', 'tvet_level_module.id = tvet_assessment.level_module_id');
+        $this->db->where('tvet_assessment.id', $assessment_id);
+        $data['assessment'] = $this->db->get()->row_array();
+
+        if (!$data['assessment']) {
+            show_404();
+        }
+
+        $data['title'] = 'Marks Entry - ' . $data['assessment']['title'];
+
+        // Get students in cohort with their marks
+        $this->db->select('tvet_student_enrolment.id as enrolment_id, tvet_student_enrolment.student_id,
+                          students.admission_no, students.firstname, students.lastname,
+                          tvet_assessment_marks.id as marks_id, tvet_assessment_marks.marks_obtained,
+                          tvet_assessment_marks.grade, tvet_assessment_marks.percentage,
+                          tvet_assessment_marks.is_absent, tvet_assessment_marks.feedback');
+        $this->db->from('tvet_student_enrolment');
+        $this->db->join('students', 'students.id = tvet_student_enrolment.student_id');
+        $this->db->join('tvet_assessment_marks', 'tvet_assessment_marks.student_id = tvet_student_enrolment.student_id
+                        AND tvet_assessment_marks.assessment_id = ' . $assessment_id, 'left');
+        $this->db->where('tvet_student_enrolment.cohort_id', $data['assessment']['cohort_id']);
+        $this->db->where('tvet_student_enrolment.status', 'Active');
+        $this->db->order_by('students.firstname', 'ASC');
+        $data['students'] = $this->db->get()->result_array();
+
+        // Calculate statistics
+        $this->db->select('COUNT(*) as total, AVG(marks_obtained) as avg_marks, MAX(marks_obtained) as max_marks, MIN(marks_obtained) as min_marks');
+        $this->db->from('tvet_assessment_marks');
+        $this->db->where('assessment_id', $assessment_id);
+        $this->db->where('marks_obtained IS NOT NULL');
+        $data['statistics'] = $this->db->get()->row_array();
+
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $marks_data = $this->input->post('marks');
+            $staff_id = $this->customlib->getStaffID();
+            $total_marks = $data['assessment']['total_marks'];
+
+            if (!empty($marks_data)) {
+                foreach ($marks_data as $student_id => $mark_info) {
+                    $marks_obtained = $mark_info['marks'] !== '' ? floatval($mark_info['marks']) : null;
+                    $is_absent = isset($mark_info['absent']) ? 1 : 0;
+
+                    // Calculate percentage and grade
+                    $percentage = null;
+                    $grade = null;
+                    if ($marks_obtained !== null && $total_marks > 0) {
+                        $percentage = round(($marks_obtained / $total_marks) * 100, 2);
+                        $grade = $this->calculateGrade($percentage);
+                    }
+
+                    // Check if record exists
+                    $this->db->where('assessment_id', $assessment_id);
+                    $this->db->where('student_id', $student_id);
+                    $existing = $this->db->get('tvet_assessment_marks')->row_array();
+
+                    $record = [
+                        'marks_obtained' => $marks_obtained,
+                        'percentage'     => $percentage,
+                        'grade'          => $grade,
+                        'is_absent'      => $is_absent,
+                        'feedback'       => $mark_info['feedback'] ?? null,
+                        'graded_by'      => $staff_id,
+                        'graded_at'      => date('Y-m-d H:i:s')
+                    ];
+
+                    if ($existing) {
+                        $this->db->where('id', $existing['id']);
+                        $this->db->update('tvet_assessment_marks', $record);
+                    } else {
+                        $record['assessment_id'] = $assessment_id;
+                        $record['student_id'] = $student_id;
+                        $this->db->insert('tvet_assessment_marks', $record);
+                    }
+                }
+                $this->session->set_flashdata('msg', '<div class="alert alert-success">Marks saved successfully</div>');
+                redirect('admin/tvet/marks_entry/' . $assessment_id);
+            }
+        }
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/tvet/assessment/marks', $data);
+        $this->load->view('layout/footer');
+    }
+
+    // ========================================
+    // REPORTS
+    // ========================================
+
+    public function reports()
+    {
+        $data['title'] = 'Academic Reports';
+
+        // Get summary statistics
+        $data['total_programmes'] = $this->db->count_all('tvet_programme');
+        $data['total_cohorts'] = $this->db->count_all('tvet_cohort');
+
+        $this->db->where('status', 'Active');
+        $data['active_students'] = $this->db->count_all_results('tvet_student_enrolment');
+
+        $data['total_assessments'] = $this->db->count_all('tvet_assessment');
+
+        $data['cohorts'] = $this->tvet_cohort_model->getAll();
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/tvet/reports/index', $data);
+        $this->load->view('layout/footer');
+    }
+
+    public function icass_config($level_id = null)
+    {
+        if (!$level_id) {
+            $data['title'] = 'ICASS Configuration';
+            $data['levels'] = $this->tvet_level_model->getAll();
+            $this->load->view('layout/header', $data);
+            $this->load->view('admin/tvet/icass/select_level', $data);
+            $this->load->view('layout/footer');
+            return;
+        }
+
+        $data['level'] = $this->tvet_level_model->getLevelWithDetails($level_id);
+        if (!$data['level']) {
+            show_404();
+        }
+
+        $data['title'] = 'ICASS Configuration - ' . $data['level']['name'];
+        $data['modules'] = $this->tvet_level_module_model->getByLevel($level_id);
+
+        // Get ICASS configs for each module
+        foreach ($data['modules'] as &$module) {
+            $this->db->where('level_module_id', $module['id']);
+            $this->db->order_by('sequence_order', 'ASC');
+            $module['icass_components'] = $this->db->get('tvet_icass_config')->result_array();
+        }
+
+        $this->load->view('layout/header', $data);
+        $this->load->view('admin/tvet/icass/config', $data);
+        $this->load->view('layout/footer');
+    }
+
+    // ========================================
     // HELPERS
     // ========================================
+
+    private function calculateGrade($percentage)
+    {
+        if ($percentage >= 80) return 'A';
+        if ($percentage >= 70) return 'B';
+        if ($percentage >= 60) return 'C';
+        if ($percentage >= 50) return 'D';
+        if ($percentage >= 40) return 'E';
+        return 'F';
+    }
 
     private function getAvailableStudents($cohort_id)
     {
