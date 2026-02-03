@@ -33,11 +33,15 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
     && sed -ri -e 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 
-# PHP configuration
+# PHP configuration for development (live reload, no caching)
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini" \
     && sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 64M/' "$PHP_INI_DIR/php.ini" \
     && sed -i 's/post_max_size = 8M/post_max_size = 64M/' "$PHP_INI_DIR/php.ini" \
-    && sed -i 's/memory_limit = 128M/memory_limit = 256M/' "$PHP_INI_DIR/php.ini"
+    && sed -i 's/memory_limit = 128M/memory_limit = 256M/' "$PHP_INI_DIR/php.ini" \
+    && echo "opcache.enable=0" >> "$PHP_INI_DIR/php.ini" \
+    && echo "opcache.enable_cli=0" >> "$PHP_INI_DIR/php.ini" \
+    && echo "display_errors=On" >> "$PHP_INI_DIR/php.ini" \
+    && echo "error_reporting=E_ALL" >> "$PHP_INI_DIR/php.ini"
 
 # Copy custom entrypoint and license generator
 COPY docker/docker-entrypoint.sh /usr/local/bin/custom-entrypoint.sh
