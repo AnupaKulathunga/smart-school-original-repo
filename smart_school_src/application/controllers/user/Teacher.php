@@ -21,8 +21,8 @@ class Teacher extends Student_Controller
         $data['title']      = 'Add Teacher';
         $data['teachers']   = $teachers   = array();
         $data['class_id']   = $class_id   = $this->current_classSection->class_id;
-        $data['section_id'] = $section_id = $this->current_classSection->section_id;
-        $data['resultlist'] = $this->subjecttimetable_model->getTeacherByClassandSection($class_id, $section_id); 
+        // TVET: section_id removed
+        $data['resultlist'] = $this->subjecttimetable_model->getTeacherByClassandSection($class_id, null); 
         $subject            = array();
         foreach ($data['resultlist'] as $value) {
             $teachers[$value->staff_id][] = $value;
@@ -69,8 +69,8 @@ class Teacher extends Student_Controller
     public function getSubjctByClassandSection()
     {
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $data       = $this->teachersubject_model->getSubjectByClsandSection($class_id, $section_id);
+        // TVET: section_id removed
+        $data       = $this->teachersubject_model->getSubjectByClsandSection($class_id, null);
         echo json_encode($data);
     }
 
@@ -97,8 +97,8 @@ class Teacher extends Student_Controller
                 $s                     = array();
                 $s['session_id']       = $this->setting_model->getCurrentSession();
                 $class_id              = $this->input->post('class_id');
-                $section_id            = $this->input->post('section_id');
-                $dt                    = $this->classsection_model->getDetailbyClassSection($class_id, $section_id);
+                // TVET: section_id removed
+                $dt                    = $this->classsection_model->getDetailbyClassSection($class_id, null);
                 $s['class_section_id'] = $dt['id'];
                 $s['teacher_id']       = $this->input->post('teacher_id_' . $value);
                 $s['subject_id']       = $this->input->post('subject_id_' . $value);
@@ -122,8 +122,8 @@ class Teacher extends Student_Controller
     public function getSubjectTeachers()
     {
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $dt         = $this->classsection_model->getDetailbyClassSection($class_id, $section_id);
+        // TVET: section_id removed
+        $dt         = $this->classsection_model->getDetailbyClassSection($class_id, null);
         $data       = $this->teachersubject_model->getDetailByclassAndSection($dt['id']);
         echo json_encode($data);
     }
