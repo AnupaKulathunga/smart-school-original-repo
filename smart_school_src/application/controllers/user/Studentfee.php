@@ -45,12 +45,12 @@ class Studentfee extends Student_Controller
             $this->load->view('layout/footer', $data);
         } else {
             $class       = $this->input->post('class_id');
-            $section     = $this->input->post('section_id');
+            // TVET: section_id removed
             $search      = $this->input->post('search');
             $search_text = $this->input->post('search_text');
             if (isset($search)) {
                 if ($search == 'search_filter') {
-                    $resultlist         = $this->student_model->searchByClassSection($class, $section);
+                    $resultlist         = $this->student_model->searchByClassSection($class, null);
                     $data['resultlist'] = $resultlist;
                 } else if ($search == 'search_full') {
                     $resultlist         = $this->student_model->searchFullText($search_text);
@@ -84,8 +84,8 @@ class Studentfee extends Student_Controller
             $feecategory_id          = $this->input->post('feecategory_id');
             $feetype_id              = $this->input->post('feetype_id');
             $class_id                = $this->input->post('class_id');
-            $section_id              = $this->input->post('section_id');
-            $student_due_fee         = $this->studentfee_model->getDueStudentFees($feetype_id, $class_id, $section_id);
+            // TVET: section_id removed
+            $student_due_fee         = $this->studentfee_model->getDueStudentFees($feetype_id, $class_id, null);
             $data['student_due_fee'] = $student_due_fee;
             $this->load->view('layout/student/header', $data);
             $this->load->view('user/studentfee/studentSearchFee', $data);
@@ -108,7 +108,7 @@ class Studentfee extends Student_Controller
             $this->load->view('studentfee/reportByName', $data);
             $this->load->view('layout/footer', $data);
         } else {
-            $this->form_validation->set_rules('section_id', 'Section', 'trim|required|xss_clean');
+            // TVET: section_id validation removed
             $this->form_validation->set_rules('class_id', 'Class', 'trim|required|xss_clean');
             $this->form_validation->set_rules('student_id', 'Student', 'trim|required|xss_clean');
             if ($this->form_validation->run() == false) {
@@ -118,13 +118,13 @@ class Studentfee extends Student_Controller
             } else {
                 $data['student_due_fee'] = array();
                 $class_id                = $this->input->post('class_id');
-                $section_id              = $this->input->post('section_id');
+                // TVET: section_id removed
                 $student_id              = $this->input->post('student_id');
-                $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($class_id, $section_id, $student_id);
+                $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($class_id, null, $student_id);
                 $data['student']         = $this->student_model->getRecentRecord($student_id);
                 $data['student_due_fee'] = $student_due_fee;
                 $data['class_id']        = $class_id;
-                $data['section_id']      = $section_id;
+                // TVET: section_id removed
                 $data['student_id']      = $student_id;
                 $this->load->view('layout/header', $data);
                 $this->load->view('studentfee/reportByName', $data);
@@ -148,8 +148,8 @@ class Studentfee extends Student_Controller
         } else {
             $student_fees_array      = array();
             $class_id                = $this->input->post('class_id');
-            $section_id              = $this->input->post('section_id');
-            $student_result          = $this->student_model->searchByClassSection($class_id, $section_id);
+            // TVET: section_id removed
+            $student_result          = $this->student_model->searchByClassSection($class_id, null);
             $data['student_due_fee'] = array();
             if (!empty($student_result)) {
                 foreach ($student_result as $key => $student) {
@@ -157,13 +157,13 @@ class Studentfee extends Student_Controller
                     $student_array['student_detail']    = $student;
                     $student_session_id                 = $student['student_session_id'];
                     $student_id                         = $student['id'];
-                    $student_due_fee                    = $this->studentfee_model->getDueFeeBystudentSection($class_id, $section_id, $student_session_id);
+                    $student_due_fee                    = $this->studentfee_model->getDueFeeBystudentSection($class_id, null, $student_session_id);
                     $student_array['fee_detail']        = $student_due_fee;
                     $student_fees_array[$student['id']] = $student_array;
                 }
             }
             $data['class_id']           = $class_id;
-            $data['section_id']         = $section_id;
+            // TVET: section_id removed
             $data['student_fees_array'] = $student_fees_array;
             $this->load->view('layout/header', $data);
             $this->load->view('studentfee/reportByClass', $data);
@@ -194,7 +194,8 @@ class Studentfee extends Student_Controller
         $data['title']           = 'Student Detail';
         $student                 = $this->student_model->get($id);
         $data['student']         = $student;
-        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($student['class_id'], $student['section_id'], $id);
+        // TVET: section_id removed from getDueFeeBystudent call
+        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($student['class_id'], null, $id);
         $data['student_due_fee'] = $student_due_fee;
         $transport_fee           = $this->studenttransportfee_model->getTransportFeeByStudent($student['student_session_id']);
         $data['transport_fee']   = $transport_fee;
