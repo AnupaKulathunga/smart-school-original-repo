@@ -24,7 +24,9 @@ class Enquiry extends Admin_Controller
         }
         $this->session->set_userdata('top_menu', 'front_office');
         $this->session->set_userdata('sub_menu', 'admin/enquiry');
-        $data['class_list']     = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id             = $this->setting_model->getCurrentSession();
+        $data['class_list']     = $this->classmodel_model->getClassesBySession($session_id);
         $data["selected_class"] = "";
         $data["source_select"]  = "";
         $data["status"]         = "active";

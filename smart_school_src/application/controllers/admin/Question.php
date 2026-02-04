@@ -532,34 +532,38 @@ class Question extends Admin_Controller
                 if ($role_id == 2) {
                     $my_section = array();
                     if ($this->sch_setting_detail->class_teacher == 'yes' && $this->sch_setting_detail->my_question == '1') {
-                        $my_class = $this->class_model->get();
+                        // TVET: Use classmodel_model->getClassesBySession()
+                        $session_id = $this->setting_model->getCurrentSession();
+                        $my_class = $this->classmodel_model->getClassesBySession($session_id);
                         foreach ($my_class as $class_key => $class_value) {
-                            $section_id = $this->teacher_model->get_teacherrestricted_modesections($this->customlib->getStaffID(), $class_value['id']);
+                            $section_id = $this->teacher_model->get_teacherrestricted_modesections($this->customlib->getStaffID(), $class_value->id);
                             foreach ($section_id as $section_idkey => $section_idvalue) {
                                 $my_section[] = $section_idvalue['section_id'];
                             }
 
-                            if (in_array($value->section_id, $my_section, true) && $class_value['id'] == $value->class_id) {
+                            if (in_array($value->section_id, $my_section, true) && $class_value->id == $value->class_id) {
                                 $dt_data[] = $row;
 
-                            } elseif (($class_value['id'] == $value->class_id) && $value->section_id == '0') {
+                            } elseif (($class_value->id == $value->class_id) && $value->section_id == '0') {
                                 $dt_data[] = $row;
 
                             }
                         }
 
                     } elseif ($this->sch_setting_detail->class_teacher == 'yes' && $this->sch_setting_detail->my_question == '0') {
-                        $my_class = $this->class_model->get();
+                        // TVET: Use classmodel_model->getClassesBySession()
+                        $session_id = $this->setting_model->getCurrentSession();
+                        $my_class = $this->classmodel_model->getClassesBySession($session_id);
                         foreach ($my_class as $class_key => $class_value) {
-                            $section_id = $this->teacher_model->get_teacherrestricted_modesections($this->customlib->getStaffID(), $class_value['id']);
+                            $section_id = $this->teacher_model->get_teacherrestricted_modesections($this->customlib->getStaffID(), $class_value->id);
                             foreach ($section_id as $section_idkey => $section_idvalue) {
                                 $my_section[] = $section_idvalue['section_id'];
                             }
 
-                            if (in_array($value->section_id, $my_section, true) && $class_value['id'] == $value->class_id) {
+                            if (in_array($value->section_id, $my_section, true) && $class_value->id == $value->class_id) {
                                 $dt_data[] = $row;
 
-                            } elseif (($class_value['id'] == $value->class_id) && $value->section_id == '0') {
+                            } elseif (($class_value->id == $value->class_id) && $value->section_id == '0') {
                                 $dt_data[] = $row;
 
                             }

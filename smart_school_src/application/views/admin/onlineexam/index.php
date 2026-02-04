@@ -348,17 +348,14 @@ foreach ($subjectlist as $subject_key => $subject_value) {
                      </div>
                       <div class="col-md-4 col-sm-6">
                         <div class="form-group">
-                            <label><?php echo $this->lang->line('class') ?></label>
-                            <select class="form-control" name="class_id" id="class_id">
-                            <option value=""><?php echo $this->lang->line('select'); ?></option>
                             <?php
-foreach ($classList as $class_key => $class_value) {
-    ?>
-    <option value="<?php echo $class_value['id']; ?>"><?php echo $class_value['class']; ?></option>
-                                <?php
-}
-?>
-                        </select>
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => '',
+                                'classlist' => $classList,
+                                'name' => 'class_id',
+                                'id' => 'class_id'
+                            ]);
+                            ?>
                         </div>
                      </div>
                     <div class="col-md-2 col-sm-6">

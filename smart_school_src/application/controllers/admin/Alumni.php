@@ -27,7 +27,9 @@ class Alumni extends Admin_Controller
         $data['sessionlist'] = $this->session_model->get();
         $this->session->set_userdata('top_menu', 'alumni');
         $this->session->set_userdata('sub_menu', 'alumni/alumnilist');
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id        = $this->setting_model->getCurrentSession();
+        $class             = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $class;
 
         $data['title']  = $this->lang->line('alumni_student');
@@ -42,7 +44,7 @@ class Alumni extends Admin_Controller
 
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
 
@@ -193,7 +195,9 @@ class Alumni extends Admin_Controller
             $data['eventsession'] = $eventsession;
         }
 
-        $data['classlist'] = $this->class_model->get();        
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id        = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session_id);
         $language      = $this->customlib->getLanguage();        
         $data['language_name'] = $language["short_code"];
         $this->session->set_userdata('top_menu', 'alumni');

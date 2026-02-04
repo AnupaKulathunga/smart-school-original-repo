@@ -21,7 +21,9 @@ class Video_tutorial extends Admin_Controller
         $this->session->set_userdata('top_menu', 'download_center');
         $this->session->set_userdata('sub_menu', 'video_tutorial/index');
         $data['Video_tutorial_list'] = $this->video_tutorial_model->get();
-        $data['classlist']           = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id                  = $this->setting_model->getCurrentSession();
+        $data['classlist']           = $this->classmodel_model->getClassesBySession($session_id);
         $this->load->view('layout/header');
         $this->load->view('admin/video_tutorial/index', $data);
         $this->load->view('layout/footer');
@@ -126,7 +128,9 @@ class Video_tutorial extends Admin_Controller
         $videotutorialid           = $this->input->post('videotutorialid');
         $videotutoriallist         = $this->video_tutorial_model->get($videotutorialid);
         $data['videotutoriallist'] = $videotutoriallist;
-        $data['classlist']         = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id                = $this->setting_model->getCurrentSession();
+        $data['classlist']         = $this->classmodel_model->getClassesBySession($session_id);
         $data['classid']           = $this->video_tutorial_model->getclassid($videotutorialid);
         $page                      = $this->load->view('admin/video_tutorial/edit', $data, true);
         echo json_encode(array('page' => $page));
