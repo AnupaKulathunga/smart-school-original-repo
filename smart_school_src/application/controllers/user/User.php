@@ -49,19 +49,31 @@ class User extends Student_Controller
 
         if ($role == "student") {
             $student_id            = $this->customlib->getStudentSessionUserID();
-            $data['student_lists'] = $this->studentsession_model->searchMultiClsSectionByStudent($student_id);
+            // TVET: Use enrolment_model to get student's class enrolments
+            $data['student_lists'] = $this->enrolment_model->getStudentEnrolments($student_id);
 
             if (empty($data['student_lists'])) {
-                //if student not belong to current session find it for old
-                $data['student_lists'] = $this->studentsession_model->getMultiClsSectionByStudentOldSession($student_id);
-                $session               = $this->session_model->get($data['student_lists'][0]->session_id);
-                $session_array         = array('session_id' => $session['id'], 'session' => $session['session']);
-                $this->session->set_userdata('session_array', $session_array);
+                //if student not belong to current session find it for old session
+                // TVET: Get most recent enrolment for any session
+                $this->db->select('enrolment.*, sessions.session, sessions.id as session_id');
+                $this->db->from('enrolment');
+                $this->db->join('sessions', 'enrolment.session_id = sessions.id');
+                $this->db->where('enrolment.student_id', $student_id);
+                $this->db->order_by('enrolment.session_id', 'DESC');
+                $this->db->limit(10);
+                $data['student_lists'] = $this->db->get()->result();
+
+                if (!empty($data['student_lists'])) {
+                    $session       = $this->session_model->get($data['student_lists'][0]->session_id);
+                    $session_array = array('session_id' => $session['id'], 'session' => $session['session']);
+                    $this->session->set_userdata('session_array', $session_array);
+                }
             }
 
-            if ($data['student_lists'][0]->default_login) {
+            if (isset($data['student_lists'][0]->default_login) && $data['student_lists'][0]->default_login) {
                 $default_login_student_id = $data['student_lists'][0]->student_id;
-                $student_current_class    = array('session_id' => $data['student_lists'][0]->session_id, 'class_id' => $data['student_lists'][0]->class_id, 'section_id' => $data['student_lists'][0]->section_id, 'student_session_id' => $data['student_lists'][0]->student_session_id);
+                // TVET: In TVET, section_id = class_id; use enrolment_id instead of student_session_id
+                $student_current_class    = array('session_id' => $data['student_lists'][0]->session_id, 'class_id' => $data['student_lists'][0]->class_id, 'section_id' => $data['student_lists'][0]->class_id, 'student_session_id' => $data['student_lists'][0]->enrolment_id);
             }
 
         } elseif ($role == "parent") {
@@ -93,7 +105,8 @@ class User extends Student_Controller
             $logged_In_User               = $this->customlib->getLoggedInUserData();
             $logged_In_User['student_id'] = $student['id'];
             $this->session->set_userdata('student', $logged_In_User);
-            $this->studentsession_model->updateById(array('id' => $student_session_id, 'default_login' => 1));
+            // TVET: Use enrolment_model to update default_login flag
+            $this->enrolment_model->update($student_session_id, array('default_login' => 1));
             $student_current_class = array('class_id' => $student['class_id'], 'section_id' => $student['section_id'], 'student_session_id' => $student['student_session_id']);
             $this->session->set_userdata('current_class', $student_current_class);
             redirect('user/user/dashboard');
@@ -1629,7 +1642,8 @@ class User extends Student_Controller
         $student_session_id     = $this->input->post('student_session_id');
         $setting_result         = $this->setting_model->get();
         $data['settinglist']    = $setting_result;
-        $student                = $this->studentsession_model->searchStudentsBySession($student_session_id);
+        // TVET: Use enrolment_model to get enrolment by ID
+        $student                = $this->enrolment_model->getEnrolmentById($student_session_id);
         $data['student']        = $student;
         $data['sub_invoice_id'] = $sub_invoice_id;
         $data['sch_setting']    = $this->sch_setting_detail;
