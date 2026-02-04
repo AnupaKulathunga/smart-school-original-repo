@@ -83,7 +83,9 @@ class Teacher extends Student_Controller
         $data['teacherlist'] = $teacher;
         $subject             = $this->subject_model->get();
         $data['subjectlist'] = $subject;
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $this->load->view('layout/header', $data);
         $this->load->view('admin/teacher/assignTeacher', $data);
