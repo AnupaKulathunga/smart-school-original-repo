@@ -295,8 +295,9 @@ class Examgroup extends Admin_Controller
 
     public function getByClassSection()
     {
-        $section_id = $this->input->post('section_id');
-        $data       = $this->examgroup_model->getStudentBatch($section_id);
+        // TVET: Use class_id instead of section_id
+        $class_id = $this->input->post('class_id');
+        $data       = $this->examgroup_model->getStudentBatch($class_id);
         echo json_encode($data);
     }
 
@@ -392,24 +393,24 @@ class Examgroup extends Admin_Controller
     public function examstudent()
     {
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'required|trim|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'required|trim|xss_clean');
+        // TVET: section_id validation removed
 
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $data['sch_setting']     = $this->sch_setting_detail;
         if ($this->form_validation->run() == false) {
             $msg = array(
                 'class_id'   => form_error('class_id'),
-                'section_id' => form_error('section_id'), 
+                // TVET: section_id error removed
             );
             $array = array('status' => 0, 'error' => $msg);
             echo json_encode($array);
         } else {
             $class_id   = $this->input->post('class_id');
-            $section_id = $this->input->post('section_id');
+            // TVET: section_id removed
             $data['class_id']   = $this->input->post('class_id');
-            $data['section_id'] = $this->input->post('section_id');
+            // TVET: section_id removed
             $data['exam_id']    = $this->input->post('exam_id');
-            $resultlist         = $this->examstudent_model->searchExamStudents($data['class_id'], $data['section_id'], $data['exam_id']);
+            $resultlist         = $this->examstudent_model->searchExamStudents($data['class_id'], null, $data['exam_id']);
             $data['resultlist'] = $resultlist;
             $student_exam_page  = $this->load->view('admin/examgroup/_partialexamstudent', $data, true);
             $array              = array('status' => '1', 'error' => '', 'page' => $student_exam_page);
@@ -938,9 +939,9 @@ class Examgroup extends Admin_Controller
     {
         $exam_group = array();
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
+        // TVET: section_id removed
         $session_id = $this->input->post('session_id');
-        $exam_group = $this->examgroup_model->getExamGroupByClassSection($class_id, $section_id, $session_id);
+        $exam_group = $this->examgroup_model->getExamGroupByClassSection($class_id, null, $session_id);
         echo json_encode(array('status' => 1, 'exam_group' => $exam_group));
     }
 
