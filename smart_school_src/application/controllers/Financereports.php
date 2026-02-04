@@ -39,7 +39,9 @@ class Financereports extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/finance/reportduefees');
         $data                = array();
         $data['title']       = 'student fees';
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
         if ($this->input->server('REQUEST_METHOD') == "POST") {
@@ -122,7 +124,9 @@ class Financereports extends Admin_Controller
     {
         $data                = array();
         $data['title']       = 'student fees';
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
         $date                = date('Y-m-d');
@@ -274,7 +278,9 @@ class Financereports extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/finance/reportbyname');
         $data['title']       = 'student fees';
         $data['title']       = 'student fees';
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
 
@@ -492,7 +498,9 @@ class Financereports extends Admin_Controller
 
         $this->form_validation->set_rules('search_type', $this->lang->line('search_duration'), 'trim|required|xss_clean');
 
-        $data['classlist']        = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id               = $this->setting_model->getCurrentSession();
+        $data['classlist']        = $this->classmodel_model->getClassesBySession($session_id);
         $data['selected_section'] = '';
 
         if ($this->form_validation->run() == false) {
@@ -580,7 +588,9 @@ class Financereports extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/finance/duefeesremark');
         $data                = array();
         $data['title']       = 'student fees';
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
@@ -721,8 +731,10 @@ class Financereports extends Admin_Controller
         // TVET: class_id now represents the full class context
         $data['class_id']    = $class_id;
         $data['section_id']  = $class_id;
-        $data['class']       = $this->class_model->get($class_id);
-        $data['section']     = $this->section_model->get($class_id);
+        // TVET: Use classmodel_model to get class by ID
+        $data['class']       = $this->classmodel_model->getClassById($class_id);
+        // TVET: In TVET, section = class, so use same data
+        $data['section']     = $data['class'];
         $date                = date('Y-m-d');
         $data['sch_setting'] = $this->sch_setting_detail;
         $student_due_fee     = $this->studentfee_model->getDueStudentFeesByDateClassSection($class_id, $class_id, $date);
