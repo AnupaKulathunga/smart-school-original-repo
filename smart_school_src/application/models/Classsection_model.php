@@ -187,7 +187,9 @@ class Classsection_model extends MY_Model
 
     public function allClassSections()
     {
-        $classes = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id = $this->setting_model->getCurrentSession();
+        $classes = $this->classmodel_model->getClassesBySession($session_id);
         if (!empty($classes)) {
             foreach ($classes as $class_key => $class_value) {
                 $classes[$class_key]['sections'] = $this->get($class_value['id']);
