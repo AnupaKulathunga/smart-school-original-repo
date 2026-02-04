@@ -80,15 +80,6 @@
             </div> 
             <div class="col-md-4">
                 <div class="form-group">
-                    <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                    <select  id="edit_section_id" name="edit_class_section_id" class="form-control" >
-                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                    </select>
-                    <span class="text-danger"><?php echo form_error('class_section_id'); ?></span>
-                </div>  
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
                     <label><?php echo $this->lang->line('student'); ?></label><small class="req"> *</small>
                     <select  id="edit_student_session_id" name="edit_student_session_id" class="form-control">
                     </select>
@@ -191,10 +182,8 @@
     $('.filestyle').dropify();
     $(document).ready(function(){
         var class_id = $('#edit_class_id').val();
-        var section_id = '<?php echo $visitor_data['section_id']; ?>';
-        getsectionbyclass(class_id,section_id);
-        var students_id = '<?php echo $visitor_data['student_session_id']; ?>';   
-        studentbysection(class_id,section_id,students_id);     
+        var students_id = '<?php echo $visitor_data['student_session_id']; ?>';
+        studentbysection(class_id,students_id);     
         var meeting_with = '<?php echo $visitor_data['meeting_with']; ?>';
 
         if(meeting_with == 'staff'){
@@ -220,18 +209,10 @@
         } 
     }); 
 
-    $('#edit_class_id').change(function(){    
-        $('#edit_section_id').html('');
-        var class_id = $('#edit_class_id').val();
-        getsectionbyclass(class_id,'');
-    });
-
-    $('#edit_section_id').change(function(){   
-        $('#student_id').html('');
+    $('#edit_class_id').change(function(){
         $('#edit_student_session_id').html('');
         var class_id = $('#edit_class_id').val();
-        var section_id = $('#edit_section_id').val();
-        studentbysection(class_id,section_id,'');
+        studentbysection(class_id,'');
     });
 </script>
 <script type="text/javascript">

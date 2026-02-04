@@ -176,15 +176,6 @@
                                     </div> 
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                            <select  id="section_id" name="class_section_id" class="form-control" >
-                                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            </select>
-                                            <span class="text-danger"><?php echo form_error('class_section_id'); ?></span>
-                                        </div>  
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
                                             <label><?php echo $this->lang->line('student'); ?></label><small class="req"> *</small>
                                             <select  id="student_id" name="student_session_id" class="form-control" >
                                                 <!-- <option value=""><?php echo $this->lang->line('select'); ?></option> -->
@@ -451,52 +442,18 @@ $('#meeting_with').change(function(){
 </script>
 <script type="text/javascript">
     $('#class_id').change(function(){
-       $('#section_id').html('');
-       var class_id = $('#class_id').val();
-       getsectionbyclass(class_id,'');
-    });
-
-    function getsectionbyclass(class_id,section_id){
-        $('#section_id').html("");
-        $('#edit_section_id').html("");
-
-        var base_url = '<?php echo base_url() ?>';
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: base_url + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    var selected = '';
-                    if(section_id == obj.section_id){
-                        selected = 'selected';
-                    }
-                    div_data += "<option value=" + obj.section_id + " "+selected+">" + obj.section + "</option>";
-                });
-                $('#section_id').append(div_data);
-                $('#edit_section_id').append(div_data);
-            }
-        });
-    }
-
-    $('#section_id').change(function(){
        $('#student_id').html('');
        $('#edit_student_session_id').html('');
        var class_id = $('#class_id').val();
-       var section_id = $('#section_id').val();
-       studentbysection(class_id,section_id,'');
-
+       studentbysection(class_id,'');
     });
 
-    function studentbysection(class_id,section_id,student_id){
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';     
+    function studentbysection(class_id,student_id){
+        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
        $.ajax({
             type: "post",
             url: "<?php echo base_url(); ?>admin/visitors/getstudent",
-            data: {class_id: class_id,section_id:section_id},
+            data: {class_id: class_id},
             dataType: "json",
             success: function (data) {
                 $.each(data.studentlist, function (i, obj)

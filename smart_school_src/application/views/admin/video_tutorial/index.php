@@ -160,15 +160,13 @@
                         <dl class="mediaDL">
                             <dt><?php echo $this->lang->line('class'); ?></dt>
                             <dd id="modal_class"></dd>
-                            <dt><?php echo $this->lang->line('section'); ?></dt>
-                            <dd id="modal_sectionlist"></dd>
                             <dt><?php echo $this->lang->line('title'); ?></dt>
                             <dd id="modal_title"></dd>
                             <dt><?php echo $this->lang->line('description'); ?></dt>
                             <dd id="modal_description"></dd>
                             <dt><?php echo $this->lang->line('created_by'); ?></dt>
-                            <dd id="modal_created_by"></dd>                           
-                            
+                            <dd id="modal_created_by"></dd>
+
                         </dl>  
                     </div>
                 </div>
@@ -305,61 +303,7 @@ $("#editvideotutorialform").on('submit', (function (e) {
     });
 }));
 
-    function getSectionByClass(class_id, section_id) {
-        $('.section-list option:not(:first)').remove();   
-    if (class_id != "") {
-        $('#section_id').html("");
-        $('#edit_section_id').html("");
-        $('#search_section_id').html("");
-        var base_url = '<?php echo base_url() ?>';    
-        var div_data = '';
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: base_url + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            beforeSend: function () {
-        
-            $('.section-list').val([]).trigger('change');
-        },
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    var sel = "";
-                    if (section_id == obj.id) {
-                        sel = "selected";
-                    }
-                    div_data += "<option value=" + obj.id + " " + sel + ">" + obj.section + "</option>";
-                });
-                $('#section_id').append(div_data);
-                $('#edit_section_id').append(div_data);
-                $('#search_section_id').append(div_data);
-            }
-        });
-    }
-}
-
 $(document).ready(function () {
-    var class_id = $('#class_id').val();
-    var section_id = '<?php echo set_value('edit_section_id') ?>';
-    getSectionByClass(class_id, section_id);
-    
-    $(document).on('change', '#class_id', function (e) {
-        var class_id = $('#class_id').val();
-        getSectionByClass(class_id,'')
-    });
-
-    $(document).on('change', '#edit_class_id', function (e) {
-        var class_id = $('#edit_class_id').val();
-        getSectionByClass(class_id,'');
-    });
-
-    $(document).on('change', '#search_class_id', function (e) {
-        var class_id = $('#search_class_id').val();
-        getSectionByClass(class_id,'')
-    });
-
 });
 </script>
 <script>
