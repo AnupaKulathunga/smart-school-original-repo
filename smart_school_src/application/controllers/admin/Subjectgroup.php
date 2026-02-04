@@ -23,7 +23,9 @@ class Subjectgroup extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'subjectgroup/index');
         $data['title']         = 'Add Class';
         $data['title_list']    = 'Class List';
-        $class                 = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id            = $this->setting_model->getCurrentSession();
+        $class                 = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']     = $class;
         $data['section_array'] = $json_array;
 
