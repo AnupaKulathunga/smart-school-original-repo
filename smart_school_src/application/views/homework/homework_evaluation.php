@@ -16,41 +16,28 @@
                     <div class="row">
                         <div class="col-md-12">
                             <?php if ($this->session->flashdata('msg')) {?>
-                                <?php 
+                                <?php
                                     echo $this->session->flashdata('msg');
                                     $this->session->unset_userdata('msg');
                                 ?>
                             <?php }?>
                             <?php echo $this->customlib->getCSRF(); ?>
                         </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('class'); ?><small class="req"> *</small></label>
-                                <select autofocus="" id="searchclassid" name="class_id" onchange="getSectionByClass(this.value, 0, 'secid')"  class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-foreach ($classlist as $class) {
-    ?>
-                                        <option <?php
-if ($class_id == $class["id"]) {
-        echo "selected";
-    }
-    ?> value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                            <?php
-}
-?>
-                                </select>
-                                <span class="class_id_error text-danger"><?php echo form_error('class_id'); ?></span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('section'); ?><small class="req"> *</small></label>
-                                <select  id="secid" name="section_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="section_id_error text-danger"><?php echo form_error('section_id'); ?></span>
-                            </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <?php
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => $class_id,
+                                'selected_section_id' => $section_id,
+                                'classlist' => $classlist,
+                                'required' => true,
+                                'class_id_field_name' => 'class_id',
+                                'section_id_field_name' => 'section_id',
+                                'class_id_element_id' => 'searchclassid',
+                                'section_id_element_id' => 'secid'
+                            ]);
+                            ?>
+                            <span class="class_id_error text-danger"><?php echo form_error('class_id'); ?></span>
+                            <span class="section_id_error text-danger"><?php echo form_error('section_id'); ?></span>
                         </div>
                         <div class="col-md-3 col-lg-3 col-sm-6">
                             <div class="form-group">
@@ -164,37 +151,6 @@ if (!empty($report[$homework['id']])) {
 <script type="text/javascript">
     var save_method; //for save method string
     var update_id; //for save method string
-
-    function getSectionByClass(class_id, section_id, select_control) {
-        if (class_id != "") {
-            $('#' + select_control).html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#' + select_control).addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#' + select_control).append(div_data);
-                },
-                complete: function () {
-                    $('#' + select_control).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
 
     $(document).on('change', '#secid', function () {
         var class_id = $('#searchclassid').val();
