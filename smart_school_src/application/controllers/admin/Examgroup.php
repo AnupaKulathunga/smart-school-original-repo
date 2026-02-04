@@ -190,7 +190,9 @@ class Examgroup extends Admin_Controller
         $data = array();
 
         $data['id']        = $id;
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id        = $this->setting_model->getCurrentSession();
+        $class             = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $class;
         if ($this->input->server('REQUEST_METHOD') == 'POST') {
             $exam_subject_id                                = $this->input->post('exam_group_class_batch_exam_subject_id');
@@ -593,7 +595,9 @@ class Examgroup extends Admin_Controller
         $id                      = $this->input->post('recordid');
         $data['examgroupDetail'] = $this->examgroup_model->getExamByID($id);
         $data['exam_subjects'] = $this->batchsubject_model->getExamSubjects($id);
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $session                 = $this->session_model->get();
         $data['sessionlist']     = $session;
