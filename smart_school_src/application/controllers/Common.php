@@ -60,7 +60,8 @@ class Common extends Public_Controller
         $data['role'] = $role;
         if ($role == "student") {
             $student_id             = $this->customlib->getStudentSessionUserID();
-            $data['studentclasses'] = $this->studentsession_model->searchMultiClsSectionByStudent($student_id);
+            // TVET: Use enrolment_model to get student's class enrolments
+            $data['studentclasses'] = $this->enrolment_model->getStudentEnrolments($student_id);
         } elseif ($role == "parent") {
             $parent_id              = $this->customlib->getUsersID();
             $data['studentclasses'] = $this->student_model->getParentChilds($parent_id);
@@ -145,10 +146,15 @@ class Common extends Public_Controller
             $session                 = $this->input->post('popup_session');
             $session_Array           = $this->session->userdata('student');
             $student_id              = $session_Array['student_id'];
-            $student_display_session = $this->studentsession_model->searchActiveClassSectionStudent($student_id, $session);
-            $student_current_class   = array('student_session_id' => $student_display_session->id, 'class_id' => $student_display_session->class_id, 'section_id' => $student_display_session->section_id);
-            $this->session->unset_userdata('current_class');
-            $this->session->set_userdata('current_class', $student_current_class);
+            // TVET: Use enrolment_model to get student's primary enrolment for session
+            $enrolments = $this->enrolment_model->getStudentEnrolments($student_id, $session);
+            if (!empty($enrolments)) {
+                $student_display_session = $enrolments[0]; // Get first enrolment as primary
+                // TVET: In TVET, section_id = class_id (no separate sections)
+                $student_current_class   = array('student_session_id' => $student_display_session->enrolment_id, 'class_id' => $student_display_session->class_id, 'section_id' => $student_display_session->class_id);
+                $this->session->unset_userdata('current_class');
+                $this->session->set_userdata('current_class', $student_current_class);
+            }
         }
 
         echo json_encode(array('status' => 1, 'message' => $this->lang->line('session_changed_successfully'), 'redirect_url' => $redirect_url));
