@@ -142,7 +142,9 @@ class Feediscount extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'admin/feediscount');
         $data['id'] = $id;
 
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $feediscount_result      = $this->feediscount_model->get($id);
         $data['feediscountList'] = $feediscount_result;
