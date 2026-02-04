@@ -750,7 +750,9 @@ class Schsettings extends Admin_Controller
         $data['student_list_attendance'] = $student_new_list_attendance;
         //student attedance settings
 
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
 
         $this->load->view('layout/header', $data);
