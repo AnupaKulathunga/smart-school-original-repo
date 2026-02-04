@@ -140,8 +140,10 @@ class Member extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Library');
         $this->session->set_userdata('sub_menu', 'member/student');
         $data['title']     = 'Student Search';
-        $class             = $this->class_model->get();
-        $data['classlist'] = $class;
+        // TVET: Use TVET class structure
+        $session_id        = $this->setting_model->getCurrentSession();
+        $classlist         = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist'] = $classlist;
         $button            = $this->input->post('search');
         if ($this->input->server('REQUEST_METHOD') == "GET") {
             $this->load->view('layout/header', $data);
@@ -149,7 +151,7 @@ class Member extends Admin_Controller
             $this->load->view('layout/footer', $data);
         } else {
             $class       = $this->input->post('class_id');
-            $section     = $this->input->post('section_id');
+            // TVET: No section_id needed
             $search      = $this->input->post('search');
             $search_text = $this->input->post('search_text');
             if (isset($search)) {
@@ -160,16 +162,16 @@ class Member extends Admin_Controller
                     } else {
                         $data['searchby']    = "filter";
                         $data['class_id']    = $this->input->post('class_id');
-                        $data['section_id']  = $this->input->post('section_id');
+                        // TVET: No section_id
                         $data['search_text'] = $this->input->post('search_text');
-                        $resultlist          = $this->student_model->searchLibraryStudent($class, $section);
+                        $resultlist          = $this->student_model->searchLibraryStudent($class, null);
 
                         $data['resultlist'] = $resultlist;
                     }
                 } else if ($search == 'search_full') {
                     $data['searchby']    = "text";
                     $data['class_id']    = $this->input->post('class_id');
-                    $data['section_id']  = $this->input->post('section_id');
+                    // TVET: No section_id
                     $data['search_text'] = trim($this->input->post('search_text'));
                     $resultlist          = $this->student_model->searchFullText($search_text);
                     $data['resultlist']  = $resultlist;
