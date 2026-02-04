@@ -643,13 +643,7 @@ var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFor
     $(document).ready(function () {
         var class_id = $('#class_id').val();
         var section_id = '<?php echo set_value('section_id', 0) ?>';
-
-        getSectionByClass(class_id, section_id);
-
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            getSectionByClass(class_id, 0);
+        $(document).on('change', '#class_id', function (e) {            var class_id = $(this).val();
         });
 
         $('.date2').datepicker({
@@ -662,32 +656,7 @@ var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFor
             autoclose: true,
              format: date_format,
             todayHighlight: true
-        });
-
-        function getSectionByClass(class_id, section_id) {
-
-            if (class_id !== "") {
-                $('#section_id').html("");
-
-                var div_data = '';
-                var url = "";
-
-                $.ajax({
-                    type: "POST",
-                    url: base_url + "welcome/getSections",
-                    data: {'class_id': class_id},
-                    dataType: "json",
-                    beforeSend: function () {
-                        $('#section_id').addClass('dropdownloading');
-                    },
-                    success: function (data) {
-                        $.each(data, function (i, obj)
-                        {
-                            var sel = "";
-                            if (section_id === obj.section_id) {
-                                sel = "selected";
-                            }
-                            div_data += "<option value=" + obj.id + " " + sel + ">" + obj.section + "</option>";
+        });                            div_data += "<option value=" + obj.id + " " + sel + ">" + obj.section + "</option>";
                         });
                         $('#section_id').append(div_data);
                     },
