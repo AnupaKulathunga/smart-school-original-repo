@@ -152,28 +152,16 @@ $language_name = $language["short_code"];
                             <div class="col-md-4">
                                 <h4 class="mb10"><?php echo $this->lang->line('select_subject'); ?></h4>
 
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                    <select id="class_id" name="class_id" class="form-control">
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-                                        foreach ($classlist as $class) {
-                                        ?>
-                                            <option value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                        <?php
-                                        }
-                                        ?>
-                                    </select>
-                                    <span class="class_id_error text-danger"><?php echo form_error('class_id'); ?></span>
-                                </div>
-
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                    <select id="section_id" name="section_id" class="form-control">
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="section_id_error text-danger"><?php echo form_error('section_id'); ?></span>
-                                </div>
+                                <?php
+                                // TVET: Use class_selector component for NEW session class selection
+                                $this->load->view('admin/_partials/class_selector', [
+                                    'selected_class_id' => '',
+                                    'classlist' => $classlist,
+                                    'id' => 'class_id',
+                                    'name' => 'class_id',
+                                    'label' => $this->lang->line('class')
+                                ]);
+                                ?>
 
                                 <div class="form-group">
                                     <label><?php echo $this->lang->line('subject_group'); ?></label><small class="req"> *</small>
@@ -247,6 +235,13 @@ $language_name = $language["short_code"];
         getsubjectBySubjectGroup(class_id, subject_group_id, subject_id, 'old_subject_id', session_id);
     });
 
+    // TVET: Handle OLD session class change - load subject groups
+    $(document).on('change', '#old_class_id', function() {
+        let session_id = $('#old_session_id').val();
+        let class_id = $(this).val();
+        getSubjectGroupByClass(class_id, 0, 'old_subject_group_id', session_id);
+    });
+
     // TVET: Load subject groups directly from class (no section needed)
     function getSubjectGroupByClass(class_id, subjectgroup_id, subject_group_target, session_id = null) {
         if (class_id != "") {
@@ -289,6 +284,19 @@ $language_name = $language["short_code"];
         let class_id = $('#old_class_id').val();
         let subject_group_id = $(this).val();
         getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'old_subject_id', session_id);
+    });
+
+    // TVET: Handle NEW session class change - load subject groups
+    $(document).on('change', '#class_id', function() {
+        let class_id = $(this).val();
+        getSubjectGroupByClass(class_id, 0, 'subject_group_id', null);
+    });
+
+    // TVET: Handle NEW session subject group change - load subjects
+    $(document).on('change', '#subject_group_id', function() {
+        let class_id = $('#class_id').val();
+        let subject_group_id = $(this).val();
+        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subject_id', null);
     });
 
     function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target, session_id = null) {
