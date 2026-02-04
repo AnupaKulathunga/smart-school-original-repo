@@ -116,13 +116,13 @@
                                                 ?>
                                                 
                                                 <?php if ($this->rbac->hasPrivilege('approve_leave', 'can_edit')) { ?>
-                                                
-                                                <a onclick="get('<?php echo $value['id']; ?>', '<?php echo $value['class_id']; ?>', '<?php echo $value['section_id']; ?>', '<?php echo $value['status']; ?>')" class="btn btn-default btn-xs" data-toggle="tooltip" data-original-title="<?php echo $this->lang->line('edit') ?>"><i class="fa fa-pencil"></i> </a>
-                                                
+                                                <!-- TVET: Removed section_id parameter -->
+                                                <a onclick="get('<?php echo $value['id']; ?>', '<?php echo $value['class_id']; ?>', '<?php echo $value['status']; ?>')" class="btn btn-default btn-xs" data-toggle="tooltip" data-original-title="<?php echo $this->lang->line('edit') ?>"><i class="fa fa-pencil"></i> </a>
+
                                                 <?php } if ($this->rbac->hasPrivilege('approve_leave', 'can_delete')) { ?>
-                                                
-                                                <a onclick="delete_leave('<?php echo $value['id']; ?>', '<?php echo $value['class_id']; ?>', '<?php echo $value['section_id']; ?>');"  data-toggle="tooltip" data-original-title="<?php echo $this->lang->line('delete') ?>" class="btn btn-default btn-xs"><i class="fa fa-trash" ></i> </a>
-                                                
+                                                <!-- TVET: Removed section_id parameter -->
+                                                <a onclick="delete_leave('<?php echo $value['id']; ?>', '<?php echo $value['class_id']; ?>');"  data-toggle="tooltip" data-original-title="<?php echo $this->lang->line('delete') ?>" class="btn btn-default btn-xs"><i class="fa fa-trash" ></i> </a>
+
                                                 <?php } ?>
                                             </td>
                                         </tr>
@@ -150,24 +150,17 @@
                     <div class="row">
                         <div class="col-lg-12 col-md-12 col-sm-12">
                             <div class="row">                            
-                                <div class="col-sm-4">
+                                <div class="col-sm-8">
                                     <div class="form-group">
                                         <label for="pwd"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select type="text" onchange="get_section(this.value)" name="class" id="class" class="form-control ">
+                                        <select type="text" onchange="get_student_by_class(this.value)" name="class" id="class" class="form-control ">
                                             <option value="" ><?php echo $this->lang->line('select'); ?></option>
-                                            <?php foreach ($classlist as $value) {
+                                            <?php foreach ($classlist as $class) {
+                                                // TVET: Display complete CLASS (Subject - Level (Cohort))
+                                                $display_text = $class->subject_name . ' - ' . $class->level_name . ' (' . $class->cohort_name . ')';
                                                 ?>
-                                                <option value="<?php echo $value['id']; ?>"><?php echo $value['class']; ?></option>
-<?php }
-?>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="form-group">
-                                        <label for="pwd"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select type="text" name="section" id="section_id" onchange="get_student(this.value)" class="form-control ">
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
+                                                <option value="<?php echo $class->id; ?>"><?php echo $display_text; ?></option>
+                                            <?php } ?>
                                         </select>
                                     </div>
                                 </div>
@@ -241,30 +234,24 @@
 
 <script type="text/javascript">
     $('#homework_docs').on('hidden.bs.modal', function () {
-
         $(this).find("input,textarea,select")
                 .val('')
                 .end()
                 .find("input[type=checkbox], input[type=radio]")
                 .prop("checked", "")
                 .end();
-        $('#section_id').find('option').not(':first').remove();
+        // TVET: No section dropdown to clear
         $('#student').find('option').not(':first').remove();
     });
 
-    $(document).ready(function (e) {
-        getSectionByClass("<?php echo $class_id ?>", "<?php echo $section_id; ?>");
-    });
-
-    function approve_leave(id, status, class_id, section_id) {
+    // TVET: Removed section_id parameter - use class_id only
+    function approve_leave(id, status, class_id) {
         $.ajax({
             url: "<?php echo site_url("admin/approve_leave/status") ?>",
             type: "POST",
-            data: {'class_id': class_id, 'section_id': section_id, 'id': id, 'status': status},
+            data: {'class_id': class_id, 'id': id, 'status': status},
             dataType: "json",
-
-            success: function (res)
-            {
+            success: function (res) {
                 if (res.status == 0) {
                     errorMsg(res.error);
                 } else {
@@ -275,76 +262,18 @@
         });
     }
 
-    function getSectionByClass(class_id, section_id) {
-        if (class_id != "") {
-            $('#secid').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#secid').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#secid').append(div_data);
-                },
-                complete: function () {
-                    $('#secid').removeClass('dropdownloading');
-                }
-            });
-        }
-        if (section_id != "") {
-            $('#secid').val(section_id);
-        }
-    }
+    // TVET: Removed section functions - no longer needed
 
-    function get_section(class_id, section_id = null) {
-        if (class_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        }
-    }
-
-    function delete_leave(leave_id, class_id, section_id) {
+    // TVET: Removed section_id parameter
+    function delete_leave(leave_id, class_id) {
         var confirmation = confirm('<?php echo $this->lang->line('delete_confirm') ?>');
         if (confirmation == true) {
             $.ajax({
                 url: "<?php echo site_url("admin/approve_leave/remove_leave") ?>",
                 type: "POST",
-                data: {'class_id': class_id, 'section_id': section_id, 'id': leave_id},
+                data: {'class_id': class_id, 'id': leave_id},
                 dataType: "json",
-                success: function (res)
-                {
+                success: function (res) {
                     if (res.status == 0) {
                         errorMsg(res.error);
                     } else {
@@ -356,42 +285,35 @@
         }
     }
 
-    function get(id, class_id, section_id, status) {
-        
+    // TVET: Removed section_id parameter
+    function get(id, class_id, status) {
         $.ajax({
             url: "<?php echo site_url("admin/approve_leave/get_details") ?>",
             type: "POST",
-            data: {'class_id': class_id, 'section_id': section_id, 'id': id},
+            data: {'class_id': class_id, 'id': id},
             dataType: 'json',
-
-            success: function (res)
-            {
+            success: function (res) {
                 if (res.status == 'fail') {
                     errorMsg(res.error)
                 } else {
-                    
-                   
                     $('#apply_date').val(res.apply_date);
                     $('#from_date').val(res.from_date);
                     $('#to_date').val(res.to_date);
                     $('#message').html(res.reason);
                     $('#leave_id').val(res.id);
                     $('#class').val(res.class_id);
-                    // $("#leave_approve").val(1);
-                    // $("#leave_disapprove").val(2);
-                    // $("#leave_pending").val(0);
-                    
+
                     if(res.leave_status==1){
-                        $("#leave_approve").prop('checked', true);                        
+                        $("#leave_approve").prop('checked', true);
                     }else if(res.leave_status==2){
-                         $("#leave_disapprove").prop('checked', true);                         
+                         $("#leave_disapprove").prop('checked', true);
                     }else{
-                         $("#leave_pending").prop('checked', true);                         
+                         $("#leave_pending").prop('checked', true);
                     }
 
                     $('#title').html('<?php echo $this->lang->line('edit_leave'); ?>');
-                    get_section(res.class_id, res.section_id);
-                    get_student(res.section_id, res.stud_id);
+                    // TVET: Load students directly by class
+                    get_student_by_class(res.class_id, res.stud_id);
                     $('#homework_docs').modal({
                         backdrop: 'static',
                         keyboard: false,
@@ -402,18 +324,18 @@
         });
     }
 
-    function get_student(id, student_id = null, section_id = null) {
-        $('#student').html("");
-        var class_id = $('#class').val();
-        $.ajax({
-            url: "<?php echo site_url("admin/approve_leave/searchByClassSection") ?>/" + class_id + "/" + student_id,
-            type: "POST",
-            data: {section_id: id},
-            success: function (res)
-            {
-                $('#student').html(res);
-            }
-        });
+    // TVET: New function - load students directly by class (no section)
+    function get_student_by_class(class_id, student_id = null) {
+        if (class_id != "") {
+            $('#student').html("");
+            $.ajax({
+                url: "<?php echo site_url("admin/approve_leave/searchByClass") ?>/" + class_id + "/" + (student_id || 0),
+                type: "POST",
+                success: function (res) {
+                    $('#student').html(res);
+                }
+            });
+        }
     }
 
     function add_leave() {
