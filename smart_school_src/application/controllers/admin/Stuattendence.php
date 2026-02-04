@@ -178,15 +178,15 @@ class Stuattendence extends Admin_Controller
         $data['date'] = "";
 
         // Get TVET classes for current session
-        $session = $this->session_model->get_current_session();
+        $session_id = $this->setting_model->getCurrentSession();
         $userdata = $this->customlib->getUserData();
         $role_id = $userdata["role_id"];
 
         // If teacher, get only their classes
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-            $classlist = $this->classmodel_model->getClassesByLecturer($userdata["id"], $session['id']);
+            $classlist = $this->classmodel_model->getClassesByLecturer($userdata["id"], $session_id);
         } else {
-            $classlist = $this->classmodel_model->getClassesBySession($session['id']);
+            $classlist = $this->classmodel_model->getClassesBySession($session_id);
         }
 
         $data['classlist'] = $classlist;
