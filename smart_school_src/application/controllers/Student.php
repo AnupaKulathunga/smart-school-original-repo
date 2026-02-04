@@ -427,7 +427,9 @@ class Student extends Admin_Controller
         $data['transport_fees']        = $this->transportfee_model->getSessionFees($session);
         $student_result                = $this->student_model->getRecentRecord();
         $data['studentlist']           = $student_result;
-        $class                         = $this->class_model->get('', $classteacher = 'yes');
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session_id);
 
         $data['classlist']       = $class;
         $userdata                = $this->customlib->getUserData();
@@ -1396,7 +1398,9 @@ class Student extends Admin_Controller
         $data['transport_fees']  = $this->studenttransportfee_model->getTransportFeeByStudentSession($student['student_session_id'], $student['route_pickup_point_id']);
         $vehroute_result         = $this->vehroute_model->getRouteVehiclesList();
         $data['vehroutelist']    = $vehroute_result;
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session_id);
         $setting_result          = $this->setting_model->get();
 
         $data["student_categorize"] = 'class';
@@ -1813,7 +1817,9 @@ class Student extends Admin_Controller
     {
         $this->session->set_userdata('top_menu', 'Student Information');
         $this->session->set_userdata('sub_menu', 'bulkdelete');
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $data['sch_setting']     = $this->sch_setting_detail;
@@ -1984,7 +1990,9 @@ class Student extends Admin_Controller
 
         $this->session->set_userdata('top_menu', 'Student Information');
         $this->session->set_userdata('sub_menu', 'student/disablestudentslist');
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $data["resultlist"]      = array();
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
@@ -2294,7 +2302,9 @@ class Student extends Admin_Controller
 
         $this->session->set_userdata('top_menu', 'Communicate');
         $this->session->set_userdata('sub_menu', 'bulk_mail');
-        $class                    = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']        = $class;
         $data['sch_setting']      = $this->sch_setting_detail;
         $data['bulkmailto']       = $this->customlib->bulkmailto();
@@ -2391,7 +2401,9 @@ class Student extends Admin_Controller
         $section         = $this->input->post('section_id');
         $search_text     = $this->input->post('search_text');
         $search_type     = $this->input->post('srch_type');
-        $classlist       = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
         $classlist       = $classlist;
         $carray          = array();
         if (!empty($classlist)) {

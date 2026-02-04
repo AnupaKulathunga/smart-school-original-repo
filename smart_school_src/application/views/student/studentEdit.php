@@ -46,35 +46,14 @@ echo $this->session->flashdata('msg');
                                                 </div>
                                             </div>
                                         <?php }?>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                                <select  id="class_id" name="class_id" class="form-control" >
-                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                    <?php
-foreach ($classlist as $class) {
-    ?>
-                                                        <option value="<?php echo $class['id'] ?>" <?php
-if ($student['class_id'] == $class['id']) {
-        echo "selected =selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                                <?php
-$count++;
-}
-?>
-                                                </select>
-                                                <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                                <select  id="section_id" name="section_id" class="form-control" >
-                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                </select>
-                                                <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                            </div>
+                                        <div class="col-md-6">
+                                            <?php
+                                            $this->load->view('admin/_partials/class_selector', [
+                                                'selected_class_id' => $student['class_id'],
+                                                'classlist' => $classlist,
+                                                'required' => true
+                                            ]);
+                                            ?>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -1068,19 +1047,7 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
         var vehroute_id = '<?php echo set_value('vehroute_id', $student['vehroute_id']) ?>';
         var route_pickup_point_id = '<?php echo set_value('route_pickup_point_id', $student['route_pickup_point_id']) ?>';
         getHostel(hostel_id, hostel_room_id);
-        getSectionByClass(class_id, section_id, 'section_id');
-    get_pickup_point(vehroute_id,route_pickup_point_id);
-
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            getSectionByClass(class_id, 0, 'section_id');
-        });
-
-        $(document).on('click', '#sibiling_class_id', function () {
-            var class_id = $(this).val();
-            getSectionByClass(class_id, 0, 'sibiling_section_id');
-        });
+        get_pickup_point(vehroute_id,route_pickup_point_id);
 
         $("#btnreset").click(function () {
             $("#form1")[0].reset();
@@ -1132,36 +1099,6 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
             });
         }
 
-        function getSectionByClass(class_id, section_id, select_control) {
-            if (class_id != "") {
-                $('#' + select_control).html("");
-                var base_url = '<?php echo base_url() ?>';
-                var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                $.ajax({
-                    type: "GET",
-                    url: base_url + "sections/getByClass",
-                    data: {'class_id': class_id},
-                    dataType: "json",
-                    beforeSend: function () {
-                        $('#' + select_control).addClass('dropdownloading');
-                    },
-                    success: function (data) {
-                        $.each(data, function (i, obj)
-                        {
-                            var sel = "";
-                            if (section_id == obj.section_id) {
-                                sel = "selected";
-                            }
-                            div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                        });
-                        $('#' + select_control).append(div_data);
-                    },
-                    complete: function () {
-                        $('#' + select_control).removeClass('dropdownloading');
-                    }
-                });
-            }
-        }
 
         function getHostel(hostel_id, hostel_room_id) {
             if (hostel_room_id == "") {
@@ -1257,29 +1194,16 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
                             <div class="form-group">
                                 <label for="inputEmail3" class="col-sm-2 control-label"><?php echo $this->lang->line('class'); ?></label>
                                 <div class="col-sm-10">
-                                    <select id="sibiling_class_id" name="sibiling_class_id" class="form-control">
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($classlist as $class) {
-    ?>
-                                            <option value="<?php echo $class['id'] ?>"<?php
-if (set_value('sibiling_class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                            <?php
-$count++;
-}
-?>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="inputPassword3" class="col-sm-2 control-label"><?php echo $this->lang->line('section'); ?></label>
-                                <div class="col-sm-10">
-                                    <select id="sibiling_section_id" name="sibiling_section_id" class="form-control">
-                                        <option value="" ><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
+                                    <?php
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('sibiling_class_id'),
+                                        'classlist' => $classlist,
+                                        'required' => false,
+                                        'name' => 'sibiling_class_id',
+                                        'id' => 'sibiling_class_id',
+                                        'label' => ''
+                                    ]);
+                                    ?>
                                 </div>
                             </div>
                             <div class="form-group">
