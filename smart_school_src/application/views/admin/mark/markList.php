@@ -47,36 +47,14 @@ $count++;
                                         <span class="text-danger"><?php echo form_error('exam_id'); ?></span>
                                     </div>
                                 </div><!-- /.col -->
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label>
-                                        <select  id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-foreach ($classlist as $class) {
-    ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php
-if ($class_id == $class['id']) {
-        echo "selected =selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-
-                                                <?php
-$count++;
-}
-?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
-                                </div><!-- /.col -->
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
+                                <div class="col-md-8">
+                                    <?php
+                                    // TVET: Use class_selector component (single dropdown for complete CLASS)
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => $class_id,
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div><!-- /.col -->
                             </div><!-- /.row -->
                         </div><!-- /.box-body -->
@@ -98,7 +76,7 @@ if ($examSchedule['status'] == "yes") {
                                     <form role="form" id="" class="" method="post" action="<?php echo site_url('admin/mark/create') ?>">
                                         <?php echo $this->customlib->getCSRF(); ?>
                                         <input type="hidden" name="class_id" value="<?php echo $class_id; ?>">
-                                        <input type="hidden" name="section_id" value="<?php echo $section_id; ?>">
+                                        <!-- TVET: No section_id needed -->
                                         <input type="hidden" name="exam_id" value="<?php echo $exam_id; ?>">
                                         <div class="table-responsive">
                                             <div class="download_label"><?php echo $this->lang->line('marks_register'); ?></div>
@@ -278,55 +256,9 @@ if ($result == "Pass") {
 </div>
 
 <script type="text/javascript">
-    function getSectionByClass(class_id, section_id) {
-        if (class_id != "" && section_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        }
-    }
+    // TVET: No section dropdown to populate
 
     $(document).ready(function () {
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        });
-
-        var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id') ?>';
-        getSectionByClass(class_id, section_id);
         $(document).on('change', '#feecategory_id', function (e) {
             $('#feetype_id').html("");
             var feecategory_id = $(this).val();
@@ -346,9 +278,10 @@ if ($result == "Pass") {
                 }
             });
         });
-    });
-    
-    $(document).on('change', '#section_id', function (e) {
-        $("form#schedule-form").submit();
+
+        // TVET: Auto-submit form when class changes (no section needed)
+        $(document).on('change', '#class_id', function (e) {
+            $("form#schedule-form").submit();
+        });
     });
 </script>
