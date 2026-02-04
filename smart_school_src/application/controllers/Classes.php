@@ -42,6 +42,7 @@ class Classes extends Admin_Controller
             $this->session->set_flashdata('msg', '<div class="alert alert-success text-left">' . $this->lang->line('success_message') . '</div>');
             redirect('classes');
         }
+        // TVET: This controller manages legacy class-section structure (sections don't exist in TVET)
         $vehicle_result       = $this->section_model->get();
         $data['vehiclelist']  = $vehicle_result;
         $vehroute_result      = $this->classsection_model->getByID();
