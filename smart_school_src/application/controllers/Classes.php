@@ -25,7 +25,7 @@ class Classes extends Admin_Controller
         $this->form_validation->set_rules(
             'class', $this->lang->line('class'), array(
                 'required',
-                array('class_exists', array($this->class_model, 'class_exists')),
+                // TVET: Removed class_exists validation (legacy)
             )
         );
         $this->form_validation->set_rules('sections[]', $this->lang->line('section'), 'trim|required|xss_clean');
@@ -57,7 +57,8 @@ class Classes extends Admin_Controller
             access_denied();
         }
         $data['title'] = 'Fees Master List';
-        $this->class_model->remove($id);
+        // TVET: Use classmodel_model to remove class
+        $this->classmodel_model->remove($id);
 
         $student_delete=$this->student_model->getUndefinedStudent();
         if(!empty($student_delete)){
@@ -88,7 +89,7 @@ class Classes extends Admin_Controller
         $this->form_validation->set_rules(
             'class', $this->lang->line('class'), array(
                 'required',
-                array('class_exists', array($this->class_model, 'class_exists')),
+                // TVET: Removed class_exists validation (legacy)
             )
         );
         $this->form_validation->set_rules('sections[]', $this->lang->line('sections'), 'trim|required|xss_clean');
@@ -147,7 +148,9 @@ class Classes extends Admin_Controller
 
     public function get_section($id)
     {
-        $data['sections'] = $this->class_model->get_section($id);
+        // TVET: In TVET, sections don't exist - return empty or class as single section
+        // This is a legacy method for the old class-section paradigm
+        $data['sections'] = array();
         $this->load->view('class/_section_list', $data);
     }
 
