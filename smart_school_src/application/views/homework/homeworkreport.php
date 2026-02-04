@@ -20,36 +20,19 @@
                             <?php } ?>
                             <?php echo $this->customlib->getCSRF(); ?>
                         </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('class'); ?></label> 
-                                <select autofocus="" id="searchclassid" name="class_id" onchange="getSectionByClass(this.value, 0, 'secid')"  class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-                                    foreach ($classlist as $class) {
-                                        ?>
-                                        <option <?php
-                                        if ($class_id == $class["id"]) {
-                                            echo "selected";
-                                        }
-                                        ?> value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                            <?php
-                                        }
-                                        ?>
-                                </select>
-                                <span class="text-danger" id="error_class_id"></span>
-                            </div>
+                        <div class="col-md-4">
+                            <?php
+                            // TVET: Use class_selector component
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => $class_id,
+                                'name' => 'class_id',
+                                'id' => 'searchclassid',
+                                'required' => false,
+                                'onchange' => 'getSubjectGroupByClass(this.value, 0)'
+                            ]);
+                            ?>
                         </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('section'); ?></label>
-                                <select  id="secid" name="section_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="section_id_error text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label><?php echo $this->lang->line('subject_group'); ?></label>
                                 <select  id="subject_group_id" name="subject_group_id" class="form-control" >
@@ -58,7 +41,7 @@
                                 <span class="section_id_error text-danger"></span>
                             </div>
                         </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label><?php echo $this->lang->line('subject'); ?></label>
                                 <select  id="subid" name="subject_id" class="form-control" >
@@ -186,81 +169,40 @@ $(document).ready(function(){
 </script>
 
 <script type="text/javascript">
+    // TVET: Initialize subject groups and subjects by class
     $(document).ready(function (e) {
-        getSectionByClass("<?php echo $class_id ?>", "<?php echo $section_id ?>", 'secid');
-        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id')
-        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
-    });  
+        getSubjectGroupByClass("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>");
+        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
+    });
 
-    function getSectionByClass(class_id, section_id, select_control) {
+    function getSubjectGroupByClass(class_id, subjectgroup_id) {
         if (class_id != "") {
-            $('#' + select_control).html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#' + select_control).addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#' + select_control).append(div_data);
-                },
-                complete: function () {
-                    $('#' + select_control).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-    
-    function getSubjectGroup(class_id, section_id, subjectgroup_id, subject_group_target) {
-        if (class_id != "" && section_id != "") {
-
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
+            $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
             $.ajax({
                 type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
-                data: {'class_id': class_id, 'section_id': section_id},
+                url: base_url + 'admin/subjectgroup/getGroupByClass',
+                data: {'class_id': class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
-                    // setting a timeout
-                    $('#' + subject_group_target).html("").addClass('dropdownloading');
+                    $('#subject_group_id').addClass('dropdownloading');
                 },
                 success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (subjectgroup_id == obj.subject_group_id) {
-                            sel = "selected";
-                        }
+                    var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
+                    $.each(data, function (i, obj) {
+                        var sel = (subjectgroup_id == obj.subject_group_id) ? "selected" : "";
                         div_data += "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>";
                     });
-                    $('#' + subject_group_target).append(div_data);
-                },
-                error: function (xhr) { // if error occured
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-
+                    $('#subject_group_id').html(div_data);
                 },
                 complete: function () {
-                    $('#' + subject_group_target).removeClass('dropdownloading');
+                    $('#subject_group_id').removeClass('dropdownloading');
                 }
             });
         }
     }
 
-    function getsubjectBySubjectGroup(class_id, section_id, subject_group_id, subject_group_subject_id, subject_target) {
-        if (class_id != "" && section_id != "" && subject_group_id != "") {
+    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target) {
+        if (class_id != "" && subject_group_id != "") {
 
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 

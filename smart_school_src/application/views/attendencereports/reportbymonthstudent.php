@@ -37,37 +37,19 @@ if ($this->session->flashdata('msg')) {
 ?>
                             <?php echo $this->customlib->getCSRF(); ?>
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-foreach ($classlist as $class) {
-    ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected =selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                        <?php
-$count++;
-}
-?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
+                                <div class="col-md-4">
+                                    <?php
+                                    // TVET: Use class_selector component
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'name' => 'class_id',
+                                        'id' => 'class_id',
+                                        'required' => true,
+                                        'onchange' => 'getStudentsByClass(this.value)'
+                                    ]);
+                                    ?>
                                 </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="exampleInputEmail1"><?php echo $this->lang->line('student'); ?></label><small class="req"> *</small>
                                         <select  id="student_id" name="student_id" class="form-control" >
@@ -95,7 +77,7 @@ foreach ($monthlist as $m_key => $month) {
                                         <span class="text-danger"><?php echo form_error('month'); ?></span>
                                     </div>
                                 </div>
-                                     <div class="col-md-2">
+                                <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="exampleInputEmail1">
                                             <?php echo $this->lang->line('subject') ?>
@@ -249,155 +231,60 @@ function getattendencetype($attendencetype, $find)
 ?>
 
             <script type="text/javascript">
+                // TVET: Load students by class (no section)
+                function getStudentsByClass(class_id) {
+                    if (class_id) {
+                        $('#student_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
 
-                $(document).ready(function () {
-                    var section_id_post = "<?php echo set_value('section_id', 0); ?>";
-                    var class_id_post = "<?php echo set_value('class_id', 0); ?>";
-                    var date_post = "<?php echo set_value('date', 0); ?>";
-                    var subject_timetable_id = "<?php echo set_value('subject_timetable_id', 0); ?>";
-                    var subject_id = "<?php echo set_value('subject_id', 0); ?>";
-
-                    populateSection(section_id_post, class_id_post);
-                    populateSubject(class_id_post,section_id_post,subject_id);
-                    getStudentsByClassAndSection(class_id_post,section_id_post);
-                    function populateSection(section_id_post, class_id_post) {
-
-                        if (section_id_post != 0 && class_id_post != 0) {
-
-                            $('#section_id').html("");
-
-                            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                            $.ajax({
-                                type: "GET",
-                                url: baseurl + "sections/getByClass",
-                                data: {'class_id': class_id_post},
-                                dataType: "json",
-                                success: function (data) {
-                                    $.each(data, function (i, obj)
-                                    {
-                                        var select = "";
-                                        if (section_id_post == obj.section_id) {
-                                            var select = "selected=selected";
-                                        }
-                                        div_data += "<option value=" + obj.section_id + " " + select + ">" + obj.section + "</option>";
-                                    });
-                                    $('#section_id').append(div_data);
-                                }
-                            });
-                        }
-                    }
-
-            
-
-                    function getStudentsByClassAndSection(class_id,section_id) {
-     if (class_id != 0 && section_id != 0) {
-
-
-
-                        $('#student_id').html("");
-                      
-                        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                        
                         $.ajax({
                             type: "GET",
-                            url: baseurl + "student/getByClassAndSection",
-                            data: {'class_id': class_id, 'section_id': section_id},
-                            dataType: "json",
-                            success: function (data) {
-                                $.each(data, function (i, obj)
-                                {
-                                    var sel = "";
-                                    if (section_id == obj.section_id) {
-                                        sel = "selected=selected";
-                                    }
-                                    div_data += "<option value=" + obj.id + ">" + obj.full_name  + ' ('+obj.admission_no+')' +"</option>";
-                                });
-                                $('#student_id').append(div_data);
-<?php
-if ($student_id != '') {
-    ?>
-                                    $('#student_id').val('<?php echo $student_id; ?>');
-    <?php
-}
-?>
-                            }
-                        });
-                        }
-                    }
-
-                    $(document).on('change', '#class_id', function (e) {
-                        $('#section_id').html("");
-                        var class_id = $(this).val();
-
-                        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                        var url = "";
-                        $.ajax({
-                            type: "GET",
-                            url: baseurl + "sections/getByClass",
+                            url: baseurl + "student/getByClass",
                             data: {'class_id': class_id},
                             dataType: "json",
                             success: function (data) {
-                                $.each(data, function (i, obj)
-                                {
-                                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
+                                var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
+                                $.each(data, function (i, obj) {
+                                    div_data += "<option value=" + obj.id + ">" + obj.full_name + ' (' + obj.admission_no + ')' + "</option>";
                                 });
-                                $('#section_id').append(div_data);
+                                $('#student_id').html(div_data);
+<?php if ($student_id != '') { ?>
+                                $('#student_id').val('<?php echo $student_id; ?>');
+<?php } ?>
                             }
                         });
-                    });
-                    
-                    $(document).on('change', '#section_id', function (e) {
-                          var class_id = $('#class_id').val();
-                        var section_id = $('#section_id').val();
 
-                        getStudentsByClassAndSection(class_id,section_id);
-                    });
-
-
-   function populateSubject(class_id_post,section_id_post,subject_id_post) {
-
-                        if (section_id_post != 0 && class_id_post != 0) {
-
-                             $('#subject_id').html("");
-
-                            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                            $.ajax({
-                                type: "POST",
-                                url: baseurl + "admin/subjectgroup/getAllSubjectByClassandSection",
-                            data: {'class_id': class_id_post,'section_id':section_id_post},
-                                dataType: "json",
-                                success: function (data) {
-                                    $.each(data, function (i, obj)
-                                    {
-                                        var select = "";
-                                        if (subject_id_post == obj.subject_id) {
-                                            var select = "selected=selected";
-                                        }
-                                        
-                                        // var select = "";
-                                        // if (subject_id_post == obj.subject_code) {
-                                        //     var select = "selected=selected";
-                                        // }
-                                        
-                                        var code ='';
-                                        if(obj.subject_code){
-                                            code = " (" + obj.subject_code + ") ";
-                                        }
-                                        
-                                        div_data += "<option value=" + obj.subject_id + " " + select + ">" + obj.subject_name + code +"</option>";
-                                    });
-                                    $('#subject_id').append(div_data);
-                                }
-                            });
-                        }
+                        // Load subjects for class
+                        populateSubject(class_id, "<?php echo set_value('subject_id', 0); ?>");
                     }
+                }
 
-                    $(document).on('change', '#section_id', function (e) {
-                        $('#subject_id').html("");
-                        let class_id = $('#class_id').val();
-                        let section_id = $(this).val();
-                        populateSubject(class_id,section_id,0);
+                function populateSubject(class_id, subject_id_post) {
+                    if (class_id) {
+                        $('#subject_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
 
-                    });
+                        $.ajax({
+                            type: "POST",
+                            url: baseurl + "admin/subjectgroup/getAllSubjectByClass",
+                            data: {'class_id': class_id},
+                            dataType: "json",
+                            success: function (data) {
+                                var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
+                                $.each(data, function (i, obj) {
+                                    var select = (subject_id_post == obj.subject_id) ? "selected=selected" : "";
+                                    var code = obj.subject_code ? " (" + obj.subject_code + ") " : "";
+                                    div_data += "<option value=" + obj.subject_id + " " + select + ">" + obj.subject_name + code + "</option>";
+                                });
+                                $('#subject_id').html(div_data);
+                            }
+                        });
+                    }
+                }
+
+                $(document).ready(function () {
+                    // TVET: Initialize students and subjects if class is selected
+                    var class_id_post = "<?php echo set_value('class_id', 0); ?>";
+                    if (class_id_post != 0) {
+                        getStudentsByClass(class_id_post);
+                    }
                 });
             </script>

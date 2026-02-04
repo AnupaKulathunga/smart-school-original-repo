@@ -832,8 +832,11 @@ class Homework extends Admin_Controller
 
         $this->session->set_userdata('top_menu', 'Homework');
         $this->session->set_userdata('sub_menu', 'dailyassignment');
-        $class             = $this->class_model->get();
-        $data['classlist'] = $class;
+
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
+
         $data['class_id']  = "";
         $this->load->view("layout/header");
         $this->load->view("homework/dailyassignmentlist", $data);
@@ -1078,8 +1081,11 @@ class Homework extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'homework/dailyassignmentreport');
 
         $data['searchlist'] = $this->search_type;
-        $class              = $this->class_model->get();
-        $data['classlist']  = $class;
+
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
+
         $this->load->view("layout/header");
         $this->load->view("homework/dailyassignmentreport", $data);
         $this->load->view("layout/footer");

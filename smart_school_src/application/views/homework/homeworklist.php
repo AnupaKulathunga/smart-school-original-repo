@@ -29,36 +29,19 @@ $language_name = $language["short_code"];
                             <?php } ?>
                             <?php echo $this->customlib->getCSRF(); ?>
                         </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                <select autofocus="" id="searchclassid" name="class_id" onchange="getSectionByClass(this.value, 0, 'secid')"  class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-                                    foreach ($classlist as $class) {
-                                        ?>
-                                        <option <?php
-                                        if ($class_id == $class["id"]) {
-                                            echo "selected";
-                                        }
-                                        ?> value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                            <?php
-                                        }
-                                        ?>
-                                </select>
-                                <span class="text-danger" id="error_class_id"></span>
-                            </div>
+                        <div class="col-md-4">
+                            <?php
+                            // TVET: Use class_selector component
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => $class_id,
+                                'name' => 'class_id',
+                                'id' => 'searchclassid',
+                                'required' => true,
+                                'onchange' => 'getSubjectGroupByClass(this.value, 0)'
+                            ]);
+                            ?>
                         </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('section'); ?></label>
-                                <select  id="secid" name="section_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="section_id_error text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label><?php echo $this->lang->line('subject_group'); ?></label>
                                 <select  id="subject_group_id" name="subject_group_id" class="form-control" >
@@ -67,7 +50,7 @@ $language_name = $language["short_code"];
                                 <span class="section_id_error text-danger"></span>
                             </div>
                         </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label><?php echo $this->lang->line('subject'); ?></label>
                                 <select  id="subid" name="subject_id" class="form-control" >
@@ -173,31 +156,19 @@ $language_name = $language["short_code"];
                         <div class="col-lg-12 col-md-12 col-sm-12">
                             <div class="row">
                                 <input type="hidden" id="modal_record_id" value="0" name="record_id">
-                                <div class="col-sm-4">
-                                    <div class="form-group">
-                                        <label for="pwd"><?php echo $this->lang->line('class') ?></label><small class="req"> *</small>
-                                        <select class="form-control modal_class_id" name="modal_class_id" id="modal_class_id">
-                                            <option value=""><?php echo $this->lang->line('select') ?></option>
-<?php foreach ($classlist as $key => $value) {
-    ?>
-                                                <option value="<?php echo $value["id"] ?>"><?php echo $value["class"] ?></option>
-
-<?php } ?>
-
-                                        </select>
-                                        <span id="name_add_error" class="text-danger"></span>
-                                    </div>
+                                <div class="col-sm-6">
+                                    <?php
+                                    // TVET: Use class_selector component in modal
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => '',
+                                        'name' => 'modal_class_id',
+                                        'id' => 'modal_class_id',
+                                        'required' => true,
+                                        'label' => $this->lang->line('class')
+                                    ]);
+                                    ?>
                                 </div>
-                                <div class="col-sm-4">
-                                    <div class="form-group">
-                                        <label for="pwd"><?php echo $this->lang->line('section') ?></label><small class="req"> *</small>
-                                        <select class="form-control modal_section_id" name="modal_section_id" id="modal_section_id">
-                                            <option value=""><?php echo $this->lang->line('select') ?></option>
-                                        </select>
-                                        <span id="name_add_error" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="exampleInputEmail1"><?php echo $this->lang->line('subject_group'); ?></label><small class="req"> *</small>
                                         <select  id="modal_subject_group_id" name="modal_subject_group_id" class="form-control" >
@@ -375,9 +346,9 @@ $language_name = $language["short_code"];
 </script>
 <script type="text/javascript">
     $(document).ready(function (e) {
-        getSectionByClass("<?php echo $class_id ?>", "<?php echo $section_id ?>", 'secid');
-        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id')
-        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
+        // TVET: Load subject groups and subjects by class (no section)
+        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id');
+        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
     });
 
     $(document).ready(function (e) {
@@ -476,32 +447,28 @@ $(document).on('submit','form#evaluation_data',function(e){
     var save_method; //for save method string
     var update_id; //for save method string
 
-    function getSectionByClass(class_id, section_id, select_control) {
+    // TVET: Get subject groups by class (no section needed)
+    function getSubjectGroupByClass(class_id, subject_group_id) {
         if (class_id != "") {
-            $('#' + select_control).html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
+            $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
             $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
+                type: 'POST',
+                url: base_url + 'admin/subjectgroup/getGroupByClass',
                 data: {'class_id': class_id},
-                dataType: "json",
+                dataType: 'JSON',
                 beforeSend: function () {
-                    $('#' + select_control).addClass('dropdownloading');
+                    $('#subject_group_id').addClass('dropdownloading');
                 },
                 success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
+                    var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
+                    $.each(data, function (i, obj) {
+                        var sel = (subject_group_id == obj.subject_group_id) ? "selected" : "";
+                        div_data += "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>";
                     });
-                    $('#' + select_control).append(div_data);
+                    $('#subject_group_id').html(div_data);
                 },
                 complete: function () {
-                    $('#' + select_control).removeClass('dropdownloading');
+                    $('#subject_group_id').removeClass('dropdownloading');
                 }
             });
         }
@@ -532,30 +499,29 @@ $(document).on('submit','form#evaluation_data',function(e){
         }
     });
     
-    $(document).on('change', '#modal_section_id', function () {
-        var class_id = $('.modal_class_id').val();
-        var section_id = $(this).val();
-        getSubjectGroup(class_id, section_id, 0, 'modal_subject_group_id');
+    // TVET: Load subject groups when modal class changes
+    $(document).on('change', '#modal_class_id', function () {
+        var class_id = $(this).val();
+        getSubjectGroup(class_id, 0, 'modal_subject_group_id');
     });
 
-    $(document).on('change', '#secid', function () {
+    // TVET: Load subject groups when search class changes (handled by onchange in component)
+    $(document).on('change', '#subject_group_id', function () {
         var class_id = $('#searchclassid').val();
-        var section_id = $(this).val();
+        var subject_group_id = $(this).val();
         getSubjectGroup(class_id, section_id, 0, 'subject_group_id');
     });
 
     $(document).on('change', '#modal_subject_group_id', function () {
-        var class_id = $('.modal_class_id').val();
-        var section_id = $('.modal_section_id').val();
+        var class_id = $('#modal_class_id').val();
         var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, 0, 'modal_subject_id');
+        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'modal_subject_id');
     });
-    
+
     $(document).on('change', '#subject_group_id', function () {
         var class_id = $('#searchclassid').val();
-        var section_id = $('#secid').val();
         var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, 0, 'subid');
+        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subid');
     });
 
     $("#formadd").on('submit', (function (e) {
@@ -601,24 +567,19 @@ $(document).on('submit','form#evaluation_data',function(e){
         });
     }));
 
-    $(document).on('change', '.modal_class_id', function () {
-        var modal_class_id = $('.modal_class_id').val();
-        var modal_section_id = $('.modal_section_id').val();
-        getSectionByClass(modal_class_id, 0, 'modal_section_id');
-    });
+    // TVET: Removed modal_class_id change handler - using onchange in component
 
-    function getSubjectGroup(class_id, section_id, subjectgroup_id, subject_group_target) {
-        if (class_id != "" && section_id != "") {
+    function getSubjectGroup(class_id, subjectgroup_id, subject_group_target) {
+        if (class_id != "") {
 
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
             $.ajax({
                 type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
-                data: {'class_id': class_id, 'section_id': section_id},
+                url: base_url + 'admin/subjectgroup/getGroupByClass',
+                data: {'class_id': class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
-                    // setting a timeout
                     $('#' + subject_group_target).html("").addClass('dropdownloading');
                 },
                 success: function (data) {
@@ -633,7 +594,7 @@ $(document).on('submit','form#evaluation_data',function(e){
                     });
                     $('#' + subject_group_target).append(div_data);
                 },
-                error: function (xhr) { // if error occured
+                error: function (xhr) {
                     alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
                 },
@@ -644,8 +605,8 @@ $(document).on('submit','form#evaluation_data',function(e){
         }
     }
 
-    function getsubjectBySubjectGroup(class_id, section_id, subject_group_id, subject_group_subject_id, subject_target) {
-        if (class_id != "" && section_id != "" && subject_group_id != "") {
+    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target) {
+        if (class_id != "" && subject_group_id != "") {
 
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
@@ -702,12 +663,12 @@ $(document).on('submit','form#evaluation_data',function(e){
                     $('#modal_record_id').val(res.id);
                     $("#homework_date").datepicker("update", new Date(res.homework_date));
                     $("#submit_date").datepicker("update", new Date(res.submit_date));
-                    $('.modal_class_id').val(res.class_id);
+                    $('#modal_class_id').val(res.class_id);
                     $('.wysihtml5-sandbox').contents().find('.wysihtml5-editor').html(res.description);
-                    $('.modal_class_id option[value=' + res.class_id + ']').attr('selected', 'selected');
-                    getSectionByClass(res.class_id, res.section_id, 'modal_section_id');
-                    getSubjectGroup(res.class_id, res.section_id, res.subject_groups_id, 'modal_subject_group_id');
-                    getsubjectBySubjectGroup(res.class_id, res.section_id, res.subject_groups_id, res.subject_group_subject_id, 'modal_subject_id');
+                    $('#modal_class_id option[value=' + res.class_id + ']').attr('selected', 'selected');
+                    // TVET: Load subject groups and subjects by class (no section)
+                    getSubjectGroup(res.class_id, res.subject_groups_id, 'modal_subject_group_id');
+                    getsubjectBySubjectGroup(res.class_id, res.subject_groups_id, res.subject_group_subject_id, 'modal_subject_id');
                     $('#homework_marks').val(res.marks);
                     $('#myModal').removeClass('modal_loading');
                 },

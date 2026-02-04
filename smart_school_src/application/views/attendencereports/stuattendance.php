@@ -125,35 +125,16 @@ if ((isset($attendance_type_id)) && ($attendance_type_id == $value['id'])) {
                                     <span class="text-danger"><?php echo form_error('attendance_type'); ?></span>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                    <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($classlist as $class) {
-    ?>
-                                            <option value="<?php echo $class['id'] ?>" <?php
-if ($class_id == $class['id']) {
-        echo "selected =selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                    <?php
-$count++;
-}
-?>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label>
-                                    <select  id="section_id" name="section_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                </div>
+                            <div class="col-md-6">
+                                <?php
+                                // TVET: Use class_selector component
+                                $this->load->view('admin/_partials/class_selector', [
+                                    'selected_class_id' => $class_id,
+                                    'name' => 'class_id',
+                                    'id' => 'class_id',
+                                    'required' => true
+                                ]);
+                                ?>
                             </div>
                             <div class="form-group">
                                 <div class="col-sm-12">
@@ -249,18 +230,8 @@ $count++;
 </section>
 </div>
 <script>
-    $(document).ready(function(){
-        var section_id = '<?php echo $section_id; ?>';
-        if(section_id){
-             $('#section_id').val(section_id);
-        }
-    });
-</script>
-<script>
-   
-
-
 <?php
+// TVET: No section dropdown logic needed
 if ($search_type == 'period') {
     ?>
         $(document).ready(function () {
@@ -268,54 +239,5 @@ if ($search_type == 'period') {
         });
     <?php
 }
-
-if ($class_id != '') {
-    ?>
-        var class_id = <?php echo $class_id; ?>;
-        var base_url = '<?php echo base_url() ?>';
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: base_url + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += "<option value=" + obj.section_id + "  >" + obj.section + "</option>";
-                });
-
-                $('#section_id').html(div_data);
-            }
-        });
-    <?php
-}
-
-if ($section_id != '') {
-    ?>
-
-    <?php
-}
 ?>
-
-    $(document).on('change', '#class_id', function (e) {
-        var class_id = $(this).val();
-        var base_url = '<?php echo base_url() ?>';
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: base_url + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += "<option value=" + obj.section_id + "  >" + obj.section + "</option>";
-                });
-
-                $('#section_id').html(div_data);
-            }
-        });
-    });
-
 </script>

@@ -83,28 +83,29 @@ class Attendencereports extends Admin_Controller
         $data['sch_setting'] = $this->sch_setting_detail;
         $attendencetypes             = $this->attendencetype_model->getAttType();
         $data['attendencetypeslist'] = $attendencetypes;
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
+
         $data['class_id']       = "";
-        $data['section_id']     = "";
         $data['date']           = "";
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('date', $this->lang->line('date'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == true) {
 
             $resultlist             = array();
             $class                  = $this->input->post('class_id');
-            $section                = $this->input->post('section_id');
             $date                  = $this->input->post('date');
             $attendance_mode                  = $this->input->post('attendance_mode');
             $data['class_id']       = $class;
-            $data['section_id']     = $section;
             $data['date_selected'] = $date;
             $attendencetypes             = $this->attendencetype_model->get();
             $data['attendencetypeslist'] = $attendencetypes;
-            $resultlist                  = $this->stuattendence_model->searchAttendenceClassSectionWithMode($class, $section, date('Y-m-d', $this->customlib->datetostrtotime($date)),$attendance_mode);
+
+            // TVET: Search by class only (no section)
+            $resultlist                  = $this->stuattendence_model->searchAttendenceClassWithMode($class, date('Y-m-d', $this->customlib->datetostrtotime($date)),$attendance_mode);
             $data['resultlist']          = $resultlist;
         }
 
@@ -130,31 +131,21 @@ class Attendencereports extends Admin_Controller
 
         $data['title']               = 'Add Fees Type';
         $data['title_list']          = 'Fees Type List';
-        $class                       = $this->class_model->get();
-        $userdata                    = $this->customlib->getUserData();
 
-        $role_id = $userdata["role_id"];
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
 
-        if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-            if ($userdata["class_teacher"] == 'yes') {
-                $carray = array();
-                $class  = array();
-                $class  = $this->teacher_model->get_daywiseattendanceclass($userdata["id"]);
-            }
-        }
-        $data['classlist'] = $class;
         $userdata          = $this->customlib->getUserData();
 
         $data['monthlist']      = $this->customlib->getMonthDropdown();
         $data['yearlist']       = $this->stuattendence_model->attendanceYearCount();
         $data['class_id']       = "";
-        $data['section_id']     = "";
         $data['date']           = "";
         $data['month_selected'] = "";
         $data['year_selected']  = "";
         $data['sch_setting']    = $this->sch_setting_detail;
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('month', $this->lang->line('month'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
             $this->load->view('layout/header', $data);
@@ -163,12 +154,13 @@ class Attendencereports extends Admin_Controller
         } else {
             $resultlist             = array();
             $class                  = $this->input->post('class_id');
-            $section                = $this->input->post('section_id');
             $month                  = $this->input->post('month');
             $data['class_id']       = $class;
-            $data['section_id']     = $section;
             $data['month_selected'] = $month;
-            $studentlist            = $this->student_model->searchByClassSection($class, $section);
+
+            // TVET: Get students by class (no section)
+            $studentlist            = $this->classmodel_model->getClassStudents($class);
+
             $session_current        = $this->setting_model->getCurrentSessionName();
             $startMonth             = $this->setting_model->getStartMonth();
             $centenary              = substr($session_current, 0, 2); //2017-18 to 2017
@@ -199,7 +191,8 @@ class Attendencereports extends Admin_Controller
                 $att_date           = $year . "-" . $month_number . "-" . sprintf("%02d", $i);
                 $attendence_array[] = $att_date;
 
-                $res            = $this->stuattendence_model->searchAttendenceReport($class, $section, $att_date);
+                // TVET: Search by class only (no section)
+                $res            = $this->stuattendence_model->searchAttendenceReportByClass($class, $att_date);
                 $student_result = $res;
                 $s              = array();
                 foreach ($res as $result_k => $result_v) {
@@ -253,11 +246,12 @@ class Attendencereports extends Admin_Controller
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $class                   = $this->input->post('class_id');
-        $section                 = $this->input->post('section_id');
         $data['class_id']        = $class;
-        $data['section_id']      = $section;
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
+
         $searchterm              = '';
         $condition               = "";
         $date_condition          = "";
@@ -312,9 +306,6 @@ class Attendencereports extends Admin_Controller
                 $condition .= ' and class_id=' . $data['class_id'];
             }
             $condition .= " and date_format(student_attendences.date,'%Y-%m-%d') between '" . $from_date . "' and '" . $to_date . "'";
-            if ($data['section_id'] != '') {
-                $condition .= ' and section_id=' . $data['section_id'];
-            }
 
             $data['student_attendences'] = $this->stuattendence_model->student_attendences($condition, $date_condition);
 
@@ -583,15 +574,17 @@ class Attendencereports extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/attendence/reportbymonthstudent');
 
         $data                = array();
-        $class               = $this->class_model->get('', $classteacher = 'yes');
-        $data['classlist']   = $class;
+
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
+
         $sch_setting         = $this->setting_model->getSetting();
         $data['sch_setting'] = $sch_setting;
         $data['monthlist']   = $this->customlib->getMonthNoDropdown($sch_setting->start_month);
 
         $data['student_id'] = "";
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('student_id', $this->lang->line('student'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('month', $this->lang->line('month'), 'trim|required|xss_clean');
 
@@ -600,7 +593,6 @@ class Attendencereports extends Admin_Controller
             $data['attendencetypeslist'] = $attendencetypes;
             $student_id                  = $data['student_id']                  = $this->input->post('student_id');
             $class_id                    = $this->input->post('class_id');
-            $section_id                  = $this->input->post('section_id');
             $month                       = $this->input->post('month');
             $subject_id                  = $this->input->post('subject_id');
             $month_data                  = sessionMonthDetails($sch_setting->session, $sch_setting->start_month, $month);
@@ -612,7 +604,8 @@ class Attendencereports extends Admin_Controller
             $date_result        = array();
             $from_date          = 1;
 
-            $resultlist = $this->studentsubjectattendence_model->getStudentMontlyAttendence($class_id, $section_id, $month_data['month_start'], $month_data['month_end'], $student_id, $subject_id);
+            // TVET: Get attendance by class only (no section)
+            $resultlist = $this->studentsubjectattendence_model->getStudentMontlyAttendenceByClass($class_id, $month_data['month_start'], $month_data['month_end'], $student_id, $subject_id);
 
             $data['resultlist'] = $resultlist;
         }
@@ -628,8 +621,10 @@ class Attendencereports extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/attendence/reportbymonth');
 
         $data              = array();
-        $class             = $this->class_model->get('', $classteacher = 'yes');
-        $data['classlist'] = $class;
+
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
 
         $sch_setting         = $this->setting_model->getSetting();
         $data['sch_setting'] = $sch_setting;
@@ -637,7 +632,6 @@ class Attendencereports extends Admin_Controller
         $data['monthlist'] = $this->customlib->getMonthNoDropdown($sch_setting->start_month);
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('month', $this->lang->line('month'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == true) {
@@ -645,7 +639,6 @@ class Attendencereports extends Admin_Controller
             $data['attendencetypeslist'] = $attendencetypes;
             $subject_id                  = $this->input->post('subject_id');
             $class_id                    = $this->input->post('class_id');
-            $section_id                  = $this->input->post('section_id');
             $month                       = $this->input->post('month');
             $year                        = $this->input->post('year');
             $month_data                  = sessionMonthDetails($sch_setting->session, $sch_setting->start_month, $month);
@@ -656,7 +649,8 @@ class Attendencereports extends Admin_Controller
             $data['no_of_days'] = $month_data['total_days'];
             $date_result        = array();
 
-            $resultlist = $this->studentsubjectattendence_model->getStudentsMontlyAttendence($class_id, $section_id, $month_data['month_start'], $month_data['month_end'], $subject_id);
+            // TVET: Get attendance by class only (no section)
+            $resultlist = $this->studentsubjectattendence_model->getStudentsMontlyAttendenceByClass($class_id, $month_data['month_start'], $month_data['month_end'], $subject_id);
 
             $data['resultlist'] = $resultlist;
         }
