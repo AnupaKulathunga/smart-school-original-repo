@@ -16,29 +16,23 @@
                             <?php echo $this->customlib->getCSRF(); ?>
                             <input type="hidden" name="exam_group_class_batch_exam_subject_id" value="<?php echo $id; ?>">
                             <div class="form-group">
-                                <div class="col-sm-4">
-                                    <label><?php echo $this->lang->line('class'); ?></label>
-                                    <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($classlist as $class) {
-    ?>
-                                            <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                    <?php
-}
-?>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('class_id'); ?></span>
+                                <div class="col-sm-6">
+                                    <?php
+                                    // TVET: Use class_selector component
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist,
+                                        'onchange' => 'loadBatches(this.value)'
+                                    ]);
+                                    ?>
                                 </div>
-                                <div class="col-sm-4">
-                                    <label><?php echo $this->lang->line('batch'); ?></label>
-                                    <select  id="batch_id" name="batch_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label><?php echo $this->lang->line('batch'); ?></label>
+                                        <select  id="batch_id" name="batch_id" class="form-control" >
+                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -156,14 +150,11 @@ if ($markvalue->exam_group_exam_result_id == "") {
     var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';
     var class_id = '<?php echo set_value('class_id', 0) ?>';
     var batch_id = '<?php echo set_value('batch_id', 0) ?>';
-    getBatchByClass(class_id, batch_id);
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        getBatchByClass(class_id, 0);
-    });
+    loadBatches(class_id, batch_id);
 
-    function getBatchByClass(class_id, batch_id) {
+    // TVET: Load batches directly by class (no section)
+    function loadBatches(class_id, batch_id) {
+        if (!batch_id) batch_id = 0;
         if (class_id != "") {
             $('#batch_id').html("");
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
