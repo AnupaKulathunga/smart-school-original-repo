@@ -22,7 +22,8 @@ class Apply_leave extends Student_Controller
         $student_id             = $this->customlib->getStudentSessionUserID();
         $student                = $this->student_model->get($student_id);
         $data['results']        = $this->apply_leave_model->get_student($student_session_id);
-        $data['studentclasses'] = $this->studentsession_model->searchMultiClsSectionByStudent($student_id);
+        // TVET: Use enrolment_model to get student's class enrolments
+        $data['studentclasses'] = $this->enrolment_model->getStudentEnrolments($student_id);
         $this->load->view('layout/student/header', $data);
         $this->load->view('user/apply_leave/apply_leave', $data);
         $this->load->view('layout/student/footer', $data);
