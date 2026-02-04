@@ -44,7 +44,9 @@ class Feemaster extends Admin_Controller
         $data['title_list']      = $this->lang->line('fees_master_list');
         $feemaster_result        = $this->feemaster_model->get();
         $data['feemasterlist']   = $feemaster_result;
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $feecategory             = $this->feecategory_model->get(null, 'asc');
         $data['feecategorylist'] = $feecategory;
@@ -122,7 +124,9 @@ class Feemaster extends Admin_Controller
         $data['feecategorylist'] = $feecategory;
         $feemaster_result        = $this->feemaster_model->get();
         $data['feemasterlist']   = $feemaster_result;
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('amount', $this->lang->line('monthly_amount'), 'trim|required|xss_clean');
