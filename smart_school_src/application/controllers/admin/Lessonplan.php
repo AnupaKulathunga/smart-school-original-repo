@@ -800,9 +800,11 @@ class Lessonplan extends Admin_Controller
 
     public function getlessonlist()
     {
-        $class = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session_id);
         foreach ($class as $class_key => $class_value) {
-            $class_array[] = $class_value['id'];
+            $class_array[] = $class_value->id; // Object property access
         }
         $result  = $this->lessonplan_model->getlessonlist($this->sch_current_session, '');
         $m       = json_decode($result);
