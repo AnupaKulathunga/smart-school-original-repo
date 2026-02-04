@@ -622,7 +622,7 @@ class Studentfee extends Admin_Controller
                 $receipt_data           = json_decode($inserted_id);
                 $data['sch_setting']    = $this->sch_setting_detail;
 
-                $student                = $this->studentsession_model->searchStudentsBySession($student_session_id);
+                $student                = $this->enrolment_model->getEnrolmentById($student_session_id);
                 $data['student']        = $student;
                 $data['sub_invoice_id'] = $receipt_data->sub_invoice_id;
 
@@ -673,7 +673,7 @@ class Studentfee extends Admin_Controller
         $student_session_id      = $this->input->post('student_session_id');
         $setting_result          = $this->setting_model->get();
         $data['settinglist']     = $setting_result;
-        $student                 = $this->studentsession_model->searchStudentsBySession($student_session_id);
+        $student                 = $this->enrolment_model->getEnrolmentById($student_session_id);
         $data['student']         = $student;
         $data['sub_invoice_id']  = $sub_invoice_id;
         $data['sch_setting']     = $this->sch_setting_detail;
