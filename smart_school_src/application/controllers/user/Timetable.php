@@ -34,7 +34,8 @@ class Timetable extends Student_Controller {
         $class_id    = $student_current_class->class_id;
         $section_id  = $student_current_class->section_id;
         $days        = $this->customlib->getDaysname();
-        $class_section=$this->section_model->getClassAndSectionNameByClassIDSectionID($class_id, $section_id);
+        // TVET: In TVET, there are no sections - use classmodel_model to get class details
+        $class_section = $this->classmodel_model->getClassById($class_id);
         $data['class_section']=$class_section;
         $days_record = array();
         foreach ($days as $day_key => $day_value) {
