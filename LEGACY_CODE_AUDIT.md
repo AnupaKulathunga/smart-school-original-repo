@@ -15,7 +15,7 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 ⚠️  43 form validations with section_id
 ```
 
-**Completion:** ~22% (11 of ~50 major pages fixed)
+**Completion:** ~32% (16 of ~50 major pages fixed)
 
 ---
 
@@ -44,11 +44,11 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 
 ### Priority 3: Administrative Pages (5 files)
 
-16. ❌ `/admin/resume/index.php` - Student resume
-17. ❌ `/admin/resume/download.php` - Resume download
-18. ❌ `/admin/member/studentSearch.php` - Member student search
-19. ❌ `/admin/feesforward/index.php` - Fees forward
-20. ❌ `/admin/pickuppoint/student_fees.php` - Transport pickup point fees
+16. ✅ `/admin/resume/index.php` - COMPLETED (controller + view)
+17. ✅ `/admin/resume/download.php` - COMPLETED (controller + view)
+18. ✅ `/admin/member/studentSearch.php` - COMPLETED (controller + view)
+19. ✅ `/admin/feesforward/index.php` - COMPLETED (controller + view)
+20. ✅ `/admin/pickuppoint/student_fees.php` - COMPLETED (controller + view)
 
 ### Priority 4: Auxiliary Pages (3 files)
 
@@ -214,10 +214,10 @@ $this->load->view('admin/_partials/class_selector', [
 |----------|-------|-------|-----------|----------|
 | User-Facing Pages | 8 | 7 | 1 | 88% |
 | Academic Mgmt | 7 | 4 | 3 | 57% |
-| Administrative | 5 | 0 | 5 | 0% |
+| Administrative | 5 | 5 | 0 | 100% |
 | Auxiliary | 3 | 0 | 3 | 0% |
-| **TOTAL VIEWS** | **23** | **11** | **12** | **48%** |
-| Controllers | ~50 | ~13 | ~37 | 26% |
+| **TOTAL VIEWS** | **23** | **16** | **7** | **70%** |
+| Controllers | ~50 | ~18 | ~32 | 36% |
 | Models | ~10 | ~3 | ~7 | 30% |
 
 ---
@@ -240,6 +240,11 @@ $this->load->view('admin/_partials/class_selector', [
 14. ✅ Question Add Form - View (_addform.php)
 15. ✅ Question Edit Form - View (_editform.php)
 16. ✅ Lessonplan Copy - View, JavaScript handlers
+17. ✅ Resume Index - Controller, View
+18. ✅ Resume Download - Controller, View
+19. ✅ Member Student Search - Controller, View
+20. ✅ Fees Forward - Controller, View
+21. ✅ Pickup Point Student Fees - Controller, View
 
 ---
 
