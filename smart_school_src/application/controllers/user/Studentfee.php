@@ -18,7 +18,9 @@ class Studentfee extends Student_Controller
         $this->session->set_userdata('top_menu', 'Fees Collection');
         $this->session->set_userdata('sub_menu', 'studentfee/index');
         $data['title']     = 'student fee';
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id        = $this->setting_model->getCurrentSession();
+        $class             = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $class;
         $this->load->view('layout/student/header', $data);
         $this->load->view('studentfee/studentfeeSearch', $data);
@@ -33,7 +35,9 @@ class Studentfee extends Student_Controller
     public function search()
     {
         $data['title']     = 'Student Search';
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id        = $this->setting_model->getCurrentSession();
+        $class             = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $class;
         if ($this->input->server('REQUEST_METHOD') == "GET") {
             $this->load->view('layout/header', $data);
@@ -64,7 +68,9 @@ class Studentfee extends Student_Controller
         $this->session->set_userdata('top_menu', 'Fees Collection');
         $this->session->set_userdata('sub_menu', 'studentfee/feesearch');
         $data['title']           = 'student fee';
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $feecategory             = $this->feecategory_model->get();
         $data['feecategorylist'] = $feecategory;
@@ -93,7 +99,9 @@ class Studentfee extends Student_Controller
         $this->session->set_userdata('sub_menu', 'studentfee/reportbyname');
         $data['title']     = 'student fee';
         $data['title']     = 'student fee';
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id        = $this->setting_model->getCurrentSession();
+        $class             = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $class;
         if ($this->input->server('REQUEST_METHOD') == "GET") {
             $this->load->view('layout/header', $data);
@@ -129,7 +137,9 @@ class Studentfee extends Student_Controller
     {
         $data['title']     = 'student fee';
         $data['title']     = 'student fee';
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id        = $this->setting_model->getCurrentSession();
+        $class             = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $class;
         if ($this->input->server('REQUEST_METHOD') == "GET") {
             $this->load->view('layout/header', $data);
