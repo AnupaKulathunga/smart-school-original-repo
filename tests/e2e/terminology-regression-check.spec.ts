@@ -334,6 +334,7 @@ test.describe('TVET Terminology Regression Check', () => {
       '/admin/examresult/rankreport',
       '/admin/examresult/admitcard',
       '/admin/examresult/marksheet',
+      '/admin/exam_schedule',
       '/admin/teacher/assignteacher',
       '/admin/lessonplan',
       '/admin/notification',
