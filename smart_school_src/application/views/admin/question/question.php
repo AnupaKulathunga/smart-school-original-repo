@@ -66,34 +66,14 @@
                         <form role="form" action="<?php echo site_url('admin/question/questionsearchvalidation') ?>" method="post" class="" id="questionsearchform">
                             <div class="row">
                                 <?php echo $this->customlib->getCSRF(); ?>
-                                <div class="col-sm-6 col-md-2">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('class'); ?></label>
-                                        <select autofocus="" id="class_id" name="class" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-foreach ($classlist as $class) {
-    ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                <?php
-
-}
-?>
-                                        </select>
-                                         <span class="text-danger" id="error_class_id"></span>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6 col-md-2">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('section'); ?></label>
-                                        <select  id="search_section_id" name="section" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
+                                <div class="col-sm-6 col-md-4">
+                                    <?php
+                                    // TVET: Use class_selector component (single dropdown for complete CLASS)
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div>
                                 <div class="col-sm-3 col-md-2">
                                     <div class="form-group">

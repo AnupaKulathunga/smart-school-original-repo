@@ -42,8 +42,12 @@ class Question extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Online_Examinations');
         $this->session->set_userdata('sub_menu', 'Online_Examinations/question');
         $data                   = array();
-        $class                  = $this->class_model->get();
-        $data['classlist']      = $class;
+
+        // TVET: Load classes by session
+        $session_id             = $this->setting_model->getCurrentSession();
+        $classlist              = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']      = $classlist;
+
         $subjectlist            = $this->subject_model->get();
         $data['subjectlist']    = $subjectlist;
         $data['question_type']  = $this->config->item('question_type');
@@ -82,13 +86,12 @@ class Question extends Admin_Controller
     {
         $this->form_validation->set_rules('file', $this->lang->line('image'), 'callback_handle_upload');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: Remove section_id validation
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
             $data = array(
                 'subject_id' => form_error('subject_id'),
                 'class_id'   => form_error('class_id'),
-                'section_id' => form_error('section_id'),
                 'file'       => form_error('file'),
             );
             $array = array('status' => 0, 'error' => $data);
@@ -113,7 +116,7 @@ class Question extends Admin_Controller
                                 'staff_id'      => $this->customlib->getStaffID(),
                                 'subject_id'    => $this->input->post('subject_id'),
                                 'class_id'      => $this->input->post('class_id'),
-                                'section_id'    => $this->input->post('section_id'),
+                                // TVET: Questions are class-level, not section-level
                                 'question_type' => (trim($column['0'])),
                                 'level'         => (trim($column['1'])),
                                 'question'      => (trim($column['2'])),
@@ -234,10 +237,7 @@ class Question extends Admin_Controller
                 'staff_id'      => $this->customlib->getStaffID(),
             );
 
-            $section_id = $this->input->post('section_id');
-            if (isset($section_id) && $section_id != "") {
-                $insert_data['section_id'] = $this->input->post('section_id');
-            }
+            // TVET: Questions are class-level, not section-level
 
             if ($this->input->post('question_type') == "singlechoice") {
                 $insert_data['opt_a']   = $this->input->post('opt_a');
@@ -292,7 +292,11 @@ class Question extends Admin_Controller
     public function addform()
     {
         $data                        = array();
-        $data['classList']           = $this->class_model->get();
+
+        // TVET: Load classes by session
+        $session_id                  = $this->setting_model->getCurrentSession();
+        $data['classList']           = $this->classmodel_model->getClassesBySession($session_id);
+
         $subject_result              = $this->subject_model->get();
         $data['subjectlist']         = $subject_result;
         $data['question_true_false'] = $this->config->item('question_true_false');
@@ -311,8 +315,11 @@ class Question extends Admin_Controller
         $data['recordid']            = $this->input->post('recordid');
         $question_result             = $this->question_model->get($data['recordid']);
         $data['question_result']     = $question_result;
-        $data['classList']           = $this->class_model->get();
-        $data['sectionList']         = $this->section_model->getClassBySection($question_result->class_id);
+
+        // TVET: Load classes by session (no section list needed)
+        $session_id                  = $this->setting_model->getCurrentSession();
+        $data['classList']           = $this->classmodel_model->getClassesBySession($session_id);
+
         $subject_result              = $this->subject_model->get();
         $data['subjectlist']         = $subject_result;
         $data['question_true_false'] = $this->config->item('question_true_false');
@@ -455,15 +462,15 @@ class Question extends Admin_Controller
         
         
         $class_id              = $this->input->post('class_id');
-        $section_id            = $this->input->post('section_id');
+        // TVET: No section_id needed (class-level questions)
         $subject               = $this->input->post('subject');
         $search_question_type  = $this->input->post('question_type');
         $search_question_level = $this->input->post('question_level');
         $created_by            = $this->input->post('created_by');
-        
+
         $question_type  = $this->config->item('question_type');
         $question_level = $this->config->item('question_level');
-        $question_dt = $this->question_model->getAllRecord($class_id, $section_id, $subject, $search_question_type, $search_question_level,$created_by);
+        $question_dt = $this->question_model->getAllRecord($class_id, null, $subject, $search_question_type, $search_question_level,$created_by);
         $question_dt = json_decode($question_dt);
         $dt_data = array();
         $recordsTotal_flter = "";
@@ -587,16 +594,16 @@ class Question extends Admin_Controller
     public function questionsearchvalidation()
     {
         $class_id       = $this->input->post('class');
-        $section_id     = $this->input->post('section');
+        // TVET: No section_id needed (class-level questions)
         $subject        = $this->input->post('subject');
         $question_type  = $this->input->post('question_type');
         $question_level = $this->input->post('question_level');
         $created_by = $this->input->post('created_by');
-        $srch_type      = $this->input->post('search_type');         
+        $srch_type      = $this->input->post('search_type');
 
-        $params = array('srch_type' => $srch_type, 'class_id' => $class_id, 'section_id' => $section_id, 'subject' => $subject, 'question_type' => $question_type, 'question_level' => $question_level, 'created_by' => $created_by);
+        $params = array('srch_type' => $srch_type, 'class_id' => $class_id, 'subject' => $subject, 'question_type' => $question_type, 'question_level' => $question_level, 'created_by' => $created_by);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
-            echo json_encode($array);        
+            echo json_encode($array);
 
     }
 
