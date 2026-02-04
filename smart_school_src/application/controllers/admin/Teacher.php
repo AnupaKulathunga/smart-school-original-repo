@@ -498,7 +498,9 @@ class Teacher extends Admin_Controller
             $data['teacherlist'] = $teacherlist;
             $data['class_id'] = $class_id;
             $data['section_id'] = $section_id;
-            $classlist         = $this->class_model->get();
+            // TVET: Use classmodel_model to get classes for current session
+            $session_id        = $this->setting_model->getCurrentSession();
+            $classlist         = $this->classmodel_model->getClassesBySession($session_id);
             $data['classlist'] = $classlist;
             // TVET: In TVET, sections don't exist - return empty list
             $sectionlist         = array();
