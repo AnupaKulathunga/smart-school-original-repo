@@ -268,7 +268,7 @@ class Welcome extends Front_Controller
             $this->data['title_list']     = 'Online Admission Form';
             $data["student_categorize"]   = 'class';
             $session                      = $this->setting_model->getCurrentSession();
-            $class                        = $this->class_model->getAll();
+            $class                        = $this->classmodel_model->getClassesBySession($this->setting_model->getCurrentSession());
             $this->data['classlist']      = $class;
             $this->data['sch_setting']    = $this->sch_setting_detail;
             $category                     = $this->category_model->get();
@@ -676,7 +676,7 @@ class Welcome extends Front_Controller
             $data["student_categorize"]     = 'class';
             $session                        = $this->setting_model->getCurrentSession();
             $id                             = $this->onlinestudent_model->getidbyrefno($reference_no);
-            $class                          = $this->class_model->getAll();
+            $class                          = $this->classmodel_model->getClassesBySession($this->setting_model->getCurrentSession());
             $this->data['classlist']        = $class;
             $this->data['sch_setting']      = $this->sch_setting_detail;
             $category                       = $this->category_model->get();
@@ -799,7 +799,7 @@ class Welcome extends Front_Controller
             $this->data['title_list']     = 'Recently Added Student';
             $data["student_categorize"]   = 'class';
             $session                      = $this->setting_model->getCurrentSession();
-            $class                        = $this->class_model->getAll();
+            $class                        = $this->classmodel_model->getClassesBySession($this->setting_model->getCurrentSession());
             $this->data['classlist']      = $class;
             $this->data['sch_setting']    = $this->sch_setting_detail;
             $category                     = $this->category_model->get();
@@ -813,7 +813,7 @@ class Welcome extends Front_Controller
             $this->data['title_list']     = 'Recently Added Student';
             $data["student_categorize"]   = 'class';
             $session                      = $this->setting_model->getCurrentSession();
-            $class                        = $this->class_model->getAll();
+            $class                        = $this->classmodel_model->getClassesBySession($this->setting_model->getCurrentSession());
             $this->data['classlist']      = $class;
             $this->data['sch_setting']    = $this->sch_setting_detail;
             $id                           = $this->onlinestudent_model->getidbyrefno($reference_no);
