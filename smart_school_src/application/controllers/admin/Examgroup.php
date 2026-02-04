@@ -171,8 +171,12 @@ class Examgroup extends Admin_Controller
         $data                    = array();
         $data['examgroupDetail'] = $this->examgroup_model->getExamByID($id);
         $data['exam_subjects']   = $this->batchsubject_model->getExamSubjects($id);
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
+
         $session                 = $this->session_model->get();
         $data['sessionlist']     = $session;
         $data['current_session'] = $this->sch_current_session;
@@ -211,26 +215,29 @@ class Examgroup extends Admin_Controller
 
         $data['exam_subjects'] = $this->batchsubject_model->getExamSubjects($id);
         $data['id']            = $id;
-        $class                 = $this->class_model->get();
-        $data['classlist']     = $class;
+
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']     = $classlist;
+
         $session               = $this->session_model->get();
         $data['sessionlist']   = $session;
-        if ($this->input->server('REQUEST_METHOD') == 'POST') {
 
+        if ($this->input->server('REQUEST_METHOD') == 'POST') {
             $exam_subject_id                                = $this->input->post('exam_group_class_batch_exam_subject_id');
             $data['exam_group_class_batch_exam_subject_id'] = $this->input->post('exam_group_class_batch_exam_subject_id');
             $class_id                                       = $this->input->post('class_id');
-            $section_id                                     = $this->input->post('section_id');
             $session_id                                     = $this->input->post('session_id');
             $data['class_id']                               = $this->input->post('class_id');
-            $data['section_id']                             = $this->input->post('section_id');
             $data['session_id']                             = $this->input->post('session_id');
-            $resultlist                                     = $this->examgroupstudent_model->examGroupSubjectResult($exam_subject_id, $class_id, $section_id, $session_id);
+
+            // TVET: No section_id parameter
+            $resultlist                                     = $this->examgroupstudent_model->examGroupSubjectResult($exam_subject_id, $class_id, null, $session_id);
             $subject_detail                                 = $this->batchsubject_model->getExamSubject($exam_subject_id);
             $data['subject_detail']                         = $subject_detail;
             $data['attendence_exam']                        = $this->attendence_exam;
             $data['resultlist']                             = $resultlist;
-            
         }
 
         $this->load->view('layout/header', $data);
@@ -302,8 +309,10 @@ class Examgroup extends Admin_Controller
         $data['title']      = 'Add Batch';
         $data['title_list'] = 'Recent Batch';
 
-        $class               = $this->class_model->get();
-        $data['classlist']   = $class;
+        // TVET: Load classes by session
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']   = $classlist;
         $data['examType']    = $this->exam_type;
         $session             = $this->session_model->get();
         $data['sessionlist'] = $session;
@@ -315,8 +324,8 @@ class Examgroup extends Admin_Controller
              $this->session->set_flashdata('msg', $this->lang->line('there_is_no_class_subject_assigned_for_you'));
           access_denied();
         }else{
-           $data['examgroup']       = $this->examgroup_model->get($id); 
-        }        
+           $data['examgroup']       = $this->examgroup_model->get($id);
+        }
 
         $this->load->view('layout/header', $data);
         $this->load->view('admin/examgroup/addexam', $data);
@@ -332,21 +341,21 @@ class Examgroup extends Admin_Controller
     {
         $this->form_validation->set_error_delimiters('<p>', '</p>');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'required|trim|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'required|trim|xss_clean');
+        // TVET: Remove section_id validation
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('session_id', $this->lang->line('session'), 'required|trim|xss_clean');
         $userdata = $this->customlib->getUserData();
         $role_id  = $userdata["role_id"];
         $can_edit = 1;
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-            $myclasssubjects = $this->subjecttimetable_model->canAddExamMarks($userdata["id"], $this->input->post('class_id'), $this->input->post('section_id'), $this->input->post('teachersubject_id'));
+            // TVET: Check permissions by class_id only
+            $myclasssubjects = $this->subjecttimetable_model->canAddExamMarks($userdata["id"], $this->input->post('class_id'), null, $this->input->post('teachersubject_id'));
             $can_edit        = $myclasssubjects;
         }
 
         if ($this->form_validation->run() == false) {
             $data = array(
                 'class_id'   => form_error('class_id'),
-                'section_id' => form_error('section_id'),
                 'session_id' => form_error('session_id'),
                 'subject_id' => form_error('subject_id'),
             );
@@ -360,12 +369,11 @@ class Examgroup extends Admin_Controller
             $exam_subject_id                                = $this->input->post('subject_id');
             $data['exam_group_class_batch_exam_subject_id'] = $exam_subject_id;
             $class_id                                       = $this->input->post('class_id');
-            $section_id                                     = $this->input->post('section_id');
+            // TVET: Remove section_id handling
             $session_id                                     = $this->input->post('session_id');
             $data['class_id']                               = $this->input->post('class_id');
-            $data['section_id']                             = $this->input->post('section_id');
             $data['session_id']                             = $this->input->post('session_id');
-            $resultlist                                     = $this->examgroupstudent_model->examGroupSubjectResult($exam_subject_id, $class_id, $section_id, $session_id);
+            $resultlist                                     = $this->examgroupstudent_model->examGroupSubjectResult($exam_subject_id, $class_id, null, $session_id);
             $subject_detail                                 = $this->batchsubject_model->getExamSubject($exam_subject_id);
 
             $data['subject_detail']  = $subject_detail;
@@ -721,8 +729,12 @@ class Examgroup extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'examgroup/index');
         $data['id']        = $id;
         $data['title']     = 'student fees';
-        $class             = $this->class_model->get();
-        $data['classlist'] = $class;
+
+        // TVET: Load classes by session
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist'] = $classlist;
+
         $examgroup         = $this->examgroup_model->getExamGroupDetailByID($id);
         $data['examgroup']   = $examgroup;
         $session_result      = $this->session_model->get();
@@ -731,11 +743,11 @@ class Examgroup extends Admin_Controller
         if ($this->input->server('REQUEST_METHOD') == 'POST') {
 
             $data['class_id']     = $this->input->post('class_id');
-            $data['section_id']   = $this->input->post('section_id');
+            // TVET: Remove section_id handling
             $data['session_id']   = $this->input->post('session_id');
             $data['examgroup_id'] = $this->input->post('examgroup_id');
 
-            $resultlist = $this->examgroupstudent_model->searchExamGroupStudents($data['examgroup_id'], $data['class_id'], $data['section_id'], $data['session_id']);
+            $resultlist = $this->examgroupstudent_model->searchExamGroupStudents($data['examgroup_id'], $data['class_id'], null, $data['session_id']);
             $data['resultlist'] = $resultlist;
         }
 

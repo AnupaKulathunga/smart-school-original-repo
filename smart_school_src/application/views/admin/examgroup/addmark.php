@@ -22,35 +22,17 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                             <?php echo $this->customlib->getCSRF(); ?>
                             <input type="hidden" name="exam_group_class_batch_exam_subject_id" value="<?php echo $id; ?>">
                             <div class="form-group">
-                                <div class="col-sm-4">
-                                    <label><?php echo $this->lang->line('class'); ?></label>
-                                    <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-                                        foreach ($classlist as $class) {
-                                            ?>
-                                            <option value="<?php echo $class['id'] ?>" <?php
-                                            if (set_value('class_id') == $class['id']) {
-                                                echo "selected=selected";
-                                            }
-                                            ?>><?php echo $class['class'] ?></option>
-                                                    <?php
-                                                }
-                                                ?>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('class_id'); ?></span>
+                                <div class="col-sm-6">
+                                    <?php
+                                    // TVET: Use class_selector component (single dropdown for complete CLASS)
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div>
-                                <div class="col-sm-4">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small> 
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-sm-4">
-                                    <label>Session --r</label>
+                                <div class="col-sm-6">
+                                    <label>Session</label>
                                     <select  id="session_id" name="session_id" class="form-control" >
                                         <option value=""><?php echo $this->lang->line('select'); ?></option>
                                         <?php
@@ -185,46 +167,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
 
     var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';
 
-    var class_id = '<?php echo set_value('class_id', 0) ?>';
-    var section_id = '<?php echo set_value('section_id', 0) ?>';
-    getSectionByClass(class_id, section_id);
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, section_id);
-    });
-
-    function getSectionByClass(class_id, section_id) {
-
-        if (class_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
+    // TVET: No section dropdown to populate
 
     var response;
     $.validator.addMethod("uniqueUserName", function (value, element, options)
