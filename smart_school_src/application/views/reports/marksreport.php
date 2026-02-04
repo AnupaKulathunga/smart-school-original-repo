@@ -237,7 +237,6 @@
                         <form role="form" id="" class="" method="post" action="<?php echo site_url('admin/mark/create') ?>">
                             <?php echo $this->customlib->getCSRF(); ?>
                             <input type="hidden" name="class_id" value="<?php echo $class_id; ?>">
-                            <input type="hidden" name="section_id" value="<?php echo $section_id; ?>">
                             <input type="hidden" name="exam_id" value="<?php echo $exam_id; ?>">
                             <div class="table-responsive">
                                 <table class="table table-hover">
