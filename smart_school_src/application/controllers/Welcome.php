@@ -248,7 +248,9 @@ class Welcome extends Front_Controller
     public function getSections()
     {
         $class_id = $this->input->post('class_id');
-        $data     = $this->section_model->getClassBySectionAll($class_id);
+        // TVET: In TVET, sections don't exist - return class as single-item array
+        $class_obj = $this->classmodel_model->getClassById($class_id);
+        $data = $class_obj ? array($class_obj) : array();
         echo json_encode($data);
     }
 
