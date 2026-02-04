@@ -124,7 +124,7 @@ class Report extends Admin_Controller
         // TVET: section_id removed
         $exam_arrylist         = $this->exam_model->get($exam_id);
         $data['exam_arrylist'] = $exam_arrylist;
-        $class_info            = $this->class_model->get($class_id);
+        $class_info            = $this->classmodel_model->getClassById($class_id);
         $data['class']         = $class_info;
         $examSchedule          = $this->examschedule_model->getDetailbyClsandSection($class_id, null, $exam_id);
         $studentList           = $this->student_model->searchByClassSection($class_id, null);
@@ -181,7 +181,7 @@ class Report extends Admin_Controller
         $class_id            = $this->uri->segment(3);
         // TVET: section_id removed
         $setting_result      = $this->setting_model->get();
-        $class_info          = $this->class_model->get($class_id);
+        $class_info          = $this->classmodel_model->getClassById($class_id);
         $data['class']       = $class_info;
         $data['settinglist'] = $setting_result;
         $resultlist          = $this->student_model->searchByClassSection($class_id, null);
@@ -202,7 +202,7 @@ class Report extends Admin_Controller
         $gender         = $this->input->get('gender');
         $rte            = $this->input->get('rte');
         $setting_result = $this->setting_model->get();
-        $class          = $this->class_model->get($class_id);
+        $class          = $this->classmodel_model->getClassById($class_id);
         $data['class']  = $class;
         // TVET: section check removed
         if ($gender != "") {
@@ -231,7 +231,7 @@ class Report extends Admin_Controller
         $class_id            = $this->uri->segment(3);
         // TVET: section_id removed
         $setting_result      = $this->setting_model->get();
-        $class_info          = $this->class_model->get($class_id);
+        $class_info          = $this->classmodel_model->getClassById($class_id);
         $data['class']       = $class_info;
         $data['settinglist'] = $setting_result;
         $resultlist          = $this->student_model->searchByClassSection($class_id, null);
@@ -272,7 +272,7 @@ class Report extends Admin_Controller
         $exam_id              = $this->uri->segment(3);
         // TVET: section_id removed (was segment 4)
         $class_id             = $this->uri->segment(4); // Now segment 4 instead of 5
-        $class                = $this->class_model->get($class_id);
+        $class                = $this->classmodel_model->getClassById($class_id);
         $data['class']        = $class;
         $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, null, $exam_id);
         // TVET: Use class data instead of section
@@ -1208,7 +1208,9 @@ class Report extends Admin_Controller
         // TVET: Use classmodel_model->getClassesBySession()
         $session_id = $this->setting_model->getCurrentSession();
         $classlist = $this->classmodel_model->getClassesBySession($session_id);
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         foreach ($data['classlist'] as $key => $value) {
             $carray[] = $value['id'];
@@ -1345,7 +1347,9 @@ class Report extends Admin_Controller
     {
         $sch_setting = $this->sch_setting_detail;
         $searchterm  = '';
-        $class       = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session_id);
         $classlist   = $class;
         $count       = 0;
 
