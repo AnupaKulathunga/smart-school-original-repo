@@ -39,17 +39,17 @@
                     <button type="submit" id="search_filter" name="search" value="search_filter" class="btn btn-primary btn-sm checkbox-toggle pull-right"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
                 </div>
             </form>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="box-header with-border">
-                        <h3 class="box-title"><i class="fa fa-users"></i> <?php echo $this->lang->line('approve_leave_list'); ?></h3>
-                        <div class="box-tools pull-right">
-                            <?php if ($this->rbac->hasPrivilege('approve_leave', 'can_add')) { ?>
-                                <button type="button" onclick="add_leave()" class="btn btn-sm btn-primary " data-toggle="tooltip"><i class="fa fa-plus"></i> <?php echo $this->lang->line('add'); ?></button>
-                            <?php } ?>
-                        </div>
-                    </div> 
-                    <div class="box-body table-responsive overflow-visible-lg">
+        </div>
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title"><i class="fa fa-users"></i> <?php echo $this->lang->line('approve_leave_list'); ?></h3>
+                <div class="box-tools pull-right">
+                    <?php if ($this->rbac->hasPrivilege('approve_leave', 'can_add')) { ?>
+                        <button type="button" onclick="add_leave()" class="btn btn-sm btn-primary " data-toggle="tooltip"><i class="fa fa-plus"></i> <?php echo $this->lang->line('add'); ?></button>
+                    <?php } ?>
+                </div>
+            </div>
+            <div class="box-body table-responsive overflow-visible-lg">
                         <div class="download_label"> <?php echo $this->lang->line('approve_leave_list'); ?> </div>
                         <div >
                             <table class="table table-hover table-striped table-bordered example">
@@ -134,8 +134,6 @@
                             </table>
                         </div>
                     </div>
-                </div>
-            </div>
         </div>
     </section>
 </div>

@@ -56,9 +56,9 @@ class approve_leave extends Admin_Controller
 
         $data['results'] = $listaudit;
 
-        $this->load->view('layout/header');
+        $this->load->view('layout/header', $data);
         $this->load->view('admin/approve_leave/index', $data);
-        $this->load->view('layout/footer');
+        $this->load->view('layout/footer', $data);
     }
 
     public function get_details()

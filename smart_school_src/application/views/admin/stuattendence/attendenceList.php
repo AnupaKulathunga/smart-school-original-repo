@@ -238,16 +238,16 @@
                                             </div>
                                         </div>
                                         <input type="hidden" name="class_id" value="<?php echo $class_id; ?>">
-                                        <input type="hidden" name="section_id" value="<?php echo $section_id; ?>">
                                         <input type="hidden" name="date" value="<?php echo $date; ?>">
                                         <div class="table-responsive ptt10">
                                             <table class="table table-hover table-striped example">
                                                 <thead>
                                                     <tr>
                                                         <th>#</th>
-                                                        <th><?php echo $this->lang->line('admission_no'); ?></th>                                                       
+                                                        <th><?php echo $this->lang->line('admission_no'); ?></th>
                                                         <th><?php echo $this->lang->line('roll_number'); ?></th>
-                                                        <th><?php echo $this->lang->line('name'); ?></th>                                                      
+                                                        <th><?php echo $this->lang->line('name'); ?></th>
+                                                        <th>Enrolment Type</th>
                                                         <th width="30%"><?php echo $this->lang->line('attendance'); ?></th>
                                                         <?php
                                                         if ($sch_setting->biometric) {
@@ -269,8 +269,8 @@
                                                     ?>
                                                         <tr>
                                                             <td>
-                                                                <input type="hidden" name="student_session[]" value="<?php echo $value['student_session_id']; ?>">
-                                                                <input type="hidden" value="<?php echo $value['attendence_id']; ?>" name="attendendence_id<?php echo $value['student_session_id']; ?>">
+                                                                <input type="hidden" name="enrolment[<?php echo $value['enrolment_id']; ?>]" value="1">
+                                                                <input type="hidden" value="<?php echo $value['attendence_id']; ?>" name="attendendence_id<?php echo $value['enrolment_id']; ?>">
                                                                 <?php echo $row_count; ?>
                                                             </td>
                                                             <td>
@@ -285,6 +285,14 @@
                                                             </td>
                                                             <td>
                                                                 <?php
+                                                                // TVET: Display enrolment type badge
+                                                                $enrolment_type = isset($value['enrolment_type']) ? $value['enrolment_type'] : 'Core';
+                                                                $badge_class = ($enrolment_type == 'Core') ? 'label-success' : 'label-info';
+                                                                ?>
+                                                                <span class="label <?php echo $badge_class; ?>"><?php echo $enrolment_type; ?></span>
+                                                            </td>
+                                                            <td>
+                                                                <?php
                                                                 $c     = 1;
                                                                 $count = 0;
                                                                 foreach ($attendencetypeslist as $key => $type) {
@@ -293,12 +301,12 @@
                                                                     if ($value['date'] != "xxx") {
                                                                 ?>
                                                                         <div class="radio radio-info radio-inline">
-                                                                            <input onclick="disable_enable(this.value,<?php echo $value["student_session_id"] ?>)" <?php if ($value['attendence_type_id'] == $type['id']) {
+                                                                            <input onclick="disable_enable(this.value,<?php echo $value["enrolment_id"] ?>)" <?php if ($value['attendence_type_id'] == $type['id']) {
                                                                                         echo "checked";
                                                                                     }
-                                                                                    ?> type="radio" id="attendencetype<?php echo $value['student_session_id'] . "-" . $count; ?>" value="<?php echo $type['id'] ?>" class="radio_<?php echo $type['id'] ?>" name="attendencetype<?php echo $value['student_session_id']; ?>">
+                                                                                    ?> type="radio" id="attendencetype<?php echo $value['enrolment_id'] . "-" . $count; ?>" value="<?php echo $type['id'] ?>" class="radio_<?php echo $type['id'] ?>" name="attendencetype<?php echo $value['enrolment_id']; ?>">
 
-                                                                            <label for="attendencetype<?php echo $value['student_session_id'] . "-" . $count; ?>">
+                                                                            <label for="attendencetype<?php echo $value['enrolment_id'] . "-" . $count; ?>">
                                                                                 <?php echo $this->lang->line($att_type); ?>
                                                                             </label>
                                                                         </div>
@@ -312,19 +320,19 @@
                                                                                 <input <?php if ($att_type == "absent") {
                                                                                             echo "checked";
                                                                                         }
-                                                                                        ?> type="radio" id="attendencetype<?php echo $value['student_session_id'] . "-" . $count; ?>" value="<?php echo $type['id'] ?>" class="radio_<?php echo $type['id'] ?>" name="attendencetype<?php echo $value['student_session_id']; ?>">
+                                                                                        ?> type="radio" id="attendencetype<?php echo $value['enrolment_id'] . "-" . $count; ?>" value="<?php echo $type['id'] ?>" class="radio_<?php echo $type['id'] ?>" name="attendencetype<?php echo $value['enrolment_id']; ?>">
                                                                             <?php
                                                                             } else {
                                                                             ?>
-                                                                                <input onclick="disable_enable(this.value,<?php echo $value["student_session_id"] ?>)"  <?php if ($c == 1) {
+                                                                                <input onclick="disable_enable(this.value,<?php echo $value["enrolment_id"] ?>)"  <?php if ($c == 1) {
                                                                                             echo "checked";
                                                                                         }
-                                                                                        ?> type="radio" id="attendencetype<?php echo $value['student_session_id'] . "-" . $count; ?>" value="<?php echo $type['id'] ?>"  class="radio_<?php echo $type['id'] ?>"name="attendencetype<?php echo $value['student_session_id']; ?>">
+                                                                                        ?> type="radio" id="attendencetype<?php echo $value['enrolment_id'] . "-" . $count; ?>" value="<?php echo $type['id'] ?>"  class="radio_<?php echo $type['id'] ?>"name="attendencetype<?php echo $value['enrolment_id']; ?>">
                                                                             <?php
                                                                             }
                                                                             ?>
 
-                                                                            <label for="attendencetype<?php echo $value['student_session_id'] . "-" . $count; ?>">
+                                                                            <label for="attendencetype<?php echo $value['enrolment_id'] . "-" . $count; ?>">
                                                                                 <?php echo $this->lang->line($att_type); ?>
                                                                             </label>
                                                                         </div>
@@ -369,12 +377,12 @@
                                                             $disable_input_attr="";
                                                         }  ?>
 
-                                                        <td class="relative"><input type="text" value="<?php echo $this->customlib->timeFormat($value["in_time"]); ?>" name="in_time_<?php echo $value["student_session_id"] ?>" id="in_time_<?php echo $value["student_session_id"] ?>" class="form-control in_time time" <?php echo $disable_input_attr;?>></td>
-                                                        <td class="relative"><input type="text" value="<?php echo $this->customlib->timeFormat($value["out_time"]); ?>" name="out_time_<?php echo $value["student_session_id"] ?>"  id="out_time_<?php echo $value["student_session_id"] ?>" class="form-control out_time time" <?php echo $disable_input_attr;?>></td>
+                                                        <td class="relative"><input type="text" value="<?php echo $this->customlib->timeFormat($value["in_time"]); ?>" name="in_time_<?php echo $value["enrolment_id"] ?>" id="in_time_<?php echo $value["enrolment_id"] ?>" class="form-control in_time time" <?php echo $disable_input_attr;?>></td>
+                                                        <td class="relative"><input type="text" value="<?php echo $this->customlib->timeFormat($value["out_time"]); ?>" name="out_time_<?php echo $value["enrolment_id"] ?>"  id="out_time_<?php echo $value["enrolment_id"] ?>" class="form-control out_time time" <?php echo $disable_input_attr;?>></td>
                                                             <?php if ($date == 'xxx') { ?>
-                                                                <td><input type="text" class="noteinput form-control" name="remark<?php echo $value["student_session_id"] ?>"   id="remark<?php echo $value["student_session_id"] ?>"  ></td>
+                                                                <td><input type="text" class="noteinput form-control" name="remark<?php echo $value["enrolment_id"] ?>"   id="remark<?php echo $value["enrolment_id"] ?>"  ></td>
                                                             <?php } else { ?>
-                                                                <td><input type="text" class="noteinput form-control" name="remark<?php echo $value["student_session_id"] ?>"  id="remark<?php echo $value["student_session_id"] ?>" value="<?php echo $value["remark"]; ?>" ></td>
+                                                                <td><input type="text" class="noteinput form-control" name="remark<?php echo $value["enrolment_id"] ?>"  id="remark<?php echo $value["enrolment_id"] ?>" value="<?php echo $value["remark"]; ?>" ></td>
                                                             <?php } ?>
                                                         </tr>
                                                     <?php
@@ -398,6 +406,8 @@
             <?php
                     }
             ?>
+            </div>
+        </div>
     </section>
 </div>
 
@@ -415,7 +425,6 @@
         table.buttons('.export').remove();
 
         // TVET: No section dropdown - class_id is self-contained
-        // Removed populateSection() function and class_id change handler
 
     });
 </script>
@@ -485,7 +494,7 @@
 
 <script type="text/javascript">
     //****intime out time class***//
-    var attendance_setting = <?php echo json_encode($student_class_section_setting) ?>;
+    var attendance_setting = <?php echo json_encode($student_class_setting) ?>;
         $(function() {
         $('.time').datetimepicker({
             format: 'LT'
@@ -563,7 +572,7 @@
     }
 
 
-// TVET: Use enrolment_id instead of student_session_id
+// TVET: Use enrolment_id instead of enrolment_id
 let disable_enable=(type,enrolment_id)=>{
     if(type==4 || type==5){
         $("#in_time_"+enrolment_id).val("");

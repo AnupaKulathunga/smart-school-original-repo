@@ -66,36 +66,13 @@ if (set_value('session_id') == $session['id']) {
                                 </div>
                             </div>
                             <div class="col-sm-6 col-lg-3 col-md-6 col20">
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('class'); ?><small class="req"> *</small></label>
-                                    <select id="class_id" name="class_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($classlist as $class) {
-    ?>
-                                            <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                    <?php
-}
-?>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-lg-3 col-md-6 col20">
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?><small class="req"> *</small></label>
-                                    <select  id="section_id" name="section_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                </div>
-                            </div>
-                           
-                            <div class="col-sm-6 col-lg-3 col-md-6 col20">
+                                <?php
+                                // TVET: Use class_selector component (single dropdown for complete CLASS)
+                                $this->load->view('admin/_partials/class_selector', [
+                                    'selected_class_id' => set_value('class_id'),
+                                    'classlist' => $classlist
+                                ]);
+                                ?>
                             </div>
 
 

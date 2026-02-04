@@ -43,9 +43,12 @@ test.describe('TVET Attendance Management', () => {
     const className = await selectFirstClass(page);
     console.log(`Selected class: ${className}`);
 
-    // Select today's date
-    const today = new Date().toISOString().split('T')[0];
-    await page.fill('input[name="date"]', today);
+    // Set today's date (readonly field - use JavaScript)
+    const today = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    await page.evaluate((dateValue) => {
+      const dateInput = document.querySelector('input[name="date"]');
+      if (dateInput) dateInput.value = dateValue;
+    }, today);
 
     // Click search
     await page.click('button[name="search"]');
@@ -69,8 +72,11 @@ test.describe('TVET Attendance Management', () => {
 
     // Select class and date
     await selectFirstClass(page);
-    const today = new Date().toISOString().split('T')[0];
-    await page.fill('input[name="date"]', today);
+    const today = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    await page.evaluate((dateValue) => {
+      const dateInput = document.querySelector('input[name="date"]');
+      if (dateInput) dateInput.value = dateValue;
+    }, today);
     await page.click('button[name="search"]');
 
     await waitForLoading(page);
