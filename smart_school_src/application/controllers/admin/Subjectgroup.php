@@ -96,7 +96,9 @@ class Subjectgroup extends Admin_Controller
         $old_subjects      = array();
         $data['title']     = 'Edit Class';
         $data['id']        = $id;
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id        = $this->setting_model->getCurrentSession();
+        $class             = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $class;
 
         $subject_list             = $this->subject_model->get();

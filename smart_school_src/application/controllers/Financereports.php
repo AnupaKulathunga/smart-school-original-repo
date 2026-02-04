@@ -340,7 +340,9 @@ class Financereports extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/finance/studentacademicreport');
         $data['title']           = 'student fee';
         $data['payment_type']    = $this->customlib->getPaymenttype();
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
