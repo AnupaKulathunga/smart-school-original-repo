@@ -35,21 +35,22 @@ class Video_tutorial extends Admin_Controller
             access_denied();
         }
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id[]', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section_id validation removed
         $this->form_validation->set_rules('title', $this->lang->line('title'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('video_link', $this->lang->line('video_link'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
             $msg = array(
                 'class_id'   => form_error('class_id'),
-                'section_id' => form_error('section_id[]'),
+                // TVET: section_id error removed
                 'title'      => form_error('title'),
                 'video_link' => form_error('video_link'),
             );
 
             $array = array('status' => 'fail', 'error' => $msg, 'message' => '');
         } else {
-            $sectionarray = $this->input->post('section_id');
+            // TVET: Use class_id directly instead of section_id array
+            $sectionarray = array($this->input->post('class_id'));
 
             $url     = $this->input->post('video_link');
             $youtube = "https://www.youtube.com/oembed?url=" . $url . "&format=json";
@@ -142,14 +143,14 @@ class Video_tutorial extends Admin_Controller
             access_denied();
         }
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('edit_section_id[]', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: edit_section_id validation removed
         $this->form_validation->set_rules('title', $this->lang->line('title'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('video_link', $this->lang->line('video_link'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
             $msg = array(
                 'class_id'        => form_error('class_id'),
-                'edit_section_id' => form_error('edit_section_id[]'),
+                // TVET: edit_section_id error removed
                 'title'           => form_error('title'),
                 'video_link'      => form_error('video_link'),
             );
@@ -157,7 +158,8 @@ class Video_tutorial extends Admin_Controller
             $array = array('status' => 'fail', 'error' => $msg, 'message' => '');
         } else {
 
-            $sectionarray = $this->input->post('edit_section_id');
+            // TVET: Use class_id directly instead of edit_section_id array
+            $sectionarray = array($this->input->post('class_id'));
             $id=$this->input->post('id');
             $video_directory=$this->video_tutorial_model->get($id);
      
@@ -367,16 +369,17 @@ class Video_tutorial extends Admin_Controller
     public function searchvalidation()
     {
         $class_id    = $this->input->post('search_class_id');
-        $section_id  = $this->input->post('search_section_id');
+        // TVET: section_id removed, use class_id for class_section_id
         $srch_type   = $this->input->post('search_type');
         $search_text = $this->input->post('search_text');
 
         if ($srch_type == 'search_filter') {
-            $params = array('srch_type' => $srch_type, 'class_id' => $class_id, 'class_section_id' => $section_id);
+            // TVET: class_section_id now uses class_id directly
+            $params = array('srch_type' => $srch_type, 'class_id' => $class_id, 'class_section_id' => $class_id);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         } else {
-            $params = array('srch_type' => $srch_type, 'class_id' => $class_id, 'class_section_id' => $section_id, 'search_text' => $search_text);
+            $params = array('srch_type' => $srch_type, 'class_id' => $class_id, 'class_section_id' => $class_id, 'search_text' => $search_text);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
