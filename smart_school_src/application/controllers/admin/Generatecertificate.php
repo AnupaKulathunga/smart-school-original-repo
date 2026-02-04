@@ -70,8 +70,9 @@ class Generatecertificate extends Admin_Controller
                     $data['certificateResult'] = $certificateResult;
                     $resultlist                = $this->student_model->searchByClassSection($class, $section);
                     $data['resultlist']        = $resultlist;
-                    $title                     = $this->classsection_model->getDetailbyClassSection($data['class_id'], $data['section_id']);
-                    // $data['title']             = $this->lang->line('std_dtl_for') . ' ' . $title['class'] . "(" . $title['section'] . ")";
+                    // TVET: Get class details using classmodel_model
+                    $classInfo                 = $this->classmodel_model->getClassById($data['class_id']);
+                    // $data['title']             = $this->lang->line('std_dtl_for') . ' ' . $classInfo->class_code;
                 }
             }
             $data['sch_setting'] = $this->sch_setting_detail;

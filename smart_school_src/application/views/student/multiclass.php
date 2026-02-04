@@ -81,7 +81,7 @@ if (!empty($student_value['student_sessions'])) {
                 ?>
                                                                 <div class="row">
                                                                     <input type="hidden" name="row_count[]" value="<?php echo $count; ?>">
-                                                                    <div class="col-sm-5 col-lg-5 col-md-4">
+                                                                    <div class="col-sm-10 col-lg-10 col-md-8">
                                                                         <div class="form-group">
                                                                             <label for="email"><?php echo $this->lang->line('class'); ?></label>
                                                                             <select name="class_id_<?php echo $count; ?>" class="form-control class_id" >
@@ -92,17 +92,6 @@ foreach ($classlist as $class) {
                                                                                     <option value="<?php echo $class['id'] ?>" <?php echo set_select('class_id_' . $count, $class['id'], ($class['id'] == $student_session_value->class_id) ? true : false); ?>><?php echo $class['class'] ?></option>
                                                                                     <?php
 }
-                ?>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-sm-5 col-lg-5 col-md-4">
-                                                                        <label for="email"><?php echo $this->lang->line('section'); ?></label>
-                                                                        <div class="form-group">
-                                                                            <select name="section_id_<?php echo $count; ?>" class="form-control section_id" >
-                                                                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                                                <?php
-echo getSectionByClasses($classes, $student_session_value->class_id, $student_session_value->section_id);
                 ?>
                                                                             </select>
                                                                         </div>
@@ -237,85 +226,13 @@ function getSectionByClasses($classes, $class_selected, $section_selected)
         $(this).closest( "div.row" ).remove();
     });
 
-    var class_id = '<?php echo set_value('class_id', 0) ?>';
-    var section_id = '<?php echo set_value('section_id', 0) ?>';
-    getSectionByClass(class_id, section_id);
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, 0);
-    });
-
-    $(document).on('change', '.class_id', function (e) {
-        var class_id = $(this).val();
-        var target_dropdown = $(this).closest("div.row").find('select.section_id');
-        target_dropdown.html("");
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: baseurl + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            beforeSend: function () {
-                target_dropdown.html("").addClass('dropdownloading');
-            },
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    var sel = "";
-                    if (section_id == obj.section_id) {
-                        sel = "selected";
-                    }
-                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                });
-                target_dropdown.append(div_data);
-            },
-            complete: function () {
-                target_dropdown.removeClass('dropdownloading');
-            }
-        });
-    });
-
-    function getSectionByClass(class_id, section_id) {
-        if (class_id != 0 && class_id !== "") {
-            $('#section_id').html("");
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: baseurl + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-
     $(document).on('click', '.addrow', function () {
         var container = $(this).closest(".panel-body").find('.append_row');
         var nxt_row = $(this).closest(".panel-body").find('.nxt_row').val();
         var new_class_dropdown = $('#class_dropdown').html().replace("class_id", "class_id_" + nxt_row);
-        var new_section_dropdown = $('#section_dropdown').html().replace("section_id", "section_id_" + nxt_row);
         var $newDiv = $('<div>').addClass('row').append(
                 $('<input>', {type: 'hidden', name: 'row_count[]', val: parseInt(nxt_row)})).append(
-                $('<div>').addClass('col-sm-5 col-lg-5 col-md-4').append($('<div>').addClass('form-group').append($('<label>').html('<?php echo $this->lang->line("class"); ?>')).append(new_class_dropdown))
-                ).append(
-                $('<div>').addClass('col-sm-5 col-lg-5 col-md-4').append($('<div>').addClass('form-group').append($('<label>').html('<?php echo $this->lang->line("section"); ?>')).append(new_section_dropdown))
+                $('<div>').addClass('col-sm-10 col-lg-10 col-md-8').append($('<div>').addClass('form-group').append($('<label>').html('<?php echo $this->lang->line("class"); ?>')).append(new_class_dropdown))
                 ).append(
                 $('<div>').addClass('col-sm-2 col-lg-2 col-md-4').append($('<div>').addClass('form-group').append($('<label>',{ css: {'opacity': 0}}).html('Action')).append(
 
@@ -343,10 +260,5 @@ foreach ($classlist as $class) {
         <?php
 }
 ?>
-    </select>
-</script>
-<script type="text/template" id="section_dropdown">
-    <select name="section_id" class="form-control section_id" autocomplete="off">
-    <option value=""><?php echo $this->lang->line("select"); ?></option>
     </select>
 </script>
