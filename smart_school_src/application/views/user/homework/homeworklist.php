@@ -243,7 +243,6 @@ $evl_date = "";
 
             success: function (res)
             {
-                getSectionByClass(res.class_id, res.section_id);
                 getSubjectByClassandSection(res.class_id, res.section_id, res.subject_id);
                 $("#homeworkdate").val(new Date(res.homework_date).toString("MM/dd/yyyy"));
                 $("#submitdate").val(new Date(res.submit_date).toString("MM/dd/yyyy"));
@@ -256,31 +255,6 @@ $evl_date = "";
         });
     }
 
-    function getSectionByClass(class_id, section_id) {
-        if (class_id != "" && section_id != "") {
-            $('#sectionid,#secid').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#sectionid,#secid').append(div_data);
-                }
-            });
-        }
-    }
 
     function getSubjectByClassandSection(class_id, section_id, subject_id) {
         if (class_id != "" && section_id != "" && subject_id != "") {
