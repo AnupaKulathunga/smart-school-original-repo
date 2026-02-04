@@ -500,7 +500,8 @@ class Teacher extends Admin_Controller
             $data['section_id'] = $section_id;
             $classlist         = $this->class_model->get();
             $data['classlist'] = $classlist;
-            $sectionlist         = $this->section_model->get();
+            // TVET: In TVET, sections don't exist - return empty list
+            $sectionlist         = array();
             $data['sectionlist'] = $sectionlist;
         } else {
 
