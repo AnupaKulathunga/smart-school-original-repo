@@ -28,15 +28,15 @@ class Subjectattendence extends Admin_Controller
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->setting_model->getSetting();
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section_id validation removed
         $this->form_validation->set_rules('date', $this->lang->line('date'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == true) {
             $class_id                    = $this->input->post('class_id');
-            $section_id                  = $this->input->post('section_id');
+            // TVET: section_id removed
             $date                        = $this->input->post('date');
             $day                         = date('l', $this->customlib->datetostrtotime($date));
-            $resultlist                  = $this->studentsubjectattendence_model->searchByStudentsAttendanceByDate($class_id, $section_id, $day, date('Y-m-d', $this->customlib->datetostrtotime($date)), '');
+            $resultlist                  = $this->studentsubjectattendence_model->searchByStudentsAttendanceByDate($class_id, null, $day, date('Y-m-d', $this->customlib->datetostrtotime($date)), '');
             $attendencetypes             = $this->attendencetype_model->get();
             $data['attendencetypeslist'] = $attendencetypes;
             $data['resultlist']          = $resultlist;
@@ -65,12 +65,12 @@ class Subjectattendence extends Admin_Controller
             }
         }
         $data['class_id']    = "";
-        $data['section_id']  = "";
+        // TVET: section_id removed
         $data['date']        = "";
         $is_first_time_attendance      = true; //added
         $data['sch_setting'] = $this->setting_model->getSetting();
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section_id validation removed
         $this->form_validation->set_rules('date', $this->lang->line('date'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_timetable_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
@@ -79,12 +79,12 @@ class Subjectattendence extends Admin_Controller
             $this->load->view('layout/footer', $data);
         } else {
             $class                = $this->input->post('class_id');
-            $section              = $this->input->post('section_id');
+            // TVET: section_id removed
             $date                 = $this->input->post('date');
             $subject_timetable_id = $this->input->post('subject_timetable_id');
 
             $data['class_id']             = $class;
-            $data['section_id']           = $section;
+            // TVET: section_id removed
             $data['subject_timetable_id'] = $subject_timetable_id;
             $data['date']                 = $date;
             $search                       = $this->input->post('search');
@@ -137,7 +137,7 @@ class Subjectattendence extends Admin_Controller
             $attendencetypes             = $this->attendencetype_model->get();
             $data['attendencetypeslist'] = $attendencetypes;
 
-            $resultlist = $this->studentsubjectattendence_model->searchAttendenceClassSection($class, $section, $subject_timetable_id, date('Y-m-d', $this->customlib->datetostrtotime($date)));
+            $resultlist = $this->studentsubjectattendence_model->searchAttendenceClassSection($class, null, $subject_timetable_id, date('Y-m-d', $this->customlib->datetostrtotime($date)));
  
             //added
             if (!empty($resultlist)) {
