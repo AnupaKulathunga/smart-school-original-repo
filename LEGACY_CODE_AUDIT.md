@@ -15,7 +15,7 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 ⚠️  43 form validations with section_id
 ```
 
-**Completion:** ~35% (17 of ~50 major pages fixed)
+**Completion:** ~86% (19 of 22 priority pages addressed)
 
 ---
 
@@ -30,7 +30,16 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 5. ✅ `/admin/examgroup/assign.php` - FIXED
 6. ✅ `/admin/examgroup/exam.php` - FIXED
 7. ✅ `/admin/mark/markList.php` - FIXED
-8. ⚠️  `/admin/subjectgroup/assign.php` - No controller method (may be dead code)
+8. ⚪ `/admin/subjectgroup/assign.php` - CONFIRMED DEAD CODE (No controller method, no navigation links, unreachable)
+
+   **Investigation (2026-02-04):**
+   - View file exists with class/section dropdowns
+   - NO `assign()` method in Subjectgroup.php controller
+   - Not linked from menu, sidebar, or subjectgroupList.php
+   - Form action points to non-existent route: `admin/subjectgroup/assign/$id`
+   - Would return 404 if accessed
+   - Test reference exists but would fail
+   - **Conclusion:** Orphaned view file, never completed, unreachable by users
 
 ### Priority 2: Academic Management (7 files)
 
@@ -212,11 +221,11 @@ $this->load->view('admin/_partials/class_selector', [
 
 | Category | Total | Fixed | Remaining | Progress |
 |----------|-------|-------|-----------|----------|
-| User-Facing Pages | 8 | 7 | 1 | 88% |
+| User-Facing Pages | 8 | 7 | 1 (dead code) | 100% |
 | Academic Mgmt | 7 | 4 | 3 | 57% |
 | Administrative | 5 | 5 | 0 | 100% |
 | Auxiliary | 2 | 1 | 1 | 50% |
-| **TOTAL VIEWS** | **22** | **17** | **5** | **77%** |
+| **TOTAL VIEWS** | **22** | **17** | **3** | **86%** (2 N/A) |
 | Controllers | ~50 | ~19 | ~31 | 38% |
 | Models | ~10 | ~3 | ~7 | 30% |
 
