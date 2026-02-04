@@ -777,7 +777,9 @@ class Admin extends Admin_Controller
         $userdata                = $this->customlib->getUserData();
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $carray                  = array();
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $data['fields']          = $this->customfield_model->get_custom_fields('students', 1);
         $userdata                = $this->customlib->getUserData();
@@ -1044,7 +1046,9 @@ class Admin extends Admin_Controller
         $search_text     = $this->input->post('search_text');
         $sch_setting     = $this->sch_setting_detail;
         $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
-        $classlist       = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id      = $this->setting_model->getCurrentSession();
+        $classlist       = $this->classmodel_model->getClassesBySession($session_id);
         $classlist       = $classlist;
         $carray          = array();
         if (!empty($classlist)) {
