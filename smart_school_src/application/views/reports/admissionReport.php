@@ -95,21 +95,15 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                 <?php echo $this->customlib->getCSRF(); ?>
 
                                 <div class="col-sm-6 col-md-6">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-                                            foreach ($classlist as $class) {
-                                                ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_id') == $class['id']) echo "selected=selected" ?> ><?php echo $class['class'] ?></option>
-                                                <?php
-                                                $count++;
-                                            }
-                                            ?>
-                                        </select>
-                                         <span class="text-danger" id="error_class_id"></span>
-                                    </div>
+                                    <?php
+                                    // TVET: Use class_selector component
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist,
+                                        'required' => true
+                                    ]);
+                                    ?>
+                                    <span class="text-danger" id="error_class_id"></span>
                                 </div> 
                                 <div class="col-sm-6 col-md-6">
                                     <div class="form-group">  

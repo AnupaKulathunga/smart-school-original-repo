@@ -17,34 +17,16 @@
                         <form role="form" action="<?php echo site_url('report/studentreportvalidation') ?>" method="post" class="" id="reportform">
                             <div class="row">
                                 <?php echo $this->customlib->getCSRF(); ?>
-                                <div class="col-sm-6 col-md-3">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-foreach ($classlist as $class) {
-    ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                <?php
-$count++;
-}
-?>
-                                        </select>
-                                         <span class="text-danger" id="error_class_id"></span>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6 col-md-3">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('section'); ?></label>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
+                                <div class="col-sm-6 col-md-4">
+                                    <?php
+                                    // TVET: Use class_selector component
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist,
+                                        'required' => true
+                                    ]);
+                                    ?>
+                                    <span class="text-danger" id="error_class_id"></span>
                                 </div>
                                 <?php if ($sch_setting->category) {
     ?>
@@ -164,57 +146,6 @@ if ($sch_setting->local_identification_no) {
 </section>
 </div>
 
-<script type="text/javascript">
-    function getSectionByClass(class_id, section_id) {
-        if (class_id != "" && section_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        }
-    }
-
-    $(document).ready(function () {
-        var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id') ?>';
-        getSectionByClass(class_id, section_id);
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        });
-    });
-</script>
 
 <script>
 $(document).ready(function() {

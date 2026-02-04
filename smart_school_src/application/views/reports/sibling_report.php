@@ -19,46 +19,16 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                     <form role="form" action="<?php echo site_url('report/sibling_report') ?>" method="post" class="" id="class_search_form"  >
                         <div class="box-body row">
                             <?php echo $this->customlib->getCSRF(); ?>
-                            <div class="col-sm-6 col-md-3">
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('class'); ?><small class="req"> *</small></label>
-                                    <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-                                        foreach ($classlist as $class) {
-                                            ?>
-                                            <option value="<?php echo $class['id'] ?>" <?php
-                                            if ($class_id == $class['id']) {
-                                                echo "selected =selected";
-                                            }
-                                            ?>><?php echo $class['class'] ?></option>
-                                                    <?php
-                                                    $count++;
-                                                }
-                                                ?>
-                                    </select>
-                                    <span class="text-danger" id="error_class_id"><?php echo form_error('class_id'); ?></span>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-md-3">
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('section'); ?><small class="req"> *</small></label>
-                                    <select  id="section_id" name="section_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-                                        foreach ($section_list as $value) {
-                                            ?>
-                                            <option  <?php
-                                            if ($value['section_id'] == $section_id) {
-                                                echo "selected";
-                                            }
-                                            ?> value="<?php echo $value['section_id']; ?>"><?php echo $value['section']; ?></option>
-                                                <?php
-                                            }
-                                            ?>
-                                    </select>
-                                   <span class="text-danger" id="error_section_id"><?php echo form_error('section_id'); ?></span>
-                                </div>
+                            <div class="col-sm-12 col-md-6">
+                                <?php
+                                // TVET: Use class_selector component
+                                $this->load->view('admin/_partials/class_selector', [
+                                    'selected_class_id' => isset($class_id) ? $class_id : '',
+                                    'classlist' => $classlist,
+                                    'required' => true
+                                ]);
+                                ?>
+                                <span class="text-danger" id="error_class_id"></span>
                             </div>
                             <div class="form-group">
                                 <div class="col-sm-12">
@@ -186,23 +156,5 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
 <script>
     $(document).on('change', '#class_id', function (e) {
 
-        $('#section_id').html("");
-        var class_id = $(this).val();
-
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        var url = "";
-        $.ajax({
-            type: "GET",
-            url: baseurl + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                });
-                $('#section_id').append(div_data);
-            }
-        });
     });
 </script>

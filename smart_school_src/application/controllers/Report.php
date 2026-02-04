@@ -302,18 +302,17 @@ class Report extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/student_information/class_subject_report');
         $data['title']       = 'Add Fees Type';
         $data['searchlist']  = $this->search_type;
-        $class               = $this->class_model->get('', $classteacher = 'yes');
-        $data['classlist']   = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']   = $classlist;
         $data['search_type'] = '';
         $data['class_id']    = $class_id    = $this->input->post('class_id');
-        $data['section_id']  = $section_id  = $this->input->post('section_id');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
             $data['subjects'] = array();
         } else {
-            $data['section_list'] = $this->section_model->getClassBySection($this->input->post('class_id'));
-            $data['resultlist'] = $this->subjecttimetable_model->getSubjectByClassandSection($class_id, $section_id);
+            $data['resultlist'] = $this->subjecttimetable_model->getSubjectByClassandSection($class_id, null);
             $subject = array();
             foreach ($data['resultlist'] as $value) {
                 $subject[$value->subject_id][] = $value;
@@ -337,8 +336,10 @@ class Report extends Admin_Controller
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $searchterm              = '';
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
         $this->load->view('layout/header', $data);
         $this->load->view('reports/admission_report', $data);
         $this->load->view('layout/footer', $data);
@@ -382,23 +383,18 @@ class Report extends Admin_Controller
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $searchterm              = '';
         $condition               = array();
-        $class                   = $this->class_model->get('', $classteacher = 'yes');
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
 
         $data['class_id']     = $class_id     = $this->input->post('class_id');
-        $data['section_id']   = $section_id   = $this->input->post('section_id');
-        $data['section_list'] = $this->section_model->getClassBySection($this->input->post('class_id'));
 
         if (isset($_POST['class_id']) && $_POST['class_id'] != '') {
             $condition['classes.id'] = $_POST['class_id'];
         }
 
-        if (isset($_POST['section_id']) && $_POST['section_id'] != '') {
-            $condition['sections.id'] = $_POST['section_id'];
-        }
-
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
             $data['resultlist'] = array();
@@ -618,24 +614,22 @@ class Report extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'Reports/online_examinations');
         $this->session->set_userdata('subsub_menu', 'Reports/online_examinations/onlineexamrank');
 
-        $exam_id             = $class_id             = $section_id             = $condition             = '';
+        $exam_id             = $class_id             = $condition             = '';
         $studentrecord       = array();
         $getResultByStudent1 = array();
 
         $examList          = $this->onlineexam_model->get();
         $data['examList']  = $examList;
-        $class             = $this->class_model->get();
-        $data['classlist'] = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist'] = $classlist;
         $this->form_validation->set_rules('exam_id', $this->lang->line('exam'), 'required');
 
         if ($this->form_validation->run() == false) {
         } else {
             if (isset($_POST['class_id']) && $_POST['class_id'] != '') {
                 $class_id = $_POST['class_id'];
-            }
-
-            if (isset($_POST['section_id']) && $_POST['section_id'] != '') {
-                $section_id = $_POST['section_id'];
             }
 
             if (isset($_POST['exam_id']) && $_POST['exam_id'] != '') {
@@ -646,7 +640,7 @@ class Report extends Admin_Controller
 
             if (!empty($exam)) {
 
-                $student_data = $this->onlineexam_model->searchAllOnlineExamStudents($exam_id, $class_id, $section_id, 1);
+                $student_data = $this->onlineexam_model->searchAllOnlineExamStudents($exam_id, $class_id, null, 1);
 
                 if (!empty($student_data)) {
                     foreach ($student_data as $student_key => $student_value) {
@@ -830,13 +824,13 @@ class Report extends Admin_Controller
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $searchterm              = '';
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
         $data['class_id']        = $class_id        = $this->input->post('class_id');
-        $data['section_id']      = $section_id      = $this->input->post('section_id');
         $condition1              = "";
         $condition2              = "";
-        $data['section_list'] = $this->section_model->getClassBySection($this->input->post('class_id'));//added
 
         $data['search_type']  = '';
         $data['filter_label'] = '';
@@ -855,11 +849,10 @@ class Report extends Admin_Controller
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
             $data['resultlist'] = array();
         } else {
-            $condition1         = " classes.id='" . $this->input->post('class_id') . "' and sections.id='" . $this->input->post('section_id') . "'";
+            $condition1         = " classes.id='" . $this->input->post('class_id') . "'";
             $data['resultlist'] = $this->student_model->student_profile($condition1, $condition2);
         }
         $this->load->view('layout/header', $data);
@@ -943,27 +936,26 @@ class Report extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/lesson_plan/lesson_plan');
         $data                     = array();
         $data['subjects_data']    = array();
-        $class                    = $this->class_model->get();
-        $data['classlist']        = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']        = $classlist;
         $data['class_id']         = "";
-        $data['section_id']       = "";
         $data['subject_group_id'] = "";
         $data['subject_id']       = "";
         $data['lessons']          = array();
         $lebel                    = "";
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
         } else {
 
             $data['class_id']               = $_POST['class_id'];
-            $data['section_id']             = $_POST['section_id'];
             $data['subject_group_id']       = $_POST['subject_group_id'];
             $subjects                       = $this->subjectgroup_model->getGroupsubjects($_POST['subject_group_id']);
-            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_class_sectionsId($_POST['class_id'], $_POST['section_id'], $_POST['subject_group_id']);
+            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_class_sectionsId($_POST['class_id'], null, $_POST['subject_group_id']);
 
             foreach ($subjects as $key => $value) {
                 $show_status     = 0;
@@ -1044,16 +1036,16 @@ class Report extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/lesson_plan/teachersyllabusstatus');
         $data                     = array();
         $data['subjects_data']    = array();
-        $class                    = $this->class_model->get();
-        $data['classlist']        = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']        = $classlist;
         $data['class_id']         = "";
-        $data['section_id']       = "";
         $data['subject_group_id'] = "";
         $data['subject_id']       = "";
         $data['lessons']          = array();
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
 
@@ -1062,11 +1054,10 @@ class Report extends Admin_Controller
             $lebel = "";
 
             $data['class_id']         = $_POST['class_id'];
-            $data['section_id']       = $_POST['section_id'];
             $data['subject_group_id'] = $_POST['subject_group_id'];
             $data['subject_id']       = $_POST['subject_id'];
 
-            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_class_sectionsId($_POST['class_id'], $_POST['section_id'], $_POST['subject_group_id']);
+            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_class_sectionsId($_POST['class_id'], null, $_POST['subject_group_id']);
 
             $teacher_summary          = array();
             $complete                 = 0;
@@ -1146,14 +1137,14 @@ class Report extends Admin_Controller
         $data['sessionlist'] = $this->session_model->get();
         $this->session->set_userdata('top_menu', 'Reports');
         $this->session->set_userdata('sub_menu', 'Reports/alumni_report');
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id_current = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id_current);
+        $data['classlist']       = $classlist;
         $data['title']           = $this->lang->line('alumni_student_for_passout_session');
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['fields']          = $this->customfield_model->get_custom_fields('students', 1);
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
         $data['session_id']      = $session_id      = "";
         $userdata                = $this->customlib->getUserData();
         $carray                  = array();
@@ -1217,6 +1208,9 @@ class Report extends Admin_Controller
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $searchterm              = '';
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
         $class                   = $this->class_model->get();
         $data['classlist']       = $class;
         foreach ($data['classlist'] as $key => $value) {
@@ -1924,8 +1918,10 @@ class Report extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Reports');
         $this->session->set_userdata('sub_menu', 'Reports/online_admission');
         $this->session->set_userdata('subsub_menu', 'Reports/online_admission');
-        $class             = $this->class_model->get();
-        $data['classlist'] = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist'] = $classlist;
         $this->load->view('layout/header', $data);
         $this->load->view('reports/online_admission_report', $data);
         $this->load->view('layout/footer', $data);
@@ -2023,8 +2019,10 @@ class Report extends Admin_Controller
         $data['genderList']      = $genderList;
         $RTEstatusList           = $this->customlib->getRteStatus();
         $data['RTEstatusList']   = $RTEstatusList;
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $userdata                = $this->customlib->getUserData();
@@ -2153,8 +2151,10 @@ class Report extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'Reports/student_information');
         $this->session->set_userdata('subsub_menu', 'Reports/student_information/guardian_report');
         $data['title']           = 'Student Guardian Report';
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $userdata                = $this->customlib->getUserData();
@@ -2163,16 +2163,14 @@ class Report extends Admin_Controller
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
 
-                $carray[] = $cvalue["id"];
-                
+                $carray[] = $cvalue->id;
+
             }
         }
 
         $class_id   = $this->input->post("class_id");
-        $section_id = $this->input->post("section_id");
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
 
@@ -2180,7 +2178,7 @@ class Report extends Admin_Controller
             $data["resultlist"] = "";
         } else {
 
-            $resultlist         = $this->student_model->searchGuardianDetails($class_id, $section_id);
+            $resultlist         = $this->student_model->searchGuardianDetails($class_id, null);
             $data["resultlist"] = $resultlist;
         }
 
@@ -2200,8 +2198,10 @@ class Report extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/student_information/student_history');
         $data['title'] = 'Admission Report';
 
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
         $userdata                = $this->customlib->getUserData();
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
@@ -2210,7 +2210,7 @@ class Report extends Admin_Controller
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
 
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
 
@@ -2309,8 +2309,10 @@ class Report extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Reports');
         $this->session->set_userdata('sub_menu', 'Reports/student_information');
         $this->session->set_userdata('subsub_menu', 'Reports/student_information/student_login_credential');
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
 
         $this->load->view("layout/header");
@@ -2392,8 +2394,10 @@ class Report extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Reports');
         $this->session->set_userdata('sub_menu', 'Reports/student_information');
         $this->session->set_userdata('subsub_menu', 'Reports/student_information/parent_login_credential');
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $this->load->view("layout/header");
         $this->load->view("reports/parentlogindetailreport", $data);
