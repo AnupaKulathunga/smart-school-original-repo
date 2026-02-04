@@ -25,12 +25,12 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 
 1. ✅ `/admin/approve_leave` - FIXED
 2. ✅ `/admin/stuattendence/attendenceList.php` - FIXED
-3. 🔄 `/admin/examgroup/addexam.php` - IN PROGRESS (complex, multiple modals)
+3. ✅ `/admin/examgroup/addexam.php` - FIXED
 4. ✅ `/admin/examgroup/addmark.php` - FIXED
 5. ✅ `/admin/examgroup/assign.php` - FIXED
 6. ✅ `/admin/examgroup/exam.php` - FIXED
-7. ❌ `/admin/mark/markList.php` - Mark list page
-8. ❌ `/admin/subjectgroup/assign.php` - Subject group assign
+7. ✅ `/admin/mark/markList.php` - FIXED
+8. ⚠️  `/admin/subjectgroup/assign.php` - No controller method (may be dead code)
 
 ### Priority 2: Academic Management (7 files)
 
@@ -212,12 +212,12 @@ $this->load->view('admin/_partials/class_selector', [
 
 | Category | Total | Fixed | Remaining | Progress |
 |----------|-------|-------|-----------|----------|
-| User-Facing Pages | 8 | 5 | 3 | 63% |
+| User-Facing Pages | 8 | 7 | 1 | 88% |
 | Academic Mgmt | 7 | 1 | 6 | 14% |
 | Administrative | 5 | 0 | 5 | 0% |
 | Auxiliary | 3 | 0 | 3 | 0% |
-| **TOTAL VIEWS** | **23** | **6** | **17** | **26%** |
-| Controllers | ~50 | ~10 | ~40 | 20% |
+| **TOTAL VIEWS** | **23** | **8** | **15** | **35%** |
+| Controllers | ~50 | ~11 | ~39 | 22% |
 | Models | ~10 | ~3 | ~7 | 30% |
 
 ---
@@ -235,6 +235,8 @@ $this->load->view('admin/_partials/class_selector', [
 9. ✅ Examgroup Exam Page - Controller, View
 10. ✅ Examgroup Add Mark - Controller, View
 11. ✅ Examgroup Assign - Controller, View
+12. ✅ Examgroup Add Exam - View (complex with multiple modals)
+13. ✅ Mark List - View (controller already updated)
 
 ---
 

@@ -243,40 +243,17 @@ if ($examgroup->exam_type == "average_passing") {
                     <input type="hidden" name="subject_id" value="0" class="subject_id">
                     <input type="hidden" name="teachersubject_id" value="0" class="teachersubject_id">
                     <div class="row">
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('class'); ?><small class="req"> *</small></label>
-                                <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-foreach ($classlist as $class) {
-    ?>
-                                        <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                <?php
-}
-?>
-                                </select>
-                                <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                            </div><!--./form-group-->
+                        <div class="col-sm-6">
+                            <?php
+                            // TVET: Use class_selector component (single dropdown for complete CLASS)
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => set_value('class_id'),
+                                'classlist' => $classlist
+                            ]);
+                            ?>
                         </div>
 
-                        <div class="col-sm-4">
-                            <div class="form-group">
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?><small class="req"> *</small></label>
-                                    <select  id="section_id" name="section_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                </div>
-                            </div><!--./form-group-->
-                        </div>
-
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             <div class="form-group">
                                 <label><?php echo $this->lang->line('session'); ?><small class="req"> *</small></label>
                                 <select  id="session_id" name="session_id" class="form-control" >
@@ -326,34 +303,14 @@ foreach ($sessionlist as $session) {
                 <form role="form" id="allotStudentForm" action="<?php echo site_url('admin/examgroup/examstudent') ?>" method="post" >
                     <input type="hidden" name="exam_id" value="0" class="exam_group_class_batch_exam_id">
                     <div class="row">
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                <select id="class_id" name="class_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-foreach ($classlist as $class) {
-    ?>
-                                        <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                <?php
-}
-?>
-                                </select>
-                                <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                <select  id="section_id" name="section_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                            </div>
+                        <div class="col-sm-12">
+                            <?php
+                            // TVET: Use class_selector component (single dropdown for complete CLASS)
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => set_value('class_id'),
+                                'classlist' => $classlist
+                            ]);
+                            ?>
                         </div>
                     </div>
                     <div class="row">
@@ -492,7 +449,8 @@ $('#studentRankModal').modal({
             console.log(current_session);
             $('#formadd')[0].reset();
             $("#class_id").prop("selectedIndex", 0);
-            $("#section_id,#batch_id").find('option:not(:first)').remove();
+            // TVET: Clear batch dropdown only (no section)
+            $("#batch_id").find('option:not(:first)').remove();
             $("#formadd input[name=exam_id]").val(0);
             $('#session_id').val(current_session);
         }
@@ -587,66 +545,7 @@ $('#studentRankModal').modal({
             });
         });
 
-        function getSectionByClass(class_id, section_id) {
-            if (class_id != 0 && class_id !== "") {
-                $('#section_id').html("");
-                var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                $.ajax({
-                    type: "POST",
-                    url: base_url + "admin/batchsubject/getSectionByClass",
-                    data: {'class_id': class_id},
-                    dataType: "json",
-                    beforeSend: function () {
-                        $('#section_id').addClass('dropdownloading');
-                    },
-                    success: function (data) {
-                        $.each(data, function (i, obj)
-                        {
-                            var sel = "";
-                            if (section_id == obj.class_section_id) {
-                                sel = "selected";
-                            }
-                            div_data += "<option value=" + obj.class_section_id + " " + sel + ">" + obj.section + "</option>";
-                        });
-                        $('#section_id').append(div_data);
-                    },
-                    complete: function () {
-                        $('#section_id').removeClass('dropdownloading');
-                    }
-                });
-            }
-        }
-
-        function getBatchByClassSection(section_id, batch_id) {
-            if (section_id != "") {
-                $('#batch_id').html("");
-                var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-                $.ajax({
-                    type: "POST",
-                    url: base_url + "admin/batchsubject/getBatchByClassSection",
-                    data: {'class_section_id': section_id},
-                    dataType: "JSON",
-                    beforeSend: function () {
-                        $('#batch_id').addClass('dropdownloading');
-                    },
-                    success: function (data) {
-                        $.each(data, function (i, obj)
-                        {
-                            var sel = "";
-                            if (batch_id == obj.batch_id) {
-                                sel = "selected";
-                            }
-                            div_data += "<option value=" + obj.id + " " + sel + ">" + obj.batch_name + "</option>";
-                        });
-                        $('#batch_id').append(div_data);
-                    },
-                    complete: function () {
-                        $('#batch_id').removeClass('dropdownloading');
-                    }
-                });
-            }
-        }
+        // TVET: No section or batch dropdowns to populate
     });
 
     $('#examconnectModal').on('show.bs.modal', function (e) {
@@ -700,7 +599,7 @@ $('#studentRankModal').modal({
                     });
                 } else if (data.status) {
 
-                    $('#section_id').find('option').not(':first').remove();
+                    // TVET: Clear batch dropdown only (no section)
                     $('#batch_id').find('option').not(':first').remove();
                     $('#formadd')[0].reset();
                       successMsg(data.message);
@@ -1003,47 +902,11 @@ $('#studentRankModal').modal({
         $('.marksEntryForm').html("");
         $('.subject_id').val("");
         $("#searchStudentForm").find('input:text,select,textarea').val('');
-        $('#section_id').find('option').not(':first').remove();
+        // TVET: No section dropdown to clear
         $('#session_id > option[selected="selected"]').removeAttr('selected');
     });
 
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        var selector = $(this).closest("div.modal-body").find('#section_id');
-        getSectionByClass(class_id, section_id, selector);
-    });
-
-    function getSectionByClass(class_id, section_id, selector) {
-        if (class_id != "") {
-            selector.html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    selector.addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    selector.append(div_data);
-                },
-                complete: function () {
-                    selector.removeClass('dropdownloading');
-                }
-            });
-        }
-    }
+    // TVET: No section dropdown to populate
 
     $("form#searchStudentForm").on('submit', (function (e) {
         e.preventDefault(); // avoid to execute the actual submit of the form.
@@ -1319,7 +1182,7 @@ $('#studentRankModal').modal({
 
     $('#allotStudentModal').on('hidden.bs.modal', function () {
         $('form#allotStudentForm').find('select#class_id').prop("selectedIndex", 0);
-        $('form#allotStudentForm').find('select#section_id').find('option:not(:first)').remove();
+        // TVET: No section dropdown to clear
         $('#allotStudentModal').find('div.studentAllotForm').html("");
         $("span[id$='_error']").html("");
     });
