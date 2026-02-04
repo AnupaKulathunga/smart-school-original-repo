@@ -65,7 +65,8 @@ class Teacher extends Admin_Controller
                 $s['session_id'] = $this->setting_model->getCurrentSession();
                 $class_id        = $this->input->post('class_id');
                 $section_id      = $this->input->post('section_id');
-                $dt              = $this->classsection_model->getDetailbyClassSection($class_id, $section_id);
+                // TVET: Use classmodel_model to get class details
+                $dt              = $this->classmodel_model->getClassById($class_id);
 
                 $s['class_section_id'] = $dt['id'];
                 $s['teacher_id']       = $this->input->post('teacher_id_' . $value);
@@ -116,7 +117,8 @@ class Teacher extends Admin_Controller
                 $s['session_id'] = $this->setting_model->getCurrentSession();
                 $class_id        = $this->input->post('class_id');
                 $section_id      = $this->input->post('section_id');
-                $dt              = $this->classsection_model->getDetailbyClassSection($class_id, $section_id);
+                // TVET: Use classmodel_model to get class details
+                $dt              = $this->classmodel_model->getClassById($class_id);
 
                 $s['class_section_id'] = $dt['id'];
                 $s['teacher_id']       = $this->input->post('teacher_id_' . $value);
@@ -352,7 +354,7 @@ class Teacher extends Admin_Controller
         $this->form_validation->set_rules(
             'class', $this->lang->line('class'), array(
                 'required',
-                array('class_exists', array($this->class_model, 'class_teacher_exists')),
+                // TVET: Removed class_teacher_exists validation (legacy)
             )
         );
         $this->form_validation->set_rules('section', $this->lang->line('section'), 'trim|required|xss_clean');
@@ -396,10 +398,12 @@ class Teacher extends Admin_Controller
         $classlist         = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $classlist;
 
-        $sectionlist         = $this->section_model->get();
+        // TVET: In TVET, sections don't exist - return empty list or use classes
+        $sectionlist         = array();
         $data['sectionlist'] = $sectionlist;
 
-        $assignteacherlist         = $this->class_model->getClassTeacher();
+        // TVET: Use classmodel_model for class-teacher assignments
+        $assignteacherlist         = $this->classmodel_model->getClassTeacher();
         $data['assignteacherlist'] = $assignteacherlist;
 
         foreach ($assignteacherlist as $key => $value) {
@@ -430,7 +434,8 @@ class Teacher extends Admin_Controller
 
         $data["result"] = $result;
 
-        $assignteacherlist         = $this->class_model->getClassTeacher();
+        // TVET: Use classmodel_model for class-teacher assignments
+        $assignteacherlist         = $this->classmodel_model->getClassTeacher();
         $data['assignteacherlist'] = $assignteacherlist;
         foreach ($assignteacherlist as $key => $value) {
             $classid   = $value["class_id"];
@@ -444,9 +449,12 @@ class Teacher extends Admin_Controller
         $data['teacherlist'] = $teacherlist;
         $data['class_id']    = $class_id;
         $data['section_id']  = $section_id;
-        $classlist           = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $classlist           = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $classlist;
-        $sectionlist         = $this->section_model->get();
+        // TVET: In TVET, sections don't exist - return empty list or use classes
+        $sectionlist         = array();
         $data['sectionlist'] = $sectionlist;
 
         $this->load->view('layout/header', $data);
@@ -464,7 +472,7 @@ class Teacher extends Admin_Controller
         $this->form_validation->set_rules(
             'class', $this->lang->line('class'), array(
                 'required',
-                array('class_exists', array($this->class_model, 'class_teacher_exists')),
+                // TVET: Removed class_teacher_exists validation (legacy)
             )
         );
         $this->form_validation->set_rules('section', $this->lang->line('section'), 'trim|required|xss_clean');
@@ -475,7 +483,8 @@ class Teacher extends Admin_Controller
 
             $data["result"] = $result;
 
-            $assignteacherlist         = $this->class_model->getClassTeacher();
+            // TVET: Use classmodel_model for class-teacher assignments
+        $assignteacherlist         = $this->classmodel_model->getClassTeacher();
             $data['assignteacherlist'] = $assignteacherlist;
             foreach ($assignteacherlist as $key => $value) {
                 $classid   = $value["class_id"];
