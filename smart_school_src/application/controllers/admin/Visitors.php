@@ -28,7 +28,9 @@ class Visitors extends Admin_Controller
         $data['Purpose']      = $this->visitors_model->getPurpose();
         $data['meeting_with'] = $this->meeting_with;
         $data['stafflist']    = $this->staff_model->searchFullText("", 1);
-        $data['classlist']    = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id           = $this->setting_model->getCurrentSession();
+        $data['classlist']    = $this->classmodel_model->getClassesBySession($session_id);
 
         $this->load->view('layout/header');
         $this->load->view('admin/frontoffice/visitorview', $data);
@@ -194,7 +196,9 @@ class Visitors extends Admin_Controller
         $data['visitor_data'] = $this->visitors_model->visitors_list($visitorid);
         $data['meeting_with'] = $this->meeting_with;
         $data['stafflist']    = $this->staff_model->searchFullText("", 1);
-        $data['classlist']    = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id           = $this->setting_model->getCurrentSession();
+        $data['classlist']    = $this->classmodel_model->getClassesBySession($session_id);
         $page = $this->load->view('admin/frontoffice/_visitoreditview', $data, true);
         echo json_encode(array('page' => $page));
     }
