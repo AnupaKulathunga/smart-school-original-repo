@@ -179,7 +179,9 @@ class Content extends Student_Controller
         $data['list']       = $list;
         $ght                = $this->customlib->getcontenttype();
         $data['ght']        = $ght;
-        $class              = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id         = $this->setting_model->getCurrentSession();
+        $class              = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']  = $class;
         $this->load->view('layout/student/header', $data);
         $this->load->view('user/content/createcontent', $data);
