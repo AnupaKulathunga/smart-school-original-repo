@@ -21,7 +21,7 @@ class ExamSchedule extends Student_Controller
         $this->session->set_userdata('sub_menu', 'examSchedule/index');
         $data['title'] = 'Exam Schedule';
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section_id validation removed
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $student_session_id    = $student_current_class->student_session_id;
         $examSchedule          = $this->examgroupstudent_model->studentExams($student_session_id);
