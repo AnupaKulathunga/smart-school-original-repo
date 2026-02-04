@@ -15,7 +15,8 @@ class Mailsmsconf
         $this->CI->load->library('smsgateway');
         $this->CI->load->library('mailgateway');
         $this->CI->load->model('examresult_model');
-        $this->CI->load->model('studentsession_model');
+        // TVET: Load enrolment_model instead of studentsession_model
+        $this->CI->load->model('enrolment_model');
         $this->CI->load->model('student_model');
         $this->CI->load->model('apply_leave_model');
         $this->config_mailsms = $this->CI->config->item('mailsms');
@@ -43,18 +44,19 @@ class Mailsmsconf
         }
 
         if (isset($student_session_id) && !empty($student_session_id)) {
-            $recipient_data = $this->CI->studentsession_model->searchStudentsBySession($student_session_id);
+            // TVET: Use enrolment_model to get student details (returns object)
+            $recipient_data = $this->CI->enrolment_model->getEnrolmentById($student_session_id);
             $pushnotification_key=array();
             if ($chk_mail_sms['student_recipient']) {
-                $emails[]          = $recipient_data['email'];
-                $contact_numbers[] = $recipient_data['mobileno'];
-                $pushnotification_key['student']=$recipient_data['app_key'];
+                $emails[]          = $recipient_data->email;
+                $contact_numbers[] = $recipient_data->mobileno;
+                $pushnotification_key['student']=$recipient_data->app_key;
             }
 
             if ($chk_mail_sms['guardian_recipient']) {
-                $emails[]          = $recipient_data['guardian_email'];
-                $contact_numbers[] = $recipient_data['guardian_phone'];
-                $pushnotification_key['parent']=$recipient_data['parent_app_key'];
+                $emails[]          = $recipient_data->guardian_email;
+                $contact_numbers[] = $recipient_data->guardian_phone;
+                $pushnotification_key['parent']=$recipient_data->parent_app_key;
             }
         }
 
@@ -278,12 +280,14 @@ $sender_details['parent_app_key']=$recipient_data['parent_app_key'];
                 }
             } elseif ($send_for == "student_apply_leave") {
 
-                $student_data = $this->CI->studentsession_model->searchStudentsBySession($sender_details['student_session_id']);             
+                // TVET: Use enrolment_model to get student details
+                $student_data = $this->CI->enrolment_model->getEnrolmentById($sender_details['student_session_id']);
 
-                $sender_details['class']        = $student_data['class'];
-                $sender_details['section']      = $student_data['section'];
-                $sender_details['student_name'] = $this->CI->customlib->getFullName($student_data['firstname'], $student_data['middlename'], $student_data['lastname'], $this->sch_setting->middlename, $this->sch_setting->lastname);
-                $sender_details['id']           = $student_data['student_id'];
+                // TVET: Use class_code instead of class/section tuple; convert object to array access
+                $sender_details['class']        = $student_data->class_code;
+                $sender_details['section']      = $student_data->class_code;
+                $sender_details['student_name'] = $this->CI->customlib->getFullName($student_data->firstname, $student_data->middlename, $student_data->lastname, $this->sch_setting->middlename, $this->sch_setting->lastname);
+                $sender_details['id']           = $student_data->student_id;
 
                 if($chk_mail_sms['staff_recipient']){
                     
