@@ -255,10 +255,8 @@ $(document).on('click', '.uploadclosebtn', function(event) {
        type:'post',
        data:{videotutorialid:videotutorialid},
        dataType:'json',
-       success:function(response){        
+       success:function(response){
             $('#videotutorialdata').html(response.page);
-            var class_id = $('#edit_class_id').val();
-            getallsection(class_id, videotutorialid);
        }
    });
 })
@@ -330,7 +328,6 @@ $(document).ready(function () {
 
 function load(page, class_id, class_section_id) {
     $('#search_class_id').val(class_id);
-    getSectionByClass(class_id, class_section_id);
 
     $("#no_record_found").addClass("hide"); 
     var keyword = $('.search_text').val(); 
@@ -480,44 +477,6 @@ function resetFields(search_type){
     }
 }
 
-function getallsection(class_id, videotutorialid) {
-if (class_id != "") {
-    $('#section_id').html("");
-    $('#edit_section_id').html("");
-    $('#search_section_id').html("");
-     $('#edit_section_id').val([]);
-    var base_url = '<?php echo base_url() ?>';
-    var div_data = ' ';
-    // var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-    $.ajax({
-        type: "post",
-        url: base_url + "admin/video_tutorial/getsection",
-        data: {'class_id': class_id,videotutorialid:videotutorialid},
-        dataType: "json",
-        success: function (data) {
-            var selectedValues = [];
-  
-  
-
-            $.each(data.sectionlist, function (i, obj)
-            {
-                var selected = "";
-                $.each(data.multipalsection, function (index, value)
-                {
-                    if (value == obj.id) {
-                      selectedValues.push(obj.id);
-                    }
-                });
-
-                div_data += "<option value=" + obj.id + " " + selected + ">" + obj.section + "</option>";
-            });
-            $('#edit_section_id').append(div_data);
-
-             $('#edit_section_id').val(selectedValues).change();;
-        }
-    });
-}
-}
 
 $('.ukclose').click(function(){   
     $('.popup_image').html('');
