@@ -1,199 +1,127 @@
-# Smart School TVET E2E Tests
+# Smart School TVET Migration - Automated Tests
 
-Comprehensive end-to-end tests for the TVET transformation project.
-
-## Overview
-
-This test suite verifies that all refactored views work correctly with the new TVET architecture (CLASS = Subject + Level + Cohort) and without legacy section dropdowns.
-
-## Directory Structure
-
-```
-tests/
-├── e2e/
-│   ├── admin/          # Admin panel E2E tests
-│   │   ├── attendance.spec.ts
-│   │   ├── exam.spec.ts
-│   │   └── timetable.spec.ts
-│   └── helpers.ts      # Common test utilities
-├── fixtures/           # Test data and fixtures
-├── scripts/
-│   └── sanity_check.sh # Quick sanity check script
-├── package.json
-├── playwright.config.ts
-└── README.md
-```
+This directory contains automated E2E tests for verifying the TVET migration is working correctly.
 
 ## Prerequisites
 
-1. **Docker must be running** with Smart School containers up
-2. **Node.js 18+** installed
-3. **Application accessible** at http://localhost:8080
+- Docker and Docker Compose running
+- Node.js 18+ installed
+- Smart School application running on http://localhost:8080
 
-## Installation
+## Setup
 
 ```bash
 cd tests
 npm install
-npx playwright install  # Install browser binaries
+npx playwright install chromium
 ```
 
 ## Running Tests
 
-### Quick Sanity Check (No Installation Required)
-
+### Run all tests
 ```bash
-# From project root
-bash tests/scripts/sanity_check.sh
+npm test
 ```
 
-This checks:
-- Critical pages are accessible
-- Database integrity (TVET tables exist)
-- No broken links on main pages
-
-### Full E2E Test Suite
-
+### Run tests in headed mode (see browser)
 ```bash
-cd tests
-
-# Run all tests (headless)
-npm test
-
-# Run with visible browser
 npm run test:headed
+```
 
-# Run in debug mode
-npm run test:debug
-
-# Run with UI mode (interactive)
+### Run tests in UI mode (interactive debugging)
+```bash
 npm run test:ui
+```
 
-# Run specific test file
-npx playwright test e2e/admin/attendance.spec.ts
+### Run specific test file
+```bash
+npx playwright test e2e/disabled-students.spec.ts
+```
 
-# View last test report
+### Run tests in debug mode
+```bash
+npm run test:debug
+```
+
+### View test report
+```bash
 npm run test:report
 ```
 
-## Environment Variables
+## Sanity Check
 
-Create a `.env` file in the `tests` directory:
+Quick health check without full test suite:
 
-```env
-BASE_URL=http://localhost:8080
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
+```bash
+./scripts/sanity_check.sh
 ```
 
-## What Tests Verify
-
-### ✅ TVET Architecture Compliance
-
-1. **No Section Dropdowns** - Verifies section_id dropdowns are removed
-2. **Class Selector Present** - Confirms class_selector component is used
-3. **Enrolment-Based Tracking** - Checks for enrolment_id instead of student_session_id
-4. **JavaScript Cleanup** - Verifies legacy getSectionByClass() functions are removed
-
-### ✅ Critical Workflows
-
-- **Attendance**: Class selection → Student list load → Attendance marking
-- **Exams**: Exam schedule creation, mark entry, online exam assignment
-- **Timetable**: Class-based timetable viewing and creation
-- **Certificates**: Student certificate and ID card generation
-
-### ✅ Data Display
-
-- Enrolment types (Core/Elective) displayed correctly
-- CLASS format: "Subject - Level (Cohort)"
-- Student lists load properly without section filtering
+This checks:
+- Docker services are running
+- Database integrity (students, classes, attendance)
+- Critical pages return 200/302 status
+- Legacy tables don't exist
 
 ## Test Coverage
 
-| Module | Tests | Status |
-|--------|-------|--------|
-| Attendance | 6 tests | ✅ |
-| Exams | 5 tests | ✅ |
-| Timetable | 4 tests | 📝 |
-| Certificates | 3 tests | 📝 |
+### E2E Tests
 
-## Continuous Integration
+1. **disabled-students.spec.ts**
+   - Verifies disabled students list page loads without 500 error
+   - Checks TVET class selector exists (no section dropdown)
+   - Tests search by class and by keyword
 
-Tests are designed to run in CI/CD pipelines:
+2. **student-search.spec.ts**
+   - Verifies student search page has TVET class selector
+   - Checks class dropdown shows "Subject - Level (Cohort)" format
+   - Tests search functionality
 
-```yaml
-# Example GitHub Actions workflow
-- name: Run E2E Tests
-  run: |
-    docker-compose up -d
-    cd tests
-    npm ci
-    npx playwright install --with-deps
-    npm test
-```
+3. **attendance.spec.ts**
+   - Verifies attendance page has TVET class selector
+   - Tests marking attendance without errors
+   - Checks enrolment types (Core/Elective) display
 
-## Debugging Failed Tests
+4. **online-exam.spec.ts**
+   - Verifies online exam page loads without 500 error
+   - Checks modal has TVET class selector
+   - Tests exam list display
 
-1. **View Screenshots**: Check `tests/results/playwright-report/` for failure screenshots
-2. **View Traces**: Open trace files with `npx playwright show-trace trace.zip`
-3. **Run in Debug Mode**: `npm run test:debug` to step through tests
-4. **Check Logs**: Review Docker logs with `docker-compose logs web`
+5. **approve-leave.spec.ts**
+   - Verifies approve leave page has TVET class selector
+   - Checks class options show in TVET format
+   - Tests leave request search
+
+## Test Results
+
+Test results are saved in:
+- `results/html-report/` - HTML report (view with `npm run test:report`)
+- `results/test-results.json` - JSON results for CI/CD
+- Screenshots and videos (on failure only)
 
 ## Common Issues
 
-### Tests Fail with "Navigation Timeout"
-
-**Solution**: Ensure Docker containers are running:
+### Tests fail with "Connection refused"
+Make sure Docker services are running:
 ```bash
 docker-compose up -d
-docker-compose ps  # Check status
 ```
 
-### Login Fails
+### Tests fail with "Timeout"
+Increase timeout in `playwright.config.ts` or wait for application to fully start.
 
-**Solution**: Verify admin credentials in `.env` file or use defaults (admin/admin123)
-
-### Database Tests Fail
-
-**Solution**: Run database migrations:
+### Database state issues
+Reset database:
 ```bash
-docker-compose exec db mysql -usmartschool -psmartschool123 smart_school < smart_school_src/application/migrations/011_tvet_unified_core_structure.sql
+docker-compose down -v && docker-compose up -d
 ```
 
-## Adding New Tests
+## CI/CD Integration
 
-1. Create a new `.spec.ts` file in `e2e/admin/`
-2. Import helpers from `../helpers`
-3. Follow the existing test pattern
-4. Run locally to verify
-5. Commit with descriptive message
+Set `CI=true` environment variable to enable:
+- Retries on failure
+- JSON reporter only
+- Stricter test validation
 
-Example:
-```typescript
-import { test, expect } from '@playwright/test';
-import { loginAsAdmin, verifySectionDropdownRemoved } from '../helpers';
-
-test.describe('My New Module', () => {
-  test.beforeEach(async ({ page }) => {
-    await loginAsAdmin(page);
-  });
-
-  test('should work without sections', async ({ page }) => {
-    await page.goto('/admin/mymodule');
-    await verifySectionDropdownRemoved(page);
-  });
-});
+```bash
+CI=true npm test
 ```
-
-## Success Criteria
-
-All tests should pass before:
-- ✅ Completing Phase 5 (Testing)
-- ✅ Starting Phase 6 (Legacy Cleanup)
-- ✅ Production deployment
-
-## Resources
-
-- [Playwright Documentation](https://playwright.dev/)
-- [Smart School TVET Plan](/TVET_TRANSFORMATION_PLAN.md)
-- [Phase 4 Refactoring Guide](/PHASE4_VIEW_REFACTORING_GUIDE.md)

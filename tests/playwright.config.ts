@@ -1,69 +1,33 @@
 import { defineConfig, devices } from '@playwright/test';
 
-/**
- * Playwright configuration for Smart School TVET E2E tests
- * Tests the refactored views to ensure TVET architecture works correctly
- */
 export default defineConfig({
   testDir: './e2e',
-
-  // Maximum time one test can run
-  timeout: 30 * 1000,
-
-  // Test execution settings
-  fullyParallel: true,
+  fullyParallel: false, // Run tests sequentially to avoid conflicts
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-
-  // Reporter settings
+  workers: 1, // Single worker to avoid database conflicts
   reporter: [
-    ['html', { outputFolder: 'results/playwright-report' }],
-    ['json', { outputFile: 'results/playwright.json' }],
+    ['html', { outputFolder: 'results/html-report' }],
+    ['json', { outputFile: 'results/test-results.json' }],
     ['list']
   ],
-
-  // Shared settings for all projects
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:8080',
-
-    // Capture screenshots only on failure
+    baseURL: 'http://localhost:8080',
     screenshot: 'only-on-failure',
-
-    // Capture video on first retry
     video: 'retain-on-failure',
-
-    // Collect trace on first retry
-    trace: 'on-first-retry',
-
-    // Default timeout for actions
-    actionTimeout: 10 * 1000,
+    trace: 'retain-on-failure',
   },
-
-  // Configure projects for different test types
   projects: [
     {
-      name: 'admin-critical',
-      testMatch: /e2e\/admin\/.*\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'platform-wide',
-      testMatch: /e2e\/platform-wide-.*\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'terminology-check',
-      testMatch: /e2e\/terminology-.*\.spec\.ts/,
+      name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-
-  // Run local dev server before tests (optional)
-  webServer: process.env.CI ? undefined : {
-    command: 'docker-compose up -d',
+  // Run local dev server before tests
+  webServer: {
+    command: 'docker-compose ps | grep "Up" || docker-compose up -d',
     url: 'http://localhost:8080',
-    timeout: 60 * 1000,
     reuseExistingServer: true,
+    timeout: 120 * 1000,
   },
 });

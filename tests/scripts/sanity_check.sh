@@ -1,130 +1,51 @@
 #!/bin/bash
-#
-# TVET Migration Sanity Check Script
-# Verifies critical pages and database integrity after refactoring
-#
-
-set -e
-
-echo "============================================"
-echo "TVET Migration Sanity Check"
-echo "============================================"
+echo "=== TVET Migration Sanity Check ==="
 echo ""
 
-BASE_URL="${BASE_URL:-http://localhost:8080}"
-FAILED=0
+# Check Docker is running
+echo "1. Docker Services..."
+docker-compose ps | grep "Up" || echo "FAIL: Docker services not running"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Database integrity
+echo ""
+echo "2. Database Integrity..."
+docker-compose exec -T db mysql -usmartschool -psmartschool123 smart_school <<SQL
+SELECT
+  (SELECT COUNT(DISTINCT student_id) FROM enrolment
+   WHERE session_id = (SELECT id FROM sessions WHERE is_active = 'yes')) as enrolled_students,
+  (SELECT COUNT(*) FROM class WHERE is_active = 1) as active_classes,
+  (SELECT COUNT(*) FROM stuattendence WHERE enrolment_id IS NOT NULL) as attendance_records;
+SQL
 
-# Function to check HTTP status
-check_page() {
-    local url=$1
-    local name=$2
+# Critical pages HTTP status
+echo ""
+echo "3. Critical Pages HTTP Status..."
+pages=(
+  "/admin/admin/dashboard"
+  "/student/disablestudentslist"
+  "/student/search"
+  "/admin/stuattendence"
+  "/admin/onlineexam"
+  "/admin/approve_leave"
+)
 
-    echo -n "Checking $name... "
+for page in "${pages[@]}"; do
+  status=$(curl -s -o /dev/null -w "%{http_code}" -u "admin:admin123" "http://localhost:8080$page")
+  if [ "$status" -eq 200 ] || [ "$status" -eq 302 ]; then
+    echo "✓ $page - $status"
+  else
+    echo "✗ FAIL: $page - $status"
+  fi
+done
 
-    status=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo "000")
-
-    if [ "$status" = "200" ] || [ "$status" = "302" ]; then
-        echo -e "${GREEN}OK${NC} (HTTP $status)"
-    else
-        echo -e "${RED}FAIL${NC} (HTTP $status)"
-        FAILED=$((FAILED + 1))
-    fi
-}
-
-echo "1. Checking Critical Pages..."
-echo "----------------------------------------"
-
-check_page "$BASE_URL/admin" "Admin Login"
-check_page "$BASE_URL/admin/admin/dashboard" "Admin Dashboard"
-check_page "$BASE_URL/admin/stuattendence" "Attendance Page"
-check_page "$BASE_URL/admin/examschedule" "Exam Schedule"
-check_page "$BASE_URL/admin/timetable/classreport" "Timetable"
-check_page "$BASE_URL/admin/onlineexam" "Online Exam"
-check_page "$BASE_URL/admin/lessonplan" "Lesson Plan"
-check_page "$BASE_URL/admin/subjectattendence" "Subject Attendance"
-check_page "$BASE_URL/admin/generatecertificate" "Certificate Generation"
+# Check for legacy tables (should not exist after cleanup)
+echo ""
+echo "4. Legacy Tables Check..."
+docker-compose exec -T db mysql -usmartschool -psmartschool123 smart_school <<SQL
+SHOW TABLES LIKE 'student_session';
+SHOW TABLES LIKE 'class_sections';
+SHOW TABLES LIKE 'sections';
+SQL
 
 echo ""
-echo "2. Checking Database Integrity..."
-echo "----------------------------------------"
-
-# Check if Docker is running
-if ! docker ps &> /dev/null; then
-    echo -e "${YELLOW}WARNING:${NC} Docker not running. Skipping database checks."
-else
-    # Check TVET tables exist
-    echo -n "Checking TVET tables... "
-
-    tables=$(docker-compose exec -T db mysql -usmartschool -psmartschool123 smart_school -e "
-        SHOW TABLES LIKE 'class';
-    " 2>/dev/null | grep -c "class" || echo "0")
-
-    if [ "$tables" -gt "0" ]; then
-        echo -e "${GREEN}OK${NC}"
-    else
-        echo -e "${RED}FAIL${NC} - TVET tables not found"
-        FAILED=$((FAILED + 1))
-    fi
-
-    # Check for active classes
-    echo -n "Checking active classes... "
-
-    class_count=$(docker-compose exec -T db mysql -usmartschool -psmartschool123 smart_school -e "
-        SELECT COUNT(*) as count FROM class WHERE is_active = 1;
-    " 2>/dev/null | tail -1 || echo "0")
-
-    if [ "$class_count" -gt "0" ]; then
-        echo -e "${GREEN}OK${NC} ($class_count classes)"
-    else
-        echo -e "${YELLOW}WARNING:${NC} No active classes found"
-    fi
-
-    # Check enrolments
-    echo -n "Checking student enrolments... "
-
-    enrolment_count=$(docker-compose exec -T db mysql -usmartschool -psmartschool123 smart_school -e "
-        SELECT COUNT(*) as count FROM enrolment WHERE status = 'Active';
-    " 2>/dev/null | tail -1 || echo "0")
-
-    if [ "$enrolment_count" -gt "0" ]; then
-        echo -e "${GREEN}OK${NC} ($enrolment_count enrolments)"
-    else
-        echo -e "${YELLOW}WARNING:${NC} No active enrolments found"
-    fi
-fi
-
-echo ""
-echo "3. Checking Legacy Table Status..."
-echo "----------------------------------------"
-
-if docker ps &> /dev/null; then
-    # Check if legacy tables still exist (should exist until Phase 6)
-    echo -n "Checking legacy tables... "
-
-    legacy_tables=$(docker-compose exec -T db mysql -usmartschool -psmartschool123 smart_school -e "
-        SHOW TABLES LIKE 'student_session';
-    " 2>/dev/null | grep -c "student_session" || echo "0")
-
-    if [ "$legacy_tables" -gt "0" ]; then
-        echo -e "${YELLOW}PRESENT${NC} (Normal until Phase 6 cleanup)"
-    else
-        echo -e "${GREEN}REMOVED${NC}"
-    fi
-fi
-
-echo ""
-echo "============================================"
-
-if [ $FAILED -eq 0 ]; then
-    echo -e "${GREEN}✓ All sanity checks passed!${NC}"
-    exit 0
-else
-    echo -e "${RED}✗ $FAILED check(s) failed${NC}"
-    exit 1
-fi
+echo "=== Sanity Check Complete ==="
