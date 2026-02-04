@@ -50,7 +50,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                     <?php
                                     if (!empty($student_due_fee)) {
                                         ?>
-<button type="button" class="btn btn-sm btn-info mb10 print" id="load" data-class-id="<?php echo $class_id;?>"  data-section-id="<?php echo $section_id;?>" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Please wait"><i class="fa fa-print"></i> <?php echo $this->lang->line('print') ?> </button>
+<button type="button" class="btn btn-sm btn-info mb10 print" id="load" data-class-id="<?php echo $class_id;?>" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Please wait"><i class="fa fa-print"></i> <?php echo $this->lang->line('print') ?> </button>
 <div class="clearfix"></div>
                                         <?php
                                         foreach ($student_due_fee as $student_key => $student_value) {

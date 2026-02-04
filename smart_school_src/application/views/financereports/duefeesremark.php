@@ -47,7 +47,7 @@ $month_list= $this->customlib->getMonthDropdown($start_month);
                                     if (!empty($student_remain_fees)) {
                                         ?>
                                         
-                                    <button type="button" class="btn btn-primary btn-sm pull-right print" id="load" data-class-id="<?php echo $class_id;?>"  data-section-id="<?php echo $section_id;?>" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Please wait"><i class="fa fa-print"></i> <?php echo $this->lang->line('print') ?> </button>
+                                    <button type="button" class="btn btn-primary btn-sm pull-right print" id="load" data-class-id="<?php echo $class_id;?>" data-loading-text="<i class='fa fa-spinner fa-spin '></i> Please wait"><i class="fa fa-print"></i> <?php echo $this->lang->line('print') ?> </button>
                     <div class="clearfix"></div>
 
       <div class="table-responsive">
@@ -155,11 +155,6 @@ $month_list= $this->customlib->getMonthDropdown($start_month);
 
 <script type="text/javascript">
     $(document).ready(function () {
-
-        var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id', 0) ?>';
-        getSectionByClass(class_id, section_id);
-
 
     $('.detail_popover').popover({
         placement: 'right',
