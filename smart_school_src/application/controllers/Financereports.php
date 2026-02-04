@@ -45,10 +45,10 @@ class Financereports extends Admin_Controller
         if ($this->input->server('REQUEST_METHOD') == "POST") {
             $date               = date('Y-m-d');
             $class_id           = $this->input->post('class_id');
-            $section_id         = $this->input->post('section_id');
+            // TVET: class_id now represents the full class context
             $data['class_id']   = $class_id;
-            $data['section_id'] = $section_id;
-            $fees_dues          = $this->studentfeemaster_model->getStudentDueFeeTypesByDate($date, $class_id, $section_id);
+            $data['section_id'] = $class_id;
+            $fees_dues          = $this->studentfeemaster_model->getStudentDueFeeTypesByDate($date, $class_id, $class_id);
             $students_list      = array();
 
             if (!empty($fees_dues)) {
@@ -127,10 +127,10 @@ class Financereports extends Admin_Controller
         $data['sch_setting'] = $this->sch_setting_detail;
         $date                = date('Y-m-d');
         $class_id            = $this->input->post('class_id');
-        $section_id          = $this->input->post('section_id');
+        // TVET: class_id now represents the full class context
         $data['class_id']    = $class_id;
-        $data['section_id']  = $section_id;
-        $fees_dues           = $this->studentfeemaster_model->getStudentDueFeeTypesByDate($date, $class_id, $section_id);
+        $data['section_id']  = $class_id;
+        $fees_dues           = $this->studentfeemaster_model->getStudentDueFeeTypesByDate($date, $class_id, $class_id);
         $students_list       = array();
 
         if (!empty($fees_dues)) {
@@ -285,9 +285,9 @@ class Financereports extends Admin_Controller
         } else { {
                 $data['student_due_fee'] = array();
                 $class_id                = $this->input->post('class_id');
-                $section_id              = $this->input->post('section_id');
                 $student_id              = $this->input->post('student_id');
-                $student_due_fee         = $this->studentfeemaster_model->getStudentFeesByClassSectionStudent($class_id, $section_id, $student_id);
+                // TVET: class_id now represents the full class context
+                $student_due_fee         = $this->studentfeemaster_model->getStudentFeesByClassSectionStudent($class_id, $class_id, $student_id);
                 foreach ($student_due_fee as $key => $value) {
                     $transport_fees = array();
                     $student               = $this->student_model->getByStudentSession($value['student_session_id']);
@@ -312,7 +312,7 @@ class Financereports extends Admin_Controller
 				 
                 $data['student_due_fee'] = $student_due_fee;
                 $data['class_id']        = $class_id;
-                $data['section_id']      = $section_id;
+                $data['section_id']      = $class_id;
                 $data['student_id']      = $student_id;
                 $category                = $this->category_model->get();
                 $data['categorylist']    = $category;
@@ -349,10 +349,10 @@ class Financereports extends Admin_Controller
             $student_Array = array();
             $search_type   = $this->input->post('search_type');
             $class_id   = $this->input->post('class_id');
-            $section_id = $this->input->post('section_id');
 
             if (isset($class_id)) {
-                $studentlist = $this->student_model->searchByClassSectionWithSession($class_id, $section_id);
+                // TVET: class_id now represents the full class context
+                $studentlist = $this->student_model->searchByClassSectionWithSession($class_id, $class_id);
             } else {
                 $studentlist = $this->student_model->getStudents();
             }
@@ -500,11 +500,11 @@ class Financereports extends Admin_Controller
         } else {
 
             $class_id   = $this->input->post('class_id');
-            $section_id = $this->input->post('section_id');
 
-            $data['selected_section'] = $section_id;
+            $data['selected_section'] = $class_id;
 
-            $data['results'] = $this->studentfeemaster_model->getFeeCollectionReport($start_date, $end_date, $feetype_id, $received_by, $group, $class_id, $section_id);
+            // TVET: class_id now represents the full class context
+            $data['results'] = $this->studentfeemaster_model->getFeeCollectionReport($start_date, $end_date, $feetype_id, $received_by, $group, $class_id, $class_id);
 
             if ($group != '') {
 
@@ -584,16 +584,15 @@ class Financereports extends Admin_Controller
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == true) {
             $date               = date('Y-m-d');
             $class_id           = $this->input->post('class_id');
-            $section_id         = $this->input->post('section_id');
+            // TVET: class_id now represents the full class context
             $data['class_id']   = $class_id;
-            $data['section_id'] = $section_id;
+            $data['section_id'] = $class_id;
             $date               = date('Y-m-d');
-            $student_due_fee    = $this->studentfee_model->getDueStudentFeesByDateClassSection($class_id, $section_id, $date);
+            $student_due_fee    = $this->studentfee_model->getDueStudentFeesByDateClassSection($class_id, $class_id, $date);
             $students = array();
             if (!empty($student_due_fee)) {
                 foreach ($student_due_fee as $student_due_fee_key => $student_due_fee_value) {
@@ -719,14 +718,14 @@ class Financereports extends Admin_Controller
 
         $date                = date('Y-m-d');
         $class_id            = $this->input->post('class_id');
-        $section_id          = $this->input->post('section_id');
+        // TVET: class_id now represents the full class context
         $data['class_id']    = $class_id;
-        $data['section_id']  = $section_id;
+        $data['section_id']  = $class_id;
         $data['class']       = $this->class_model->get($class_id);
-        $data['section']     = $this->section_model->get($section_id);
+        $data['section']     = $this->section_model->get($class_id);
         $date                = date('Y-m-d');
         $data['sch_setting'] = $this->sch_setting_detail;
-        $student_due_fee     = $this->studentfee_model->getDueStudentFeesByDateClassSection($class_id, $section_id, $date);
+        $student_due_fee     = $this->studentfee_model->getDueStudentFeesByDateClassSection($class_id, $class_id, $date);
 
         $students = array();
 

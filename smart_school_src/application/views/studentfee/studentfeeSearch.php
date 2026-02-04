@@ -20,45 +20,29 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                         <div class="row">
                             <div class="col-md-6 col-sm-6">
                                 <div class="row">
-                                        <div class="col-sm-6">
-                                            <div class="form-group">
-                                                <label><?php echo $this->lang->line('class'); ?></label><small class="req">  *</small>
-                                                <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                    <?php
-                                    foreach ($classlist as $class) {
-                                        ?>
-                                          <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_id') == $class['id']) {
-                                            echo "selected=selected";
-                                        }
-                                        ?>><?php echo $class['class'] ?></option>
-                                                                                            <?php
-                                    }
-                                    ?>
-                                                                                    </select>
-                                                 <span class="text-danger" id="error_class_id"></span>
-                                            </div>
-
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <div class="form-group">
-                                                <label><?php echo $this->lang->line('section'); ?></label>
-                                                <select  id="section_id" name="section_id" class="form-control" >
-                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                </select>
-                                                <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                            </div>
+                                        <div class="col-sm-12">
+                                            <?php
+                                            // TVET: Use class_selector component (replaces Class + Section dropdowns)
+                                            $this->load->view('admin/_partials/class_selector', [
+                                                'selected_class_id' => set_value('class_id'),
+                                                'classlist' => $classlist,
+                                                'required' => true,
+                                                'id' => 'class_id',
+                                                'name' => 'class_id'
+                                            ]);
+                                            ?>
+                                            <span class="text-danger" id="error_class_id"></span>
                                         </div>
                                         <div class="col-sm-12">
                                             <div class="form-group">
 
-                                              
+
 
                                              <button type="submit" class="btn btn-primary btn-sm pull-right" name="class_search" data-loading-text="Please wait.." value="class_search"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
 
                                             </div>
                                         </div>
-                                    
+
                                 </div>
                             </div>
                             <div class="col-md-6 col-sm-6">
@@ -138,52 +122,7 @@ $(document).ready(function() {
 });
 </script>
 <script type="text/javascript">
-
-
-    $(document).ready(function () {
-
-        var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id', 0) ?>';
-        getSectionByClass(class_id, section_id);
-    });
-
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, 0);
-    });
-
-    function getSectionByClass(class_id, section_id) {
-
-        if (class_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
+    // TVET: Removed getSectionByClass() - no longer needed with unified class selector
 </script>
 <script type="text/javascript">
     $(document).ready(function(){ 

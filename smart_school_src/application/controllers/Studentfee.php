@@ -78,8 +78,8 @@ class Studentfee extends Admin_Controller
             $search_type = $this->input->post('search_type');
             $search_text = $this->input->post('search_text');
             $class_id    = $this->input->post('class_id');
-            $section_id  = $this->input->post('section_id');
-            $params      = array('class_id' => $class_id, 'section_id' => $section_id, 'search_type' => $search_type, 'search_text' => $search_text);
+            // TVET: No section_id needed - class_id contains the full class context
+            $params      = array('class_id' => $class_id, 'section_id' => $class_id, 'search_type' => $search_type, 'search_text' => $search_text);
             $array       = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
@@ -92,7 +92,8 @@ class Studentfee extends Admin_Controller
         $search_text = $this->input->post('search_text');
         $search_type = $this->input->post('search_type');
         if ($search_type == "class_search") {
-            $students = $this->student_model->getDatatableByClassSection($class, $section);
+            // TVET: class_id now refers to the combined Subject+Level+Cohort
+            $students = $this->student_model->getDatatableByClassSection($class, $class);
         } elseif ($search_type == "keyword_search") {
             $students = $this->student_model->getDatatableByFullTextSearch($search_text);
         }
@@ -102,6 +103,7 @@ class Studentfee extends Admin_Controller
         if (!empty($students->data)) {
             foreach ($students->data as $student_key => $student) {
                 $row         = array();
+                // TVET: Display full class description (Subject + Level + Cohort)
                 $row[]       = $student->class;
                 $row[]       = $student->section;
                 $row[]       = $student->admission_no;
@@ -208,7 +210,8 @@ class Studentfee extends Admin_Controller
             $class_id   = $this->input->post('class_id');
             $section_id = $this->input->post('section_id');
 
-            $student_due_fee = $this->studentfee_model->getMultipleDueFees($fee_group_comma, $fee_groups_feetype_comma, $transport_groups_feetype_array, $class_id, $section_id);
+            // TVET: class_id now represents the full class context
+            $student_due_fee = $this->studentfee_model->getMultipleDueFees($fee_group_comma, $fee_groups_feetype_comma, $transport_groups_feetype_array, $class_id, $class_id);
             $students = array();
 
             if (!empty($student_due_fee)) {
@@ -286,8 +289,8 @@ class Studentfee extends Admin_Controller
         } else {
             $student_fees_array      = array();
             $class_id                = $this->input->post('class_id');
-            $section_id              = $this->input->post('section_id');
-            $student_result          = $this->student_model->searchByClassSection($class_id, $section_id);
+            // TVET: class_id now represents the full class context
+            $student_result          = $this->student_model->searchByClassSection($class_id, $class_id);
             $data['student_due_fee'] = array();
             if (!empty($student_result)) {
                 foreach ($student_result as $key => $student) {
@@ -295,13 +298,13 @@ class Studentfee extends Admin_Controller
                     $student_array['student_detail']    = $student;
                     $student_session_id                 = $student['student_session_id'];
                     $student_id                         = $student['id'];
-                    $student_due_fee                    = $this->studentfee_model->getDueFeeBystudentSection($class_id, $section_id, $student_session_id);
+                    $student_due_fee                    = $this->studentfee_model->getDueFeeBystudentSection($class_id, $class_id, $student_session_id);
                     $student_array['fee_detail']        = $student_due_fee;
                     $student_fees_array[$student['id']] = $student_array;
                 }
             }
             $data['class_id']           = $class_id;
-            $data['section_id']         = $section_id;
+            $data['section_id']         = $class_id;
             $data['student_fees_array'] = $student_fees_array;
             $this->load->view('layout/header', $data);
             $this->load->view('studentfee/reportByClass', $data);
