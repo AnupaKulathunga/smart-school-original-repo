@@ -136,7 +136,9 @@ class Hostelroom extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Reports');
         $this->session->set_userdata('sub_menu', 'reports/studenthosteldetails');
         $data['title']       = 'Student Hostel Details';
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $userdata            = $this->customlib->getUserData();
         $data['sch_setting'] = $this->sch_setting_detail;
@@ -175,7 +177,9 @@ class Hostelroom extends Admin_Controller
 
     public function dthostellist()
     {
-        $class       = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id  = $this->setting_model->getCurrentSession();
+        $class       = $this->classmodel_model->getClassesBySession($session_id);
         $classlist   = $class;
         $userdata    = $this->customlib->getUserData();
         $sch_setting = $this->sch_setting_detail;
