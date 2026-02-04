@@ -43,7 +43,6 @@
                 <?php echo $this->customlib->getCSRF(); ?>
                 <br/>
                 <input type="hidden" value="0" id="post_class_id" name="class_id">
-                <input type="hidden" value="0" id="post_section_id" name="section_id">
                 <div class="form-horizontal" id="TextBoxContainer" role="form">
                 </div>
                 <div class="box-footer">
@@ -150,7 +149,6 @@ foreach ($teacherlist as $teacher) {
                                     appendRow(0, 0, 0);
                                 }
                                 $('#post_class_id').val(class_id);
-                                $('#post_section_id').val(section_id);
                                 $('#btnAdd').show();
                                 $('#box_display').show();
                                 $('.save_button').show();

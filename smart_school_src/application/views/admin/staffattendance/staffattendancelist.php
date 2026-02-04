@@ -232,7 +232,6 @@
                                     </div>
                                     <input type="hidden" name="is_first_time_attendance" value="<?php echo $is_first_time_attendance;?>">
                                     <input type="hidden" name="user_id" value="<?php echo $user_type_id; ?>">
-                                    <input type="hidden" name="section_id" value="">
                                     <input type="hidden" name="date" value="<?php echo $date; ?>">
                                     <div class="table-responsive">
                                         <table class="table table-hover table-striped example">
