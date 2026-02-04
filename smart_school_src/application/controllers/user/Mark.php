@@ -20,7 +20,9 @@ class Mark extends Student_Controller
         $data['class_id']        = "";
         $data['section_id']      = "";
         $exam                    = $this->exam_model->get();
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['examlist']        = $exam;
         $data['classlist']       = $class;
         $feecategory             = $this->feecategory_model->get();
@@ -156,7 +158,9 @@ class Mark extends Student_Controller
         $data['class_id']        = "";
         $data['section_id']      = "";
         $exam                    = $this->exam_model->get();
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['examlist']        = $exam;
         $data['classlist']       = $class;
         $feecategory             = $this->feecategory_model->get();
