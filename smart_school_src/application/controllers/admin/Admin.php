@@ -98,7 +98,14 @@ class Admin extends Admin_Controller
         $data['month_collection'] = $month_collection+$month_transport_collection;
 
 
-        $tot_students = $this->studentsession_model->getTotalStudentBySession();
+        // TVET: Use enrolment table to count total student enrolments in current session
+        $this->db->select('COUNT(*) as total_student');
+        $this->db->from('enrolment');
+        $this->db->join('students', 'students.id = enrolment.student_id');
+        $this->db->where('enrolment.session_id', $this->current_session);
+        $this->db->where('enrolment.status', 'Active');
+        $this->db->where('students.is_active', 'yes');
+        $tot_students = $this->db->get()->row();
         if (!empty($tot_students)) {
             $total_students = $tot_students->total_student;
         }
@@ -435,8 +442,23 @@ class Admin extends Admin_Controller
             $data['staffapprovemonthlyleave'] = 0;
         }
 
-        $tot_head_students = $this->studentsession_model->getTotalHeadCountBySession();
-        $tot_students = $this->studentsession_model->getTotalStudentBySession();
+        // TVET: Count unique students (head count) enrolled in current session
+        $this->db->select('DISTINCT enrolment.student_id');
+        $this->db->from('enrolment');
+        $this->db->join('students', 'students.id = enrolment.student_id');
+        $this->db->where('enrolment.session_id', $this->current_session);
+        $this->db->where('enrolment.status', 'Active');
+        $this->db->where('students.is_active', 'yes');
+        $tot_head_students = $this->db->get()->result();
+
+        // TVET: Count total enrolments in current session
+        $this->db->select('COUNT(*) as total_student');
+        $this->db->from('enrolment');
+        $this->db->join('students', 'students.id = enrolment.student_id');
+        $this->db->where('enrolment.session_id', $this->current_session);
+        $this->db->where('enrolment.status', 'Active');
+        $this->db->where('students.is_active', 'yes');
+        $tot_students = $this->db->get()->row();
         if (!empty($tot_students)) {
             $total_students = $tot_students->total_student;
         }
