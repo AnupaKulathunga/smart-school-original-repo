@@ -32,33 +32,12 @@ if (isset($error_message)) {
                                     <input autofocus="" id="name" name="name" placeholder="" type="text" class="form-control"  value="<?php echo set_value('name', $subjectgroup[0]->name); ?>" />
                                     <span class="text-danger"><?php echo form_error('name'); ?></span>
                                 </div>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?> </label><small class="req"> *</small>
-
-                                    <select  id="class_id" name="class_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($classlist as $class) {
-        ?>
-                                            <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id', $class_id) == $class['id']) {
-            echo "selected=selected";
-        }
-        ?>>
-                                                <?php echo $class['class'] ?></option>
-                                            <?php
-}
-    ?>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                </div>
-                                <div class="form-group"> <!-- Radio group !-->
-                                    <label class="control-label"><?php echo $this->lang->line('sections') ?></label><small class="req"> *</small>
-                                    <div class="section_checkbox">
-                                        <?php echo $this->lang->line('no_section'); ?>
-                                    </div>
-                                    <span class="text-danger"><?php echo form_error('sections[]'); ?></span>
-                                </div>
+                                <?php
+                                $this->load->view('admin/_partials/class_selector', [
+                                    'selected_class_id' => set_value('class_id', $class_id),
+                                    'classlist' => $classlist
+                                ]);
+                                ?>
                                 <div class="form-group">
                                     <label for="exampleInputEmail1"><?php echo $this->lang->line('subject') ?></label><small class="req"> *</small>
                                     <?php
@@ -222,10 +201,7 @@ function getSelectedSubjects($subjectgroup, $find)
 ?>
 
 <script type="text/javascript">
-    var post_section_array = <?php echo json_encode($section_array); ?>;
     $(document).ready(function () {
-        var post_class_id = '<?php echo set_value('class_id', $class_id) ?>';
-        getSectionByClass(post_class_id, 0);
         $('.detail_popover').popover({
             placement: 'right',
             trigger: 'hover',
@@ -235,54 +211,7 @@ function getSelectedSubjects($subjectgroup, $find)
                 return $(this).closest('td').find('.fee_detail_popover').html();
             }
         });
-
-        $(document).on('change', '#class_id', function (e) {
-            var class_id = $(this).val();
-            getSectionByClass(class_id, 0);
-        });
     });
-
-    function getSectionByClass(class_id, section_array) {
-        $('.section_checkbox').html('');
-        if (class_id != "" && class_id != 0) {
-            var div_data = "";
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        console.log(post_section_array);
-
-                        var check = "";
-                        if (jQuery.inArray(obj.id, post_section_array) != -1) {
-                            check = "checked";
-                        }
-
-                        div_data += "<div class='checkbox'>";
-                        div_data += "<label>";
-                        div_data += "<input type='checkbox' class='content_available' name='sections[]' value='" + obj.id + "' " + check + ">" + obj.section;
-                        div_data += "</label>";
-                        div_data += "</div>";
-
-                    });
-                    $('.section_checkbox').html(div_data);
-                },
-                error: function (xhr) { // if error occured
-                    alert("Error occured.please try again");
-
-                },
-                complete: function () {
-
-                }
-            });
-        }
-    }
     $(".no_print").css("display", "block");
     document.getElementById("print").style.display = "block";
     document.getElementById("btnExport").style.display = "block";
