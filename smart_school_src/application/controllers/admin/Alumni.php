@@ -176,9 +176,11 @@ class Alumni extends Admin_Controller
             $eventsection[$key] = '';
             $eventsession[$key] = '';
             if (!empty($class['class_id'])) {
-                $eventclasslist     = $this->class_model->getAll($class['class_id']);
-                $eventclass[$key]   = $eventclasslist['class'];
-                $eventsection[$key] = $this->class_model->get_section($class['class_id']);
+                // TVET: Use classmodel_model to get class details
+                $eventclasslist     = $this->classmodel_model->getClassById($class['class_id']);
+                $eventclass[$key]   = $eventclasslist ? $eventclasslist->class_code : '';
+                // TVET: In TVET, sections don't exist
+                $eventsection[$key] = array();
                 $sessionlist        = $this->session_model->get($class['session_id']);
                 $eventsession[$key] = $sessionlist['session'];
             }
