@@ -29,13 +29,15 @@ class Feesforward extends Admin_Controller
 
         $this->session->set_userdata('top_menu', 'Fees Collection');
         $this->session->set_userdata('sub_menu', 'feesforward/index');
-        $class                   = $this->class_model->get();
+        // TVET: Use TVET class structure
+        $session_id              = $this->setting_model->getCurrentSession();
+        $classlist               = $this->classmodel_model->getClassesBySession($session_id);
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $data['sch_setting']     = $this->sch_setting_detail;
-        $data['classlist']       = $class;
+        $data['classlist']       = $classlist;
         $action                  = $this->input->post('action');
         $class_id                = $this->input->post('class_id');
-        $section_id              = $this->input->post('section_id');
+        // TVET: No section_id needed
         if ($this->input->server('REQUEST_METHOD') == "POST") {
             $setting_result          = $this->setting_model->get();
             $current_session         = $setting_result[0]['session_id'];
@@ -58,18 +60,18 @@ class Feesforward extends Admin_Controller
             //========================
             if ($action == 'search') {
                 $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'required');
-                $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'required');
+                // TVET: No section_id validation
                 if ($this->form_validation->run() == true) {
                     $data['student_due_fee'] = array();
                     if (!empty($pre_session)) {
-                        $student_Array = json_decode($this->findPreviousBalanceFees($pre_session->id, $class_id, $section_id, $current_session));
+                        $student_Array = json_decode($this->findPreviousBalanceFees($pre_session->id, $class_id, null, $current_session));
 
                         $data['student_due_fee'] = $student_Array->student_Array;
                         $data['is_update']       = $student_Array->is_update;
                     }
                 }
             } else if ($action == 'fee_submit') {
-                $student_Array = json_decode($this->findPreviousBalanceFees($pre_session->id, $class_id, $section_id, $current_session));
+                $student_Array = json_decode($this->findPreviousBalanceFees($pre_session->id, $class_id, null, $current_session));
 
                 $data['student_due_fee'] = $student_Array->student_Array;
                 $data['is_update']       = $student_Array->is_update;
