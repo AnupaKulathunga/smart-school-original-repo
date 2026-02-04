@@ -152,15 +152,15 @@ class Hostelroom extends Admin_Controller
     public function searchvalidation()
     {
         $class_id    = $this->input->post('class_id');
-        $section_id  = $this->input->post('section_id');
+        // TVET: section_id removed
         $hostel_name = $this->input->post('hostel_name');
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section_id validation removed
 
         if ($this->form_validation->run() == true) {
 
-            $params = array('class_id' => $class_id, 'section_id' => $section_id, 'hostel_name' => $hostel_name);
+            $params = array('class_id' => $class_id, 'hostel_name' => $hostel_name);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
 
@@ -168,10 +168,10 @@ class Hostelroom extends Admin_Controller
 
             $error               = array();
             $error['class_id']   = form_error('class_id');
-            $error['section_id'] = form_error('section_id');
+            // TVET: section_id error removed
             $array               = array('status' => 0, 'error' => $error);
             echo json_encode($array);
-            
+
         }
     }
 
@@ -194,12 +194,12 @@ class Hostelroom extends Admin_Controller
 
         $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
         $class_id        = $this->input->post('class_id');
-        $section_id      = $this->input->post('section_id');
+        // TVET: section_id removed
         $hostel_name     = $this->input->post('hostel_name');
 
         $sch_setting = $this->sch_setting_detail;
 
-        $resultlist = $this->hostelroom_model->searchHostelDetails($section_id, $class_id, $hostel_name);
+        $resultlist = $this->hostelroom_model->searchHostelDetails(null, $class_id, $hostel_name);
         $resultlist = json_decode($resultlist);
         $dt_data    = array();
         if (!empty($resultlist->data)) {
