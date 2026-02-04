@@ -120,7 +120,9 @@ class Onlineexam_model extends MY_model
             if ($this->sch_setting_detail->class_teacher == 'yes') {
                 $my_class = $this->class_model->get();
                 foreach ($my_class as $class_key => $class_value) {
-                    $section=$this->section_model->getClassBySection($class_value['id']);
+                    // TVET: In TVET, there are no sections - class_id IS the section
+                    $class_obj = $this->classmodel_model->getClassById($class_value['id']);
+                    $section = $class_obj ? array($class_obj) : array();
                     foreach ($section as $key => $value) {
                         $class_section_array[$class_value['id']][]=$value['section_id'];
                     }
