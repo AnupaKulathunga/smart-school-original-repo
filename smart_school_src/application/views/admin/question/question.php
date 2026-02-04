@@ -623,47 +623,7 @@ $('#myimgModal').on('shown.bs.modal', function (event) {
       getImages(page, query);
     });
 
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        $('#search_section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, section_id);
-    });
-
-    function getSectionByClass(class_id, section_id) {
-
-        if (class_id != "") {
-            $('#section_id').html("");
-            $('#search_section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                    $('#search_section_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
+    // TVET: Class selector - no section loading needed
 
     $(document).on('change','#question_type',function(){
       if($(this).val() == "singlechoice"){

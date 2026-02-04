@@ -166,6 +166,30 @@ test.describe('TVET Terminology Regression Check', () => {
       const sectionDropdown = page.locator('select[name="section_id"]');
       await expect(sectionDropdown).toHaveCount(0);
     });
+
+    test('Subject Group Assign should use CLASS', async ({ page }) => {
+      await page.goto('/admin/subjectgroup/assign');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Batch Subject List should use CLASS', async ({ page }) => {
+      await page.goto('/admin/batchsubject');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Batch Subject Edit should use CLASS', async ({ page }) => {
+      await page.goto('/admin/batchsubject/batchsubjectedit');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
   });
 
   // ===================================================================
@@ -200,6 +224,101 @@ test.describe('TVET Terminology Regression Check', () => {
       const sectionDropdown = page.locator('select[name="section_id"]');
       await expect(sectionDropdown).toHaveCount(0);
     });
+
+    test('Resume Index should use CLASS', async ({ page }) => {
+      await page.goto('/admin/resume');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+  });
+
+  // ===================================================================
+  // PRIORITY 4: AUXILIARY PAGES
+  // ===================================================================
+
+  test.describe('Priority 4: Auxiliary Pages', () => {
+
+    test('Transport - Pickup Point Student Fees should use CLASS', async ({ page }) => {
+      await page.goto('/admin/pickuppoint/student_fees');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Transport - Student Route Details should use CLASS', async ({ page }) => {
+      await page.goto('/admin/route/studentroutedetails');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Hostel - Student Hostel Details should use CLASS', async ({ page }) => {
+      await page.goto('/admin/hostelroom/studenthosteldetails');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Fees Forward should use CLASS', async ({ page }) => {
+      await page.goto('/admin/feesforward');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Alumni Events should use CLASS', async ({ page }) => {
+      await page.goto('/admin/alumni/events');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Alumni List should use CLASS', async ({ page }) => {
+      await page.goto('/admin/alumni/alumnilist');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Member Student Search should use CLASS', async ({ page }) => {
+      await page.goto('/admin/member/studentsearch');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Exam Schedule List should use CLASS', async ({ page }) => {
+      await page.goto('/admin/exam_schedule');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Fee Discount Assign should use CLASS', async ({ page }) => {
+      await page.goto('/admin/feediscount/assign');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
+
+    test('Fee Master Assign should use CLASS', async ({ page }) => {
+      await page.goto('/admin/feemaster/assign');
+      await page.waitForLoadState('networkidle');
+
+      const sectionDropdown = page.locator('select[name="section_id"]');
+      await expect(sectionDropdown).toHaveCount(0);
+    });
   });
 
   // ===================================================================
@@ -212,9 +331,19 @@ test.describe('TVET Terminology Regression Check', () => {
       '/admin/approve_leave',
       '/admin/stuattendence/attendencereport',
       '/admin/examresult',
+      '/admin/examresult/rankreport',
+      '/admin/examresult/admitcard',
+      '/admin/examresult/marksheet',
       '/admin/teacher/assignteacher',
       '/admin/lessonplan',
       '/admin/notification',
+      '/admin/question',
+      '/admin/timetable',
+      '/admin/mark',
+      '/admin/subjectgroup/assign',
+      '/admin/batchsubject',
+      '/admin/feemaster/assign',
+      '/admin/feediscount/assign',
     ];
 
     for (const pagePath of pagesToCheck) {
