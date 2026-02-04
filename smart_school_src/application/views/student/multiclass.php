@@ -161,27 +161,6 @@ $count++;
     <div class="clearfix"></div>
 </div>
 
-<?php
-
-function getSectionByClasses($classes, $class_selected, $section_selected)
-{
-    $options = "";
-    foreach ($classes as $key => $value) {
-        if ($value['id'] == $class_selected) {
-            if (!empty($value['sections'])) {
-                foreach ($value['sections'] as $section_key => $section_value) {
-                    $selected = "";
-                    if ($section_value['section_id'] == $section_selected) {
-                        $selected = "selected='selected'";
-                    }
-                    $options .= "<option value='" . $section_value['section_id'] . "' " . $selected . ">" . $section_value['section'] . "</option>";
-                }
-            }
-        }
-    }
-    return $options;
-}
-?>
 
 <script type="text/javascript">
     // this is the id of the form
