@@ -21,7 +21,10 @@ class Subjectattendence extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Attendance');
         $this->session->set_userdata('sub_menu', 'subjectattendence/reportbydate');
         $data                = array();
-        $class               = $this->class_model->get('', $classteacher = 'yes');
+        // TVET: Use classmodel_model to get classes for current session
+        // Note: classteacher parameter is legacy, TVET handles this differently
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->setting_model->getSetting();
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
@@ -49,7 +52,9 @@ class Subjectattendence extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'subjectattendence/index');
         $data['title']      = 'Add Fees Type';
         $data['title_list'] = 'Fees Type List';
-        $class              = $this->class_model->get('', $classteacher = 'yes');
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id         = $this->setting_model->getCurrentSession();
+        $class              = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']  = $class;
         $userdata           = $this->customlib->getUserData();
         $carray             = array();
