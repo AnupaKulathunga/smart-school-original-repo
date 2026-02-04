@@ -393,7 +393,10 @@ class Video_tutorial extends Admin_Controller
             $multisection[] = $value['class_section_id'];
         }
         $multipalsection = $multisection;
-        $sectionlist     = $this->section_model->getClassBySection($classid);
+        // TVET: In TVET, there are no sections - class_id IS the section
+        // Return the class as a single-item array to maintain compatibility
+        $class = $this->classmodel_model->getClassById($classid);
+        $sectionlist = $class ? array($class) : array();
 
         echo json_encode(array('sectionlist' => $sectionlist, 'multipalsection' => $multipalsection));
     }
