@@ -310,7 +310,9 @@ class Onlineexam extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'Online_Examinations/Onlineexam');
         $data['id']         = $id;
         $data['title']      = 'student fees';
-        $class              = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+        $session_id         = $this->setting_model->getCurrentSession();
+        $class              = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']  = $class;
         $onlineexam         = $this->onlineexam_model->get($id);
         $data['onlineexam'] = $onlineexam;

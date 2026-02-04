@@ -26,7 +26,9 @@ class Generatecertificate extends Admin_Controller
 
         $certificateList         = $this->Certificate_model->getstudentcertificate();
         $data['certificateList'] = $certificateList;
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $this->load->view('layout/header', $data);
         $this->load->view('admin/certificate/generatecertificate', $data);
@@ -38,7 +40,9 @@ class Generatecertificate extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Certificate');
         $this->session->set_userdata('sub_menu', 'admin/generatecertificate');
 
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
         $certificateList         = $this->Certificate_model->getstudentcertificate();
         $data['certificateList'] = $certificateList;

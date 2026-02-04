@@ -46,7 +46,9 @@ class Teacher extends Admin_Controller
         $data['teacherlist'] = $teacher;
         $subject             = $this->subject_model->get();
         $data['subjectlist'] = $subject;
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $userdata            = $this->customlib->getUserData();
 
@@ -97,7 +99,9 @@ class Teacher extends Admin_Controller
         $data['teacherlist'] = $teacher;
         $subject             = $this->subject_model->get();
         $data['subjectlist'] = $subject;
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $userdata            = $this->customlib->getUserData();
 
@@ -387,7 +391,9 @@ class Teacher extends Admin_Controller
             $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('success_message') . '</div>');
             redirect('admin/teacher/assign_class_teacher');
         }
-        $classlist         = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id        = $this->setting_model->getCurrentSession();
+        $classlist         = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $classlist;
 
         $sectionlist         = $this->section_model->get();
