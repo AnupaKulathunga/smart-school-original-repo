@@ -53,7 +53,9 @@ class Homework_model extends MY_model
         $carray = array();
         foreach ($class as $key => $value) {
             $carray[] = $value['id'];
-            $sections = $this->section_model->getClassBySection($value['id']);
+            // TVET: In TVET, there are no sections - class_id IS the section
+            $class_obj = $this->classmodel_model->getClassById($value['id']);
+            $sections = $class_obj ? array($class_obj) : array();
 
             foreach ($sections as $sec => $secdata) {
                 $section_array[] = $secdata['section_id'];
