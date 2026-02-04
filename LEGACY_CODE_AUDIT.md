@@ -15,7 +15,7 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 ⚠️  43 form validations with section_id
 ```
 
-**Completion:** ~32% (16 of ~50 major pages fixed)
+**Completion:** ~35% (17 of ~50 major pages fixed)
 
 ---
 
@@ -50,10 +50,10 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 19. ✅ `/admin/feesforward/index.php` - COMPLETED (controller + view)
 20. ✅ `/admin/pickuppoint/student_fees.php` - COMPLETED (controller + view)
 
-### Priority 4: Auxiliary Pages (3 files)
+### Priority 4: Auxiliary Pages (2 files)
 
-21. ❌ `/admin/route/studentroutedetails.php` - Student route details
-22. ❌ `/admin/staffattendance/staffattendancelist.php` - Staff attendance (may not need TVET changes)
+21. ✅ `/admin/route/studentroutedetails.php` - COMPLETED (controller + view)
+22. ⚪ `/admin/staffattendance/staffattendancelist.php` - NOT APPLICABLE (staff-only, no student class/section)
 
 ---
 
@@ -215,9 +215,9 @@ $this->load->view('admin/_partials/class_selector', [
 | User-Facing Pages | 8 | 7 | 1 | 88% |
 | Academic Mgmt | 7 | 4 | 3 | 57% |
 | Administrative | 5 | 5 | 0 | 100% |
-| Auxiliary | 3 | 0 | 3 | 0% |
-| **TOTAL VIEWS** | **23** | **16** | **7** | **70%** |
-| Controllers | ~50 | ~18 | ~32 | 36% |
+| Auxiliary | 2 | 1 | 1 | 50% |
+| **TOTAL VIEWS** | **22** | **17** | **5** | **77%** |
+| Controllers | ~50 | ~19 | ~31 | 38% |
 | Models | ~10 | ~3 | ~7 | 30% |
 
 ---
@@ -245,6 +245,7 @@ $this->load->view('admin/_partials/class_selector', [
 19. ✅ Member Student Search - Controller, View
 20. ✅ Fees Forward - Controller, View
 21. ✅ Pickup Point Student Fees - Controller, View
+22. ✅ Route Student Transport Details - Controller, View
 
 ---
 
