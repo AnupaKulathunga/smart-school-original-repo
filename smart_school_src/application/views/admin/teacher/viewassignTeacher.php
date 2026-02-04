@@ -25,31 +25,13 @@
                             <?php } ?>
                             <?php echo $this->customlib->getCSRF(); ?>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-                                    foreach ($classlist as $class) {
-                                        ?>
-                                        <option value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                        <?php
-                                        $count++;
-                                    }
-                                    ?>
-                                </select>
-                                <span class="class_id_error text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                <select  id="section_id" name="section_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="section_id_error text-danger"></span>
-                            </div>
+                        <div class="col-md-12">
+                            <?php
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => set_value('class_id'),
+                                'classlist' => $classlist
+                            ]);
+                            ?>
                         </div>
                     </div>
                     <button type="submit" id="search_filter" name="search" value="search_filter" class="btn btn-primary btn-sm checkbox-toggle pull-right"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>                 
@@ -194,24 +176,7 @@ foreach ($teacherlist as $teacher) {
         });
 
         $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
             resetForm();
-            var class_id = $(this).val();
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
         });
     });
 
@@ -267,10 +232,6 @@ foreach ($teacherlist as $teacher) {
         row += '</div>';
         $("#TextBoxContainer").append(row);
     }
-
-    $(document).on('change', '#section_id', function (e) {
-        resetForm();
-    });
 
     function resetForm() {
         $('#TextBoxContainer').html("");
