@@ -270,13 +270,13 @@ class Report extends Admin_Controller
         $setting_result       = $this->setting_model->get();
         $data['settinglist']  = $setting_result;
         $exam_id              = $this->uri->segment(3);
-        $section_id           = $this->uri->segment(4);
-        $class_id             = $this->uri->segment(5);
+        // TVET: section_id removed (was segment 4)
+        $class_id             = $this->uri->segment(4); // Now segment 4 instead of 5
         $class                = $this->class_model->get($class_id);
         $data['class']        = $class;
-        $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, $section_id, $exam_id);
-        $section              = $this->section_model->getClassNameBySection($class_id, $section_id);
-        $data['section']      = $section;
+        $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, null, $exam_id);
+        // TVET: Use class data instead of section
+        $data['section']      = $class;
         $data['examSchedule'] = $examSchedule;
         $exam                 = $this->exam_model->get($exam_id);
         $data['exam']         = $exam;
@@ -1221,7 +1221,8 @@ class Report extends Admin_Controller
             $total_boys += $value['male'];
             $total_girls += $value['female'];
 
-            $data['result'][] = array('total_student' => $value['total_student'], 'male' => $value['male'], 'female' => $value['female'], 'class' => $value['class'], 'section' => $value['section'], 'class_id' => $value['class_id'], 'section_id' => $value['section_id'], 'boys_girls_ratio' => $this->getRatio($value['male'], $value['female']));
+            // TVET: section_id removed from output array (model may still return it but we don't pass it to view)
+            $data['result'][] = array('total_student' => $value['total_student'], 'male' => $value['male'], 'female' => $value['female'], 'class' => $value['class'], 'class_id' => $value['class_id'], 'boys_girls_ratio' => $this->getRatio($value['male'], $value['female']));
         }
 
         $data['all_boys_girls_ratio']      = $this->getRatio($total_boys, $total_girls);
@@ -1249,7 +1250,8 @@ class Report extends Admin_Controller
 
             $all_student += $value['total_student'];
             $count_classteachers = array();
-            $count_classteachers = $this->student_model->count_classteachers($value['class_id'], $value['section_id']);
+            // TVET: Pass null for section_id parameter
+            $count_classteachers = $this->student_model->count_classteachers($value['class_id'], null);
 
             if (!empty($count_classteachers)) {
                 $total_teacher = $count_classteachers;
@@ -1257,7 +1259,8 @@ class Report extends Admin_Controller
                 $total_teacher = 0;
             }
 
-            $data['result'][] = array('total_student' => $value['total_student'], 'male' => $value['male'], 'female' => $value['female'], 'class' => $value['class'], 'section' => $value['section'], 'class_id' => $value['class_id'], 'section_id' => $value['section_id'], 'total_teacher' => $total_teacher, 'boys_girls_ratio' => $this->getRatio($value['male'], $value['female']), 'teacher_ratio' => $this->getRatio($value['total_student'], $total_teacher));
+            // TVET: section_id removed from output array (model may still return it but we don't pass it to view)
+            $data['result'][] = array('total_student' => $value['total_student'], 'male' => $value['male'], 'female' => $value['female'], 'class' => $value['class'], 'class_id' => $value['class_id'], 'total_teacher' => $total_teacher, 'boys_girls_ratio' => $this->getRatio($value['male'], $value['female']), 'teacher_ratio' => $this->getRatio($value['total_student'], $total_teacher));
 
             $all_teacher += $total_teacher;
         }
@@ -2132,7 +2135,9 @@ class Report extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'Reports/student_information');
         $this->session->set_userdata('subsub_menu', 'Reports/student_information/classsectionreport');
         $data['title']              = 'Class & Section Report';
-        $data['class_section_list'] = $this->classsection_model->getClassSectionStudentCount();
+        // TVET: Use classmodel_model instead of classsection_model
+        $session_id = $this->setting_model->getCurrentSession();
+        $data['class_section_list'] = $this->classmodel_model->getClassStudentCount($session_id);
         $this->load->view('layout/header', $data);
         $this->load->view('reports/classsectionreport', $data);
         $this->load->view('layout/footer', $data);
