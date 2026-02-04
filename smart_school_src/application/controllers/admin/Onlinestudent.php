@@ -441,7 +441,10 @@ class Onlinestudent extends Admin_Controller
     public function getByClass()
     {
         $class_id = $this->input->post('class_id');
-        $data     = $this->section_model->getClassBySection($class_id);
+        // TVET: In TVET, there are no sections - class_id IS the section
+        // Return the class as a single-item array to maintain compatibility
+        $class = $this->classmodel_model->getClassById($class_id);
+        $data = $class ? array($class) : array();
         $this->jsonlib->output(200, $data);
     }
 
