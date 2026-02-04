@@ -1,0 +1,272 @@
+
+Running 31 tests using 6 workers
+
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓   3 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:85:9 › Platform-Wide Database Error Detection › Homework Module › Add Homework page should load without errors (9.2s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓   4 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:59:9 › Platform-Wide Database Error Detection › Attendance Module › Subject Attendance page should load without errors (9.7s)
+  ✓   1 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:75:9 › Platform-Wide Database Error Detection › Homework Module › Homework List page should load without errors (10.7s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+  ✓   6 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:28:9 › Platform-Wide Database Error Detection › Attendance Module › Student Attendance page should load without errors (12.4s)
+  ✓   2 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:41:9 › Platform-Wide Database Error Detection › Attendance Module › Approve Leave page should load without errors (12.6s)
+  ✓   5 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:50:9 › Platform-Wide Database Error Detection › Attendance Module › Attendance By Date page should load without errors (12.7s)
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓   7 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:94:9 › Platform-Wide Database Error Detection › Homework Module › Homework Evaluation page should load without errors (8.3s)
+  ✘   8 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:110:9 › Platform-Wide Database Error Detection › Examination Module › Exam Schedule page should load without errors (7.6s)
+  ✓   9 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:119:9 › Platform-Wide Database Error Detection › Examination Module › Exam Groups page should load without errors (8.1s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+Username filled: true
+Password filled: true
+  ✘  10 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:128:9 › Platform-Wide Database Error Detection › Examination Module › Marks Entry page should load without errors (7.6s)
+  ✓  11 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:137:9 › Platform-Wide Database Error Detection › Examination Module › Online Exam page should load without errors (7.7s)
+  ✓  12 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:146:9 › Platform-Wide Database Error Detection › Examination Module › Online Exam Assign page should load without errors (7.6s)
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+Username filled: true
+Password filled: true
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  13 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:162:9 › Platform-Wide Database Error Detection › Fee Module › Fee Master page should load without errors (8.1s)
+  ✓  14 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:171:9 › Platform-Wide Database Error Detection › Fee Module › Fee Collection page should load without errors (7.4s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  15 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:180:9 › Platform-Wide Database Error Detection › Fee Module › Fee Discount page should load without errors (8.0s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  16 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:205:9 › Platform-Wide Database Error Detection › Content Module › Upload Content page should load without errors (7.4s)
+Username filled: true
+Password filled: true
+  ✓  17 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:214:9 › Platform-Wide Database Error Detection › Content Module › Content List page should load without errors (7.7s)
+Username filled: true
+Password filled: true
+  ✓  18 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:189:9 › Platform-Wide Database Error Detection › Fee Module › Transport Fee page should load without errors (7.9s)
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  19 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:230:9 › Platform-Wide Database Error Detection › Academic Management Module › Lesson Plan page should load without errors (7.4s)
+  ✓  20 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:239:9 › Platform-Wide Database Error Detection › Academic Management Module › Timetable page should load without errors (7.2s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  21 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:248:9 › Platform-Wide Database Error Detection › Academic Management Module › Conference page should load without errors (7.5s)
+  ✓  22 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:257:9 › Platform-Wide Database Error Detection › Academic Management Module › Certificate Generation page should load without errors (7.4s)
+Username filled: true
+Password filled: true
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  23 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:273:9 › Platform-Wide Database Error Detection › Student Module › Student List page should load without errors (7.4s)
+Username filled: true
+Password filled: true
+  ✓  24 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:282:9 › Platform-Wide Database Error Detection › Student Module › Student Admission page should load without errors (7.7s)
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+Username filled: true
+Password filled: true
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  25 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:291:9 › Platform-Wide Database Error Detection › Student Module › Student Transfer page should load without errors (7.5s)
+  ✓  26 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:307:9 › Platform-Wide Database Error Detection › Reports Module › Student Report page should load without errors (7.7s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  27 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:316:9 › Platform-Wide Database Error Detection › Reports Module › Attendance Report page should load without errors (7.5s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  28 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:325:9 › Platform-Wide Database Error Detection › Reports Module › Fee Collection Report page should load without errors (7.2s)
+Username filled: true
+Password filled: true
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  30 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:363:9 › Platform-Wide Database Error Detection › Integration Tests with Data Selection › Should be able to view exam schedule without error (7.4s)
+After login URL: http://localhost:8080/admin/admin/dashboard
+✓ Login successful
+  ✓  31 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:379:9 › Platform-Wide Database Error Detection › Integration Tests with Data Selection › Should be able to view timetable without error (6.6s)
+  ✘  29 [platform-wide] › e2e/platform-wide-error-detection.spec.ts:341:9 › Platform-Wide Database Error Detection › Integration Tests with Data Selection › Should be able to select class and load students without error (17.6s)
+
+
+  1) [platform-wide] › e2e/platform-wide-error-detection.spec.ts:110:9 › Platform-Wide Database Error Detection › Examination Module › Exam Schedule page should load without errors 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: not [32m"A Database Error Occurred"[39m
+    Received string:        [31m"[39m
+    [31m        [39m
+    [31m            [7mA Database Error Occurred[27m[39m
+    [31m            Error Number: 1146Table 'smart_school.feecategory' doesn't existSELECT *[39m
+    [31mFROM `feecategory`[39m
+    [31mORDER BY `id` descFilename: models/Feecategory_model.phpLine Number: 29        [39m
+    [31m    [39m
+    [31m"[39m
+
+      113 |
+      114 |       const bodyText = await page.textContent('body');
+    > 115 |       expect(bodyText).not.toContain('A Database Error Occurred');
+          |                            ^
+      116 |       expect(bodyText).not.toContain('Unknown column');
+      117 |     });
+      118 |
+        at /Users/anupa/ADNK Group of Companies/Direct Clients/Graham/Smart-School-Git-Repo/tests/e2e/platform-wide-error-detection.spec.ts:115:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/platform-wide-error-detect-963d7--should-load-without-errors-platform-wide/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/platform-wide-error-detect-963d7--should-load-without-errors-platform-wide/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/platform-wide-error-detect-963d7--should-load-without-errors-platform-wide/error-context.md
+
+  2) [platform-wide] › e2e/platform-wide-error-detection.spec.ts:128:9 › Platform-Wide Database Error Detection › Examination Module › Marks Entry page should load without errors 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: not [32m"A Database Error Occurred"[39m
+    Received string:        [31m"[39m
+    [31m        [39m
+    [31m            [7mA Database Error Occurred[27m[39m
+    [31m            Error Number: 1146Table 'smart_school.feecategory' doesn't existSELECT *[39m
+    [31mFROM `feecategory`[39m
+    [31mORDER BY `id` descFilename: models/Feecategory_model.phpLine Number: 29        [39m
+    [31m    [39m
+    [31m"[39m
+
+      131 |
+      132 |       const bodyText = await page.textContent('body');
+    > 133 |       expect(bodyText).not.toContain('A Database Error Occurred');
+          |                            ^
+      134 |       expect(bodyText).not.toContain('Unknown column');
+      135 |     });
+      136 |
+        at /Users/anupa/ADNK Group of Companies/Direct Clients/Graham/Smart-School-Git-Repo/tests/e2e/platform-wide-error-detection.spec.ts:133:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/platform-wide-error-detect-a8bd5--should-load-without-errors-platform-wide/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/platform-wide-error-detect-a8bd5--should-load-without-errors-platform-wide/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/platform-wide-error-detect-a8bd5--should-load-without-errors-platform-wide/error-context.md
+
+  3) [platform-wide] › e2e/platform-wide-error-detection.spec.ts:341:9 › Platform-Wide Database Error Detection › Integration Tests with Data Selection › Should be able to select class and load students without error 
+
+    TimeoutError: locator.fill: Timeout 10000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[name="date"]')[22m
+    [2m    - locator resolved to <input id="date" name="date" type="text" placeholder="" value="02/04/2026" readonly="readonly" class="form-control date"/>[22m
+    [2m    - fill("2026-02-04")[22m
+    [2m  - attempting fill action[22m
+    [2m    2 × waiting for element to be visible, enabled and editable[22m
+    [2m      - element is not editable[22m
+    [2m    - retrying fill action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 × waiting for element to be visible, enabled and editable[22m
+    [2m      - element is not editable[22m
+    [2m    - retrying fill action[22m
+    [2m      - waiting 100ms[22m
+    [2m    20 × waiting for element to be visible, enabled and editable[22m
+    [2m       - element is not editable[22m
+    [2m     - retrying fill action[22m
+    [2m       - waiting 500ms[22m
+
+
+      348 |
+      349 |       // Fill date
+    > 350 |       await page.locator('input[name="date"]').fill('2026-02-04');
+          |                                                ^
+      351 |
+      352 |       // Click search
+      353 |       await page.locator('button:has-text("Search")').click();
+        at /Users/anupa/ADNK Group of Companies/Direct Clients/Graham/Smart-School-Git-Repo/tests/e2e/platform-wide-error-detection.spec.ts:350:48
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/platform-wide-error-detect-6d2c7-load-students-without-error-platform-wide/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/platform-wide-error-detect-6d2c7-load-students-without-error-platform-wide/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/platform-wide-error-detect-6d2c7-load-students-without-error-platform-wide/error-context.md
+
+  3 failed
+    [platform-wide] › e2e/platform-wide-error-detection.spec.ts:110:9 › Platform-Wide Database Error Detection › Examination Module › Exam Schedule page should load without errors 
+    [platform-wide] › e2e/platform-wide-error-detection.spec.ts:128:9 › Platform-Wide Database Error Detection › Examination Module › Marks Entry page should load without errors 
+    [platform-wide] › e2e/platform-wide-error-detection.spec.ts:341:9 › Platform-Wide Database Error Detection › Integration Tests with Data Selection › Should be able to select class and load students without error 
+  28 passed (55.1s)

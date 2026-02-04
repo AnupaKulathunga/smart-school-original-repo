@@ -21,14 +21,19 @@ class Batchsubject extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'batchsubject/index');
         $data['title']       = 'Add Batch Subject';
         $data['title_list']  = 'Recent Batch Subject';
-        $class               = $this->class_model->get('', $classteacher = 'yes');
-        $data['classlist']   = $class;
+
+        // TVET: Use TVET classes instead of legacy classes
+        $session_id          = $this->setting_model->getCurrentSession();
+        $classlist           = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']   = $classlist;
+
         $subject             = $this->subject_model->get();
         $data['subjectlist'] = $subject;
+
+        // TVET: Removed section_id validation - batches now linked to TVET CLASS
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('batch_id', $this->lang->line('batch'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
 
         $this->form_validation->set_rules(
             'subject_id', $this->lang->line('subject'), array(
@@ -39,8 +44,10 @@ class Batchsubject extends Admin_Controller
 
         if ($this->form_validation->run() == true) {
             $is_exam = isset($_POST['is_exam']) ? 1 : 0;
+
+            // TVET: Use class_id directly (batches become part of CLASS cohort concept)
             $data    = array(
-                'class_section_id' => $this->input->post('section_id'),
+                'class_section_id' => $this->input->post('class_id'), // TVET: Map to class_id
                 'batch_id'         => $this->input->post('batch_id'),
                 'subject_id'       => $this->input->post('subject_id'),
                 'is_exam'          => $is_exam,
@@ -84,34 +91,41 @@ class Batchsubject extends Admin_Controller
         }
 
         $data['id']          = $id;
-        $class               = $this->class_model->get('', $classteacher = 'yes');
-        $data['classlist']   = $class;
+
+        // TVET: Use TVET classes
+        $session_id          = $this->setting_model->getCurrentSession();
+        $classlist           = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']   = $classlist;
+
         $batch               = $this->batchsubject_model->getByID($id);
         $data['batch']       = $batch;
         $subject             = $this->subject_model->get();
         $data['subjectlist'] = $subject;
         $batch_result        = $this->batchsubject_model->get();
         $data['batchlist']   = $batch_result;
+
+        // TVET: Removed section_id validation
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('batch_id', $this->lang->line('batch'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules(
             'subject_id', $this->lang->line('subject'), array(
                 'required',
                 array('check_batchsubjectexists', array($this->batchsubject_model, 'valid_batchsubject')),
             )
         );
-        
+
         if ($this->form_validation->run() == false) {
             $this->load->view('layout/header', $data);
             $this->load->view('admin/batchsubject/batchsubjectEdit', $data);
             $this->load->view('layout/footer', $data);
         } else {
             $is_exam = isset($_POST['is_exam']) ? 1 : 0;
+
+            // TVET: Use class_id directly
             $data    = array(
                 'id'               => $this->input->post('id'),
-                'class_section_id' => $this->input->post('section_id'),
+                'class_section_id' => $this->input->post('class_id'), // TVET: Map to class_id
                 'batch_id'         => $this->input->post('batch_id'),
                 'subject_id'       => $this->input->post('subject_id'),
                 'is_exam'          => $is_exam,
@@ -123,17 +137,20 @@ class Batchsubject extends Admin_Controller
         }
     }
 
+    // TVET: No longer returns sections - returns empty for compatibility
     public function getSectionByClass()
     {
         $class_id = $this->input->post('class_id');
-        $data     = $this->batchsubject_model->getBatchSectionByClass($class_id);
-        echo json_encode($data);
+        // TVET: Return empty array since we don't use sections anymore
+        // Batches are now directly linked to TVET CLASS
+        echo json_encode(array());
     }
 
+    // TVET: Updated to work with class_id directly (no class_section_id)
     public function getBatchByClassSection()
     {
-        $class_section_id = $this->input->post('class_section_id');
-        $data             = $this->batchsubject_model->getBatchByClassSection($class_section_id);
+        $class_id = $this->input->post('class_section_id'); // Keep param name for compatibility
+        $data     = $this->batchsubject_model->getBatchByClass($class_id);
         echo json_encode($data);
     }
 

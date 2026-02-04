@@ -1,0 +1,21 @@
+SyntaxError: /Users/anupa/ADNK Group of Companies/Direct Clients/Graham/Smart-School-Git-Repo/tests/e2e/terminology-regression-check.spec.ts: Missing initializer in const declaration. (262:17)
+
+  260 |   test.describe('Legacy JavaScript Detection', () => {
+  261 |
+> 262 |     const pagesTo Check = [
+      |                  ^
+  263 |       '/admin/approve_leave',
+  264 |       '/admin/stuattendence/attendencereport',
+  265 |       '/admin/examresult',
+
+   at terminology-regression-check.spec.ts:262
+
+  260 |   test.describe('Legacy JavaScript Detection', () => {
+  261 |
+> 262 |     const pagesTo Check = [
+      |                 ^
+  263 |       '/admin/approve_leave',
+  264 |       '/admin/stuattendence/attendencereport',
+  265 |       '/admin/examresult',
+Error: No tests found
+

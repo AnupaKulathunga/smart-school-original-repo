@@ -241,6 +241,50 @@ class Subjecttimetable_model extends MY_Model
         }
     }
     
+    // TVET: New method for TVET CLASS-based syllabus (no section_id)
+    public function getTVETSyllabusSubject($staff_id, $day_value, $class_ids = array())
+    {
+        $this->db->select('class.class_code, class.cohort_name, subjects.name as subject_name, subjects.code as subject_code, subject_timetable.*, subject_level.id as subject_level_id');
+        $this->db->from('subject_timetable');
+
+        // TVET: Join to TVET CLASS via class_lecturer (staff teaching assignments)
+        $this->db->join('class_lecturer', 'class_lecturer.staff_id = subject_timetable.staff_id', 'left');
+        $this->db->join('class', 'class.id = class_lecturer.class_id', 'left');
+        $this->db->join('subject_level', 'subject_level.id = class.subject_level_id', 'left');
+        $this->db->join('subjects', 'subjects.id = subject_level.subject_id', 'left');
+
+        $this->db->where('subject_timetable.session_id', $this->current_session);
+        $this->db->where('subject_timetable.day', $day_value);
+        $this->db->where('subject_timetable.staff_id', $staff_id);
+
+        // TVET: Filter by class_ids if provided
+        if (!empty($class_ids)) {
+            $this->db->where_in('class.id', $class_ids);
+        }
+
+        $this->db->group_by('subject_timetable.id');
+        $this->db->order_by('subject_timetable.start_time', 'asc');
+
+        $result = $this->db->get()->result();
+
+        // If no TVET classes found, fall back to legacy subject_group_subjects lookup
+        if (empty($result)) {
+            // Fallback: Query using existing subject_group_subjects structure
+            $this->db->select('subject_group_subjects.subject_id, sub.name as subject_name, sub.code as subject_code, subject_timetable.*');
+            $this->db->from('subject_timetable');
+            $this->db->join('subject_group_subjects', 'subject_group_subjects.id = subject_timetable.subject_group_subject_id', 'left');
+            $this->db->join('subjects as sub', 'sub.id = subject_group_subjects.subject_id', 'left');
+            $this->db->where('subject_timetable.session_id', $this->current_session);
+            $this->db->where('subject_timetable.day', $day_value);
+            $this->db->where('subject_timetable.staff_id', $staff_id);
+            $this->db->order_by('subject_timetable.start_time', 'asc');
+
+            $result = $this->db->get()->result();
+        }
+
+        return $result;
+    }
+
     public function getByStaffClassTeacherandDay($staff_id, $day_value) {
 
         $sql = "select GROUP_CONCAT(subject_timetable.id) as timetable_id from class_teacher inner join subject_timetable on class_teacher.class_id=subject_timetable.class_id  and class_teacher.section_id=subject_timetable.section_id WHERE  subject_timetable.staff_id=" . $this->db->escape($staff_id) . " and subject_timetable.session_id =" . $this->current_session." order by subject_timetable.start_time";

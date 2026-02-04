@@ -32,31 +32,13 @@ if (isset($error_message)) {
     }
     ?>
                                 <?php echo $this->customlib->getCSRF(); ?>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                    <select  id="class_id" name="class_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($classlist as $class) {
-        ?>
-                                            <option value="<?php echo $class['id'] ?>"<?php
-if (set_value('class_id') == $class['id']) {
-            echo "selected=selected";
-        }
-        ?>><?php echo $class['class'] ?></option>
-                                                    <?php
-}
-    ?>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                </div>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                    <select  id="section_id" name="section_id" class="form-control" >
-                                        <option value=""   ><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                </div>
+                                <?php
+                                // TVET: Use class_selector component
+                                $this->load->view('admin/_partials/class_selector', [
+                                    'selected_class_id' => set_value('class_id'),
+                                    'classlist' => $classlist
+                                ]);
+                                ?>
                                 <div class="form-group">
                                     <label for="exampleInputEmail1">Batch --r</label><small class="req"> *</small>
                                     <select  id="batch_id" name="batch_id" class="form-control" >
@@ -117,8 +99,7 @@ if ($this->rbac->hasPrivilege('expense', 'can_add')) {
                                 <thead>
                                     <tr>
                                         <th><?php echo $this->lang->line('class'); ?></th>
-                                        <th><?php echo $this->lang->line('section'); ?></th>
-                                        <th>Batch --r</th>
+                                        <th>Batch</th>
                                         <th><?php echo $this->lang->line('subject'); ?></th>
                                         <th class="text-right"><?php echo $this->lang->line('action'); ?></th>
                                     </tr>
@@ -128,11 +109,13 @@ if ($this->rbac->hasPrivilege('expense', 'can_add')) {
 foreach ($batchlist as $batch) {
     ?>
                                         <tr>
-
                                             <td class="mailbox-name">
-                                                <a href="#" data-toggle="popover" class="detail_popover"><?php echo $batch->class; ?></a>
+                                                <!-- TVET: Display CLASS info (class may be legacy or TVET depending on data) -->
+                                                <a href="#" data-toggle="popover" class="detail_popover">
+                                                    <?php echo isset($batch->class) ? $batch->class : ''; ?>
+                                                    <?php echo isset($batch->section) && $batch->section ? ' (' . $batch->section . ')' : ''; ?>
+                                                </a>
                                             </td>
-                                            <td class="mailbox-name"><?php echo $batch->section; ?></td>
                                             <td class="mailbox-name"><?php echo $batch->name; ?></td>
                                             <td class="mailbox-name">
                                                 <ul class="liststyle1">
@@ -186,57 +169,21 @@ foreach ($batch->batch_subjects as $batchsubject_key => $batchsubject_value) {
     $(document).ready(function () {
 
         var class_id = '<?php echo set_value('class_id', 0) ?>';
-        var section_id = '<?php echo set_value('section_id', 0) ?>';
         var batch_id = '<?php echo set_value('batch_id', 0) ?>';
 
-        getSectionByClass(class_id, section_id);
-        getBatchStudents(section_id, batch_id);
+        // TVET: Load batches directly from class_id (no section step)
+        getBatchStudents(class_id, batch_id);
 
+        // TVET: When class changes, load batches directly
         $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
             var class_id = $(this).val();
-            getSectionByClass(class_id, 0);
+            getBatchStudents(class_id, 0);
         });
 
-        $(document).on('change', '#section_id', function (e) {
-            getBatchStudents($(this).val(), 0);
-        });
-
-        function getSectionByClass(class_id, section_id) {
+        // TVET: Updated to use class_id directly instead of section_id
+        function getBatchStudents(class_id, batch_id) {
 
             if (class_id != "") {
-                $('#section_id').html("");
-                var base_url = '<?php echo base_url() ?>';
-                var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                $.ajax({
-                    type: "GET",
-                    url: base_url + "sections/getByClass",
-                    data: {'class_id': class_id},
-                    dataType: "json",
-                    beforeSend: function () {
-                        $('#section_id').addClass('dropdownloading');
-                    },
-                    success: function (data) {
-                        $.each(data, function (i, obj)
-                        {
-                            var sel = "";
-                            if (section_id == obj.section_id) {
-                                sel = "selected";
-                            }
-                            div_data += "<option value=" + obj.id + " " + sel + ">" + obj.section + "</option>";
-                        });
-                        $('#section_id').append(div_data);
-                    },
-                    complete: function () {
-                        $('#section_id').removeClass('dropdownloading');
-                    }
-                });
-            }
-        }
-
-        function getBatchStudents(section_id, batch_id) {
-
-            if (section_id != "") {
                 $('#batch_id').html("");
                 var base_url = '<?php echo base_url() ?>';
                 var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
@@ -244,7 +191,7 @@ foreach ($batch->batch_subjects as $batchsubject_key => $batchsubject_value) {
                 $.ajax({
                     type: "POST",
                     url: base_url + "admin/batch/getByClassSection",
-                    data: {'section_id': section_id},
+                    data: {'section_id': class_id}, // TVET: Param name kept for compatibility
                     dataType: "JSON",
                     beforeSend: function () {
                         $('#batch_id').addClass('dropdownloading');

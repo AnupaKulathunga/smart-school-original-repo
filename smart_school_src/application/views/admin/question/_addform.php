@@ -49,29 +49,16 @@ foreach ($question_level as $question_level_key => $question_level_value) {
                     </div>
                     </div>
                    <div class="row">
-                          <div class="form-group col-md-6">
-                        <label for="class_id"><?php echo $this->lang->line('class') ?></label><small class="req"> *</small>
-
-                        <select class="form-control" name="class_id" id="class_id">
-                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                            <?php
-foreach ($classList as $class_key => $class_value) {
-    ?>
-    <option value="<?php echo $class_value['id']; ?>"><?php echo $class_value['class']; ?></option>
-                                <?php
-}
-?>
-                        </select>
-                        <span class="text text-danger class_id_error"></span>
-                    </div>
-
-                 <div class="form-group col-md-6">
-                     <label for="section_id"><?php echo $this->lang->line('section'); ?></label>
-                     <select  id="section_id" name="section_id" class="form-control" >
-                         <option value=""><?php echo $this->lang->line('select'); ?></option>
-                    </select>
-                    <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                </div>
+                       <div class="form-group col-md-12">
+                           <?php
+                           // TVET: Use class_selector component (single dropdown for complete CLASS)
+                           $this->load->view('admin/_partials/class_selector', [
+                               'selected_class_id' => '',
+                               'classlist' => $classList
+                           ]);
+                           ?>
+                           <span class="text text-danger class_id_error"></span>
+                       </div>
                    </div>
 
                     <div class="form-group">

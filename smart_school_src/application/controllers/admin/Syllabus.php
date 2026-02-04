@@ -54,25 +54,29 @@ class Syllabus extends Admin_Controller
         $data['prev_week_start'] = $this->customlib->dateformat($prev_week_start);
         $data['next_week_start'] = $this->customlib->dateformat($next_week_start);
         $this->session->set_userdata('top_menu', 'Time_table');
-        $staff_id            = $_POST['staff_id'];
-        $data['timetable']   = array();
-        $days                = $this->customlib->getDaysname();
-        $userdata            = $this->customlib->getUserData();
-        $role_id             = $userdata["role_id"];
-        $class_section_array = array();
+        $staff_id          = $_POST['staff_id'];
+        $data['timetable'] = array();
+        $days              = $this->customlib->getDaysname();
+        $userdata          = $this->customlib->getUserData();
+        $role_id           = $userdata["role_id"];
+
+        // TVET: Get TVET classes instead of class_sections
+        $class_ids = array();
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-            $my_class = $this->class_model->get();
-            foreach ($my_class as $class_key => $class_value) {
-                $section = $this->section_model->getClassBySection($class_value['id']);
-                foreach ($section as $key => $value) {
-                    $class_section_array[$class_value['id']][] = $value['section_id'];
+            // For teachers, get their assigned TVET classes
+            $session_id = $this->setting_model->getCurrentSession();
+            $my_classes = $this->classmodel_model->getClassesBySession($session_id);
+            foreach ($my_classes as $class) {
+                // Filter by lecturer if available
+                if (isset($class->lecturer_id) && $class->lecturer_id == $staff_id) {
+                    $class_ids[] = $class->id;
                 }
             }
         }
 
         foreach ($days as $day_key => $day_value) {
-            $data['timetable'][$day_key] = $this->subjecttimetable_model->getSyllabussubject($staff_id, $day_key, $class_section_array);
-
+            // TVET: Use new TVET-compatible method
+            $data['timetable'][$day_key] = $this->subjecttimetable_model->getTVETSyllabusSubject($staff_id, $day_key, $class_ids);
         }
 
         $data['staff_id'] = $staff_id;
@@ -291,28 +295,33 @@ class Syllabus extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'admin/lessonplan');
         $data                     = array();
         $data['no_record']        = '0';
-        $class                    = $this->class_model->get();
-        $data['classlist']        = $class;
+
+        // TVET: Use TVET classes
+        $session_id               = $this->setting_model->getCurrentSession();
+        $classlist                = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']        = $classlist;
         $data['class_id']         = "";
-        $data['section_id']       = "";
         $data['subject_group_id'] = "";
         $data['subject_id']       = "";
         $data['subject_name']     = "";
         $data['lessons']          = array();
+
+        // TVET: Removed section_id validation
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
 
         } else {
-            $data['class_id']               = $_POST['class_id'];
-            $data['section_id']             = $_POST['section_id'];
-            $data['subject_group_id']       = $_POST['subject_group_id'];
-            $data['subject_id']             = $_POST['subject_id'];
-            $subject_details                = $this->lessonplan_model->get_subjectNameBySubjectGroupSubjectId($_POST['subject_id']);
-            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_class_sectionsId($_POST['class_id'], $_POST['section_id'], $_POST['subject_group_id']);
+            $data['class_id']         = $_POST['class_id'];
+            $data['subject_group_id'] = $_POST['subject_group_id'];
+            $data['subject_id']       = $_POST['subject_id'];
+            $subject_details          = $this->lessonplan_model->get_subjectNameBySubjectGroupSubjectId($_POST['subject_id']);
+
+            // TVET: Use class_id only (no section_id)
+            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_class_sectionsId($_POST['class_id'], null, $_POST['subject_group_id']);
+
             if ($subject_details['code'] == '') {
                 $data['subject_name'] = $subject_details['name'];
             } else {

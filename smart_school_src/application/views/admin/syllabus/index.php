@@ -95,7 +95,7 @@ if (!empty($staff_list)) {
                                             </select>
 
                                             <input type="hidden" id="class_id" name="class_id" class="form-control" >
-                                            <input type="hidden" id="section_id" name="section_id" class="form-control" >
+                                            <!-- TVET: section_id removed - using CLASS only -->
                                             <input type="hidden" id="subject_group_id" name="subject_group_id" class="form-control" >
                                             <input type="hidden" id="subject_id" name="subject_id" class="form-control" >
                                             <input type="hidden" id="subject_group_subject_id" name="subject_group_subject_id" class="form-control" >

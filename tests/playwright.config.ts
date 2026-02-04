@@ -47,6 +47,16 @@ export default defineConfig({
       testMatch: /e2e\/admin\/.*\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'platform-wide',
+      testMatch: /e2e\/platform-wide-.*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'terminology-check',
+      testMatch: /e2e\/terminology-.*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
 
   // Run local dev server before tests (optional)
