@@ -118,7 +118,9 @@ class Examresult extends Admin_Controller
         $data['examgrouplist'] = $examgroup_result;
         $marksheet_result      = $this->marksheet_model->get();
         $data['marksheetlist'] = $marksheet_result;
-        $class                 = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id            = $this->setting_model->getCurrentSession();
+        $class                 = $this->classmodel_model->getClassesBySession($session_id);
         $data['title']         = 'Add Batch';
         $data['title_list']    = 'Recent Batch';
         $data['examType']      = $this->exam_type;
@@ -525,7 +527,9 @@ class Examresult extends Admin_Controller
         $marksheet_result      = $this->marksheet_model->get();
         $data['marksheetlist'] = $marksheet_result;
 
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['title']       = 'Add Batch';
         $data['title_list']  = 'Recent Batch';
         $data['examType']    = $this->exam_type;
