@@ -46,7 +46,9 @@ class Student extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'student/multiclass');
         $data['title']       = 'student fees';
         $data['title']       = 'student fees';
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
 
@@ -55,7 +57,9 @@ class Student extends Admin_Controller
 
         if ($this->form_validation->run() == false) {
         } else {
-            $class                   = $this->class_model->get();
+            // TVET: Use classmodel_model->getClassesBySession()
+            $session_id              = $this->setting_model->getCurrentSession();
+            $class                   = $this->classmodel_model->getClassesBySession($session_id);
             $data['classlist']       = $class;
             $data['student_due_fee'] = array();
             $class_id                = $this->input->post('class_id');
@@ -1127,8 +1131,9 @@ class Student extends Admin_Controller
         }
         $data['title']      = $this->lang->line('import_student');
         $data['title_list'] = $this->lang->line('recently_added_student');
+        // TVET: Use classmodel_model->getClassesBySession()
         $session            = $this->setting_model->getCurrentSession();
-        $class              = $this->class_model->get('', $classteacher = 'yes');
+        $class              = $this->classmodel_model->getClassesBySession($session);
         $data['classlist']  = $class;
         $userdata           = $this->customlib->getUserData();
 
@@ -1842,7 +1847,9 @@ class Student extends Admin_Controller
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
         $data['sch_setting']     = $this->sch_setting_detail;
         $data['fields']          = $this->customfield_model->get_custom_fields('students', 1);
-        $class                   = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']       = $class;
 
         $this->load->view('layout/header', $data);
