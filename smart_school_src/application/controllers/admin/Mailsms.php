@@ -91,8 +91,10 @@ class Mailsms extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Communicate');
         $this->session->set_userdata('sub_menu', 'Communicate/mailsms/compose');
         $data['title']               = 'Add Mailsms';
-        $class                       = $this->class_model->get();
-        $data['classlist']           = $class;
+        // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+        $session = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session);
+        $data['classlist'] = $class;
         $userdata                    = $this->customlib->getUserData();
         $data['email_template_list'] = $this->messages_model->get_email_template();
 
@@ -143,8 +145,10 @@ class Mailsms extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Communicate');
         $this->session->set_userdata('sub_menu', 'mailsms/compose_sms');
         $data['title']             = 'Add Mailsms';
-        $class                     = $this->class_model->get();
-        $data['classlist']         = $class;
+        // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+        $session = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session);
+        $data['classlist'] = $class;
         $data['sms_template_list'] = $this->messages_model->get_sms_template();
         $userdata                  = $this->customlib->getUserData();
         $carray                    = array();
@@ -2007,7 +2011,9 @@ class Mailsms extends Admin_Controller
                     $this->load->view('admin/mailsms/schedule/email/edit_email_individual', $data);
                     $this->load->view('layout/footer');
                 } elseif ($messagelist['is_class'] == '1') {
-                    $data['classlist']        = $this->class_model->get();
+                    // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+                    $session = $this->setting_model->getCurrentSession();
+                    $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
                     $data['selected_section'] = $messagelist['schedule_section'];
                     $data['send_to']          = $messagelist['send_to'];
 
@@ -2048,7 +2054,9 @@ class Mailsms extends Admin_Controller
                     $this->load->view('admin/mailsms/schedule/sms/edit_sms_individual', $data);
                     $this->load->view('layout/footer');
                 } elseif ($messagelist['is_class'] == '1') {
-                    $data['classlist']             = $this->class_model->get();
+                    // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+                    $session = $this->setting_model->getCurrentSession();
+                    $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
 
                     $data['selected_section']      = $messagelist['schedule_section'];
                     $data['send_to']               = $messagelist['send_to'];

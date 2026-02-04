@@ -396,27 +396,12 @@
                             </div>
                         </div>
                         <div class="col-sm-12 col-md-12 col-lg-12">
-                            <div class="form-group">
-                                <label for="class"> <?php echo $this->lang->line('class') ?><small class="req"> *</small></label>
-                                <select id="class_id" name="class_id" class="form-control select2">
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-                                    foreach ($classlist as $class) {
-                                    ?>
-                                        <option value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                    <?php
-                                    }
-                                    ?>
-                                </select>
-                                <span class="text text-danger" id="class_error"></span>
-                            </div>
-                        </div>
-                        <div class="form-group col-sm-12 col-md-12 col-lg-12">
-                            <label for="section"><?php echo $this->lang->line('section'); ?><small class="req"> *</small></label>
-                            <select id="section_id" name="section_id[]" class="form-control section-list fullselectbox" multiple="multiple">
-                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                            </select>
-                            <span class="text text-danger" id="section_error"></span>
+                            <?php
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => null,
+                                'classlist' => $classlist
+                            ]);
+                            ?>
                         </div>
 
                         <div class="clearfix"></div>
@@ -469,15 +454,12 @@
         });
         $(document).ready(function() {
 
-            $('.section-list').select2();
             $(document).on('click', '.online-timetable', function(event) {
                 var password = makeid(5);
 
                 var class_name = $(this).data('class');
                 var subject_name = $(this).data('subject');
-                var classSectionId = $(this).data('classSectionId');
                 var class_id = $(this).data('classId');
-                var section_id = $(this).data('sectionId');
                 var timeFrom = $(this).data('timeFrom');
                 var format_hour = Converttimeformat(timeFrom);
                 var d = new Date();
@@ -485,7 +467,6 @@
                 $('#meeting_date').data("DateTimePicker").date(d);
 
                 $('#class_id').val("").val(class_id);
-                $('#section_id').val("").val(classSectionId);
                 $('#class').val("").val(class_name);
                 $('#title').val("");
                 $('#password').val("").val(password);
@@ -656,17 +637,13 @@
 
         $('#modal-classteacher-timetable').on('shown.bs.modal', function(e) {
             $("#class_id", this).prop("selectedIndex", 0);
-            $("#section_id", this).find('option:not(:first)').remove();
             var password = makeid(5);
             $('#password', this).val("").val(password);
 
         });
 
-        $(document).on('change', '#form-addconference #class_id', function(e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            getSectionByClass(class_id, 0);
-        });
+        // TVET: No section dropdown - class_id is self-contained
+
         $(document).on('change', '.chgstatus_dropdown', function() {
             $(this).parent('form.chgstatus_form').submit();
         });
@@ -725,38 +702,5 @@
             minutes: minutes,
             second: 0
         };
-    }
-
-    function getSectionByClass(class_id, section_id) {
-
-        if (class_id != "") {
-            $('#form-addconference #section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {
-                    'class_id': class_id
-                },
-                dataType: "json",
-                beforeSend: function() {
-                    $('#form-addconference #section_id').addClass('dropdownloading');
-                },
-                success: function(data) {
-                    $.each(data, function(i, obj) {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#form-addconference #section_id').append(div_data);
-                },
-                complete: function() {
-                    $('#form-addconference #section_id').removeClass('dropdownloading');
-                }
-            });
-        }
     }
 </script>

@@ -252,4 +252,86 @@ class Subjecttimetable_model extends MY_Model
         }
     }
 
+    // ============================================================================
+    // TVET METHODS - Use class table (no sections)
+    // ============================================================================
+
+    /**
+     * Get timetable entries by subject group, day, and class (TVET)
+     * Replaces getBySubjectGroupDayClassSection() for TVET architecture
+     *
+     * @param int $subject_group_id The subject group ID
+     * @param string $day The day name
+     * @param int $class_id The TVET class ID
+     * @return array Timetable entries for this subject group, day, and class
+     */
+    public function getBySubjectGroupDayClass($subject_group_id, $day, $class_id)
+    {
+        $this->db->select('subject_timetable.*')
+            ->from('subject_timetable')
+            ->join('subject_group_subjects', 'subject_timetable.subject_group_subject_id = subject_group_subjects.id')
+            ->join('staff', 'staff.id = subject_timetable.staff_id')
+            ->where('subject_timetable.class_id', $class_id)
+            ->where('subject_timetable.day', $day)
+            ->where('subject_timetable.subject_group_id', $subject_group_id)
+            ->where('staff.is_active', 1)
+            ->order_by('subject_timetable.start_time', 'asc');
+
+        return $this->db->get()->result();
+    }
+
+    /**
+     * Get timetable for a specific class and day (TVET)
+     * Replaces getSubjectByClassandSectionDay() for TVET architecture
+     *
+     * @param int $class_id The TVET class ID
+     * @param string $day The day name
+     * @return array Timetable entries with subject and staff details
+     */
+    public function getSubjectByClassDay($class_id, $day)
+    {
+        $subject_condition = "";
+        $userdata          = $this->customlib->getUserData();
+
+        $role_id = $userdata["role_id"];
+        if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            if ($userdata["class_teacher"] == 'yes') {
+                $my_classes = $this->teacher_model->my_classes($userdata['id']);
+
+                if (!empty($my_classes)) {
+                    if (in_array($class_id, $my_classes)) {
+                        $subject_condition = "";
+                    } else {
+                        // TVET: Get subjects for this specific class
+                        $my_subjects = $this->teacher_model->get_subjectby_class($class_id, $userdata['id']);
+                        if (!empty($my_subjects) && isset($my_subjects['subject'])) {
+                            $subject_condition = " and subject_group_subjects.id in(" . $my_subjects['subject'] . ")";
+                        }
+                    }
+                } else {
+                    $my_subjects = $this->teacher_model->get_subjectby_class($class_id, $userdata['id']);
+                    if (!empty($my_subjects) && isset($my_subjects['subject'])) {
+                        $subject_condition = " and subject_group_subjects.id in(" . $my_subjects['subject'] . ")";
+                    }
+                }
+            }
+        }
+        $subject_condition = $subject_condition . " and staff.is_active=1 order by subject_timetable.start_time asc";
+
+        $sql = "SELECT `subject_group_subjects`.`subject_id`, subjects.name as `subject_name`, subjects.code, subjects.type,
+                staff.name, staff.surname, staff.employee_id, `subject_timetable`.*,
+                class.class_code, class.cohort_name
+                FROM `subject_timetable`
+                JOIN `subject_group_subjects` ON `subject_timetable`.`subject_group_subject_id` = `subject_group_subjects`.`id`
+                INNER JOIN subjects ON subject_group_subjects.subject_id = subjects.id
+                INNER JOIN staff ON staff.id = subject_timetable.staff_id
+                LEFT JOIN class ON class.id = subject_timetable.class_id
+                WHERE `subject_timetable`.`class_id` = " . $this->db->escape($class_id) . "
+                AND `subject_timetable`.`day` = " . $this->db->escape($day) . "
+                AND `subject_timetable`.`session_id` = " . $this->current_session . "" . $subject_condition;
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
 }

@@ -147,32 +147,15 @@ $language_name1 = $language1["short_code"];
                             ?>
                             <?php echo $this->customlib->getCSRF(); ?>
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control">
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-                                            foreach ($classlist as $class) {
-                                            ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php echo set_select('class_id', $class['id'], set_value('class_id')); ?>><?php echo $class['class'] ?></option>
-                                            <?php
-                                            }
-                                            ?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
+                                <div class="col-md-4">
+                                    <?php
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div>
                                 <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select id="section_id" name="section_id" class="form-control">
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="exampleInputEmail1">
                                             <?php echo $this->lang->line('date'); ?>
@@ -181,7 +164,7 @@ $language_name1 = $language1["short_code"];
                                         <span class="text-danger"><?php echo form_error('date'); ?></span>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-5">
                                     <div class="form-group">
                                         <label for="">
                                             <?php echo $this->lang->line('subject'); ?>
@@ -290,7 +273,6 @@ $language_name1 = $language1["short_code"];
 
                                         </div>
                                         <input type="hidden" name="class_id" value="<?php echo $class_id; ?>">
-                                        <input type="hidden" name="section_id" value="<?php echo $section_id; ?>">
                                         <input type="hidden" name="subject_timetable_id" value="<?php echo $subject_timetable_id; ?>">
                                         <input type="hidden" name="date" value="<?php echo $date; ?>">
                                         <div class="table-responsive ptt10">
@@ -403,51 +385,21 @@ $language_name1 = $language1["short_code"];
 
     $(document).ready(function() {
 
-        var section_id_post = "<?php echo set_value('section_id'); ?>";
+        // TVET: Load subjects directly from class and date
         var class_id_post = "<?php echo set_value('class_id'); ?>";
         var date_post = "<?php echo set_value('date'); ?>";
         var subject_timetable_id = "<?php echo set_value('subject_timetable_id', 0); ?>";
-        populateSection(section_id_post, class_id_post);
-        getSubjects(class_id_post, section_id_post, date_post, subject_timetable_id);
+        getSubjects(class_id_post, date_post, subject_timetable_id);
 
-        function populateSection(section_id_post, class_id_post) {
-            if (section_id_post != "" && class_id_post != "") {
-
-                $('#section_id').html("");
-
-                var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                $.ajax({
-                    type: "GET",
-                    url: baseurl + "sections/getByClass",
-                    data: {
-                        'class_id': class_id_post
-                    },
-                    dataType: "json",
-                    success: function(data) {
-                        $.each(data, function(i, obj) {
-                            var select = "";
-                            if (section_id_post == obj.section_id) {
-                                var select = "selected=selected";
-                            }
-                            div_data += "<option value=" + obj.section_id + " " + select + ">" + obj.section + "</option>";
-                        });
-                        $('#section_id').append(div_data);
-                    }
-                });
-            }
-        }
-
-        function getSubjects(class_id, section_id, date, subject_timetable_id) {
-
-            if (section_id != "" && class_id != "" && date != "") {
+        function getSubjects(class_id, date, subject_timetable_id) {
+            if (class_id != "" && date != "") {
                 $('#subject_timetable_id').html("");
                 var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
                 $.ajax({
                     type: "POST",
-                    url: baseurl + "admin/subjectgroup/getSubjectByClassandSectionDate",
+                    url: baseurl + "admin/subjectgroup/getSubjectByClassDate",
                     data: {
                         'class_id': class_id,
-                        'section_id': section_id,
                         'date': date
                     },
                     dataType: "json",
@@ -467,40 +419,16 @@ $language_name1 = $language1["short_code"];
             }
         }
 
-        $(document).on('change', '#class_id', function(e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            var url = "";
-            $.ajax({
-                type: "GET",
-                url: baseurl + "sections/getByClass",
-                data: {
-                    'class_id': class_id
-                },
-                dataType: "json",
-                success: function(data) {
-                    $.each(data, function(i, obj) {
-                        div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        });
-
         $('.date').datepicker({
             format: date_format,
             weekStart: start_week,
             todayHighlight: true,
-
             autoclose: true,
             language: '<?php echo $language_name1; ?>'
         }).on('changeDate', function(ev) {
-
             var class_id = $('#class_id').val();
-            var section_id = $('#section_id').val();
             var date = $(this).val();
-            getSubjects(class_id, section_id, date, 0);
+            getSubjects(class_id, date, 0);
         });
     });
 

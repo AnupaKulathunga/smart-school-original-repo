@@ -425,31 +425,18 @@ foreach ($roles as $role_key => $role_value) {
     </div>
     <div id="share_class" class="tab-pane">
                                                 <div class="form-group">
-                                                    <select  id="class_id" name="class_id" class="form-control"  >
-                                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
+                                                    <label><?php echo $this->lang->line('class'); ?></label>
+                                                    <select  id="class_id" name="class_id[]" class="form-control" multiple>
                                                         <?php
 foreach ($classlist as $class) {
     ?>
-                                                            <option value="<?php echo $class['id'] ?>"<?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
+                                                            <option value="<?php echo $class->id ?>"><?php echo $class->subject_name . ' - ' . $class->level_name . ' (' . $class->cohort_name . ')'; ?></option>
                                                                     <?php
 }
 ?>
                                                     </select>
+                                                    <small class="form-text text-muted"><?php echo $this->lang->line('select_multiple_classes'); ?></small>
                                                 </div>
-                                            <div class="dual-list list-right">
-                                                <div class="well minheight260">
-                                                    <div class="wellscroll">
-                                                        <b><?php echo $this->lang->line('section'); ?></b> <small class="req"> *</small>
-                                                        <ul class="list-group section_list listcheckbox">
-
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
     </div>
 </div>
 
@@ -919,7 +906,6 @@ $(document).on('submit','form#share_form',function(e) {
         $('.nav-tabs-radio input[data-target="#share_group"]').tab('show');
         $("input:radio[value='group']").prop('checked',true);
         $('ul.send_list').html("");
-        $('ul.section_list').html("");
         selected_sidebar_data=[];
         share_by_side_panel = false;
         selected_data=[];
@@ -1264,24 +1250,9 @@ jQuery(document).ready( function () {
         return false;
     };
 
-    $(document).on('change', '#class_id', function (e) {
-        $('.section_list').html("");
-        var class_id = $(this).val();
-        var div_data = '';
-        $.ajax({
-            type: "GET",
-            url: baseurl  + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += '<li class="checkbox"><a href="#" class="small"><label><input type="checkbox" name="class_section_id[]" value ="' + obj.id + '"/>' + obj.section + '</label></a></li>';
-                });
-                $('.section_list').append(div_data);
-            }
-        });
-    });
+    // TVET: No section dropdown - class_id is self-contained
+    // Classes can be selected directly with multiple selection
+    // Removed section population JavaScript
 
 $('#single-delete').on('show.bs.modal', function(e) {
             var data = $(e.relatedTarget).data();
@@ -1597,9 +1568,8 @@ $('.close_btn').click(function(){
     reset_form('#share_form');
         $('.nav-tabs-radio input[data-target="#share_group"]').tab('show');
         $("input:radio[value='group']").prop('checked',true);
-        
+
     $(".send_list").empty();
-    $(".section_list").empty();
  });
 
 </script>

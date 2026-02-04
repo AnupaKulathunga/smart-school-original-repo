@@ -144,40 +144,16 @@
                                     <?php echo $this->session->flashdata('msg');
                                     $this->session->unset_userdata('msg'); ?>
                                 <?php } ?>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control">
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-                                            foreach ($classlist as $class) {
-                                            ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php
-                                                                                            if ($class_id == $class['id']) {
-                                                                                                echo "selected =selected";
-                                                                                            }
-                                                                                            ?>>
-                                                    <?php echo $class['class'] ?>
-                                                </option>
-                                            <?php
-                                                $count++;
-                                            }
-                                            ?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
+                                <!-- TVET: Use class_selector component - no section dropdown -->
+                                <div class="col-md-6">
+                                    <?php
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => isset($class_id) ? $class_id : '',
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select id="section_id" name="section_id" class="form-control">
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="exampleInputEmail1">
                                             <?php echo $this->lang->line('attendance_date'); ?>
@@ -437,64 +413,9 @@
         });
         var table = $('.example').DataTable();
         table.buttons('.export').remove();
-        var section_id_post = '<?php echo $section_id; ?>';
-        var class_id_post = '<?php echo $class_id; ?>';
-        populateSection(section_id_post, class_id_post);
 
-        function populateSection(section_id_post, class_id_post) {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {
-                    'class_id': class_id_post,
-                    'day_wise': 'yes'
-                },
-                dataType: "json",
-                success: function(data) {
-                    $.each(data, function(i, obj) {
-                        var select = "";
-                        if (section_id_post == obj.section_id) {
-                            var select = "selected=selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + select + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        }
-
-        $(document).on('change', '#class_id', function(e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            var url = "<?php
-                        $userdata = $this->customlib->getUserData();
-                        if (($userdata["role_id"] == 2)) {
-                            echo "getClassTeacherSection";
-                        } else {
-                            echo "getByClass";
-                        }
-                        ?>";
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {
-                    'class_id': class_id,
-                    'day_wise': 'yes'
-                },
-                dataType: "json",
-                success: function(data) {
-                    $.each(data, function(i, obj) {
-                        div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        });
+        // TVET: No section dropdown - class_id is self-contained
+        // Removed populateSection() function and class_id change handler
 
     });
 </script>
@@ -642,17 +563,18 @@
     }
 
 
-let disable_enable=(type,student_session_id)=>{
+// TVET: Use enrolment_id instead of student_session_id
+let disable_enable=(type,enrolment_id)=>{
     if(type==4 || type==5){
-        $("#in_time_"+student_session_id).val("");
-        $("#out_time_"+student_session_id).val("");
-        $("#in_time_"+student_session_id).attr("disabled",true);
-        $("#out_time_"+student_session_id).attr("disabled",true);
+        $("#in_time_"+enrolment_id).val("");
+        $("#out_time_"+enrolment_id).val("");
+        $("#in_time_"+enrolment_id).attr("disabled",true);
+        $("#out_time_"+enrolment_id).attr("disabled",true);
     }else{
-        $("#in_time_"+student_session_id).val("");
-        $("#out_time_"+student_session_id).val("");
-        $("#in_time_"+student_session_id).attr("disabled",false);
-        $("#out_time_"+student_session_id).attr("disabled",false);
+        $("#in_time_"+enrolment_id).val("");
+        $("#out_time_"+enrolment_id).val("");
+        $("#in_time_"+enrolment_id).attr("disabled",false);
+        $("#out_time_"+enrolment_id).attr("disabled",false);
     }
 }
 

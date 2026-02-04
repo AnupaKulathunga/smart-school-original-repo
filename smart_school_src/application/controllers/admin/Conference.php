@@ -220,7 +220,9 @@ class Conference extends Admin_Controller
         $data                       = array();
         $data['conference_setting'] = $this->conference_setting;
         $role                       = json_decode($this->customlib->getStaffRole());
-        $class                      = $this->class_model->get();
+        // TVET: Get classes from current session
+        $session                    = $this->setting_model->getCurrentSession();
+        $class                      = $this->classmodel_model->getClassesBySession($session);
         $data['classlist']          = $class;
         $data['role']               = $role;
         $staff_id                   = $this->customlib->getStaffID();
@@ -263,8 +265,8 @@ class Conference extends Admin_Controller
         $response = array();
         $this->form_validation->set_rules('title', $this->lang->line('class_title'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('date', $this->lang->line('class_date'), 'required|trim|xss_clean');
-        $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'required|trim|xss_clean');
-        $this->form_validation->set_rules('section_id[]', $this->lang->line('section'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('class_id[]', $this->lang->line('class'), 'required|trim|xss_clean');
+        // TVET: No section_id validation, class_id includes cohort
         $this->form_validation->set_rules('host_video', $this->lang->line('host_video'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('client_video', $this->lang->line('client_video'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('password', $this->lang->line('password'), 'required|trim|xss_clean');
@@ -273,8 +275,7 @@ class Conference extends Admin_Controller
             $data = array(
                 'title'        => form_error('title'),
                 'date'         => form_error('date'),
-                'class_id'     => form_error('class_id'),
-                'section_id'   => form_error('section_id[]'),
+                'class_id'     => form_error('class_id[]'),
                 'host_video'   => form_error('host_video'),
                 'client_video' => form_error('client_video'),
                 'password'     => form_error('password'),
@@ -333,9 +334,10 @@ class Conference extends Admin_Controller
             if ($response['status']) {
                 if (isset($response['data'])) {
                     $insert_array['return_response'] = json_encode($response['data']);
-                    $this->conference_model->add($insert_array, $this->input->post('section_id[]'));
+                    // TVET: Use class_id instead of section_id
+                    $this->conference_model->add($insert_array, $this->input->post('class_id[]'));
 
-                    $sender_details = array('class_section_id' => $this->input->post('section_id[]'), 'title' => $this->input->post('title'), 'date' => $this->input->post('date'), 'duration' => $this->input->post('duration'));
+                    $sender_details = array('class_id' => $this->input->post('class_id[]'), 'title' => $this->input->post('title'), 'date' => $this->input->post('date'), 'duration' => $this->input->post('duration'));
                     $this->zoom_mail_sms->mailsms('online_classes', $sender_details);
 
                     $response = array('status' => 1, 'message' => $this->lang->line('success_message'));
@@ -447,8 +449,8 @@ class Conference extends Admin_Controller
 
         $this->form_validation->set_rules('title', $this->lang->line('class_title'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('date', $this->lang->line('class_date_time'), 'required|trim|xss_clean');
-        $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'required|trim|xss_clean');
-        $this->form_validation->set_rules('section_id[]', $this->lang->line('section'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('class_id[]', $this->lang->line('class'), 'required|trim|xss_clean');
+        // TVET: No section_id validation, class_id includes cohort
         $this->form_validation->set_rules('staff_id', $this->lang->line('staff'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('role_id', $this->lang->line('role'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('host_video', $this->lang->line('host_video'), 'required|trim|xss_clean');
@@ -459,8 +461,7 @@ class Conference extends Admin_Controller
             $data = array(
                 'title'        => form_error('title'),
                 'date'         => form_error('date'),
-                'class_id'     => form_error('class_id'),
-                'section_id'   => form_error('section_id[]'),
+                'class_id'     => form_error('class_id[]'),
                 'staff_id'     => form_error('staff_id'),
                 'role_id'      => form_error('role_id'),
                 'host_video'   => form_error('host_video'),
@@ -499,8 +500,9 @@ class Conference extends Admin_Controller
                 if ($response['status']) {
                     if (isset($response['data'])) {
                         $insert_array['return_response'] = json_encode($response['data']);
-                        $this->conference_model->add($insert_array, $this->input->post('section_id[]'));
-                        $sender_details = array('class_section_id' => $this->input->post('section_id[]'), 'title' => $this->input->post('title'), 'date' => $this->input->post('date'), 'duration' => $this->input->post('duration'));
+                        // TVET: Use class_id instead of section_id
+                        $this->conference_model->add($insert_array, $this->input->post('class_id[]'));
+                        $sender_details = array('class_id' => $this->input->post('class_id[]'), 'title' => $this->input->post('title'), 'date' => $this->input->post('date'), 'duration' => $this->input->post('duration'));
                         $this->zoom_mail_sms->mailsms('online_classes', $sender_details);
                         $response = array('status' => 1, 'message' => $this->lang->line('success_message'));
                     } else {
@@ -524,8 +526,8 @@ class Conference extends Admin_Controller
         $response = array();
         $this->form_validation->set_rules('title', $this->lang->line('class_title'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('date', $this->lang->line('class_date_time'), 'required|trim|xss_clean');
-        $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'required|trim|xss_clean');
-        $this->form_validation->set_rules('section_id[]', $this->lang->line('section'), 'required|trim|xss_clean');
+        $this->form_validation->set_rules('class_id[]', $this->lang->line('class'), 'required|trim|xss_clean');
+        // TVET: No section_id validation, class_id includes cohort
         $this->form_validation->set_rules('staff_id', $this->lang->line('staff'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('host_video', $this->lang->line('host_video'), 'required|trim|xss_clean');
         $this->form_validation->set_rules('client_video', $this->lang->line('client_video'), 'required|trim|xss_clean');
@@ -535,8 +537,7 @@ class Conference extends Admin_Controller
             $data = array(
                 'title'        => form_error('title'),
                 'date'         => form_error('date'),
-                'class_id'     => form_error('class_id'),
-                'section_id'   => form_error('section_id[]'),
+                'class_id'     => form_error('class_id[]'),
                 'staff_id'     => form_error('staff_id'),
                 'host_video'   => form_error('host_video'),
                 'client_video' => form_error('client_video'),
@@ -575,13 +576,11 @@ class Conference extends Admin_Controller
                 if (isset($response['data'])) {
                     $insert_array['return_response'] = json_encode($response['data']);
 
-                    $this->conference_model->add($insert_array, $this->input->post('section_id[]'));
-                    //==============
+                    // TVET: Use class_id instead of section_id
+                    $this->conference_model->add($insert_array, $this->input->post('class_id[]'));
 
-                    $sender_details = array('class_section_id' => $this->input->post('section_id[]'), 'title' => $this->input->post('title'), 'date' => $this->input->post('date'), 'duration' => $this->input->post('duration'));
+                    $sender_details = array('class_id' => $this->input->post('class_id[]'), 'title' => $this->input->post('title'), 'date' => $this->input->post('date'), 'duration' => $this->input->post('duration'));
                     $this->zoom_mail_sms->mailsms('online_classes', $sender_details);
-
-                    //================
 
                     $response = array('status' => 1, 'message' => $this->lang->line('success_message'));
                 } else {
@@ -794,20 +793,20 @@ class Conference extends Admin_Controller
         $this->session->set_userdata('top_menu', 'conference');
         $this->session->set_userdata('sub_menu', 'conference/class_report');
         $data['title'] = 'Class Report';
-        $class = $this->class_model->get();
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session);
         $data['classlist']       = $class;
         $staff_id                = $this->customlib->getStaffID();
         $data['logged_staff_id'] = $staff_id;
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: No section_id validation, class_id includes cohort
         if ($this->form_validation->run() == false) {
-            
+
         } else {
             $class_id              = $this->input->post('class_id');
-            $section_id            = $this->input->post('section_id');
             $data['class_id']      = $class_id;
-            $data['section_id']    = $section_id;
-            $data['liveclassList'] = $this->conferencehistory_model->getclass($class_id, $section_id);
+            $data['liveclassList'] = $this->conferencehistory_model->getclass($class_id);
         }
         $data['superadmin_visible'] = $this->customlib->superadmin_visible();
         $this->load->view('layout/header', $data);
@@ -849,8 +848,8 @@ class Conference extends Admin_Controller
         if (isset($type)) {
             $data['type']         = $type;
             $class_id             = $this->input->post('class_id');
-            $section_id           = $this->input->post('section_id');
-            $data['viewerDetail'] = $this->conferencehistory_model->getLiveStudent($recordid, $class_id, $section_id);
+            // TVET: No section_id needed, class_id includes cohort
+            $data['viewerDetail'] = $this->conferencehistory_model->getLiveStudent($recordid, $class_id);
         } else {
 
             $data['viewerDetail'] = $this->conferencehistory_model->getMeetingStaff($recordid);
@@ -869,10 +868,11 @@ class Conference extends Admin_Controller
         if ($type == "class") {
 
             $leaveUrl = "admin/conference/timetable";
-            $class_section = $this->conference_model->getClassSectionByConferenceID($id);
-            foreach ($class_section as $key => $value) {
+            // TVET: Get classes instead of class_sections
+            $classes = $this->conference_model->getClassesByConferenceID($id);
+            foreach ($classes as $key => $value) {
                 $sender_details = array(
-                    'class_section_id' => $value->cls_section_id,
+                    'class_id' => $value->class_id,
                     'title' => $live->title,
                     'date' => $live->date,
                     'duration' => $live->duration

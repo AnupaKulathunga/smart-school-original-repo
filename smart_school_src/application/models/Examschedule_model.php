@@ -50,4 +50,80 @@ class Examschedule_model extends CI_Model
         return $query->result_array();
     }
 
+    // ============================================================================
+    // TVET METHODS - Use class table (no sections)
+    // ============================================================================
+
+    /**
+     * Get exam schedule details by class only (TVET)
+     * Replaces getDetailbyClsandSection() for TVET architecture
+     *
+     * @param int $class_id The TVET class ID
+     * @param int $exam_id The exam ID
+     * @return array Exam schedule details with subjects
+     */
+    public function getDetailbyClass($class_id, $exam_id)
+    {
+        $this->db->select('exam_schedules.*, subjects.name, subjects.id as subject_id, subjects.type,
+                          class.class_code, class.cohort_name, level.name as level_name')
+            ->from('exam_schedules')
+            ->join('teacher_subjects', 'exam_schedules.teacher_subject_id = teacher_subjects.id')
+            ->join('exams', 'exam_schedules.exam_id = exams.id')
+            ->join('subjects', 'teacher_subjects.subject_id = subjects.id')
+            ->join('class', 'teacher_subjects.class_id = class.id', 'left')
+            ->join('subject_level', 'class.subject_level_id = subject_level.id', 'left')
+            ->join('level', 'subject_level.level_id = level.id', 'left')
+            ->where('teacher_subjects.class_id', $class_id)
+            ->where('exam_schedules.exam_id', $exam_id)
+            ->where('exam_schedules.session_id', $this->current_session);
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Get all exams for a specific class (TVET)
+     * Replaces getExamByClassandSection() for TVET architecture
+     *
+     * @param int $class_id The TVET class ID
+     * @return array List of exams scheduled for this class
+     */
+    public function getExamByClass($class_id)
+    {
+        $this->db->select('exams.*, class.id as class_id, class.class_code, class.cohort_name,
+                          level.name as level_name, COUNT(exam_schedules.id) as subject_count')
+            ->from('exams')
+            ->join('exam_schedules', 'exams.id = exam_schedules.exam_id')
+            ->join('teacher_subjects', 'exam_schedules.teacher_subject_id = teacher_subjects.id')
+            ->join('class', 'teacher_subjects.class_id = class.id')
+            ->join('subject_level', 'class.subject_level_id = subject_level.id', 'left')
+            ->join('level', 'subject_level.level_id = level.id', 'left')
+            ->where('class.id', $class_id)
+            ->where('teacher_subjects.session_id', $this->current_session)
+            ->group_by('exams.id')
+            ->order_by('exams.name');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Get teacher's subjects for a specific class (TVET)
+     * Replaces getTeacherSubjects($class_id, $section_id, $teacher_id)
+     *
+     * @param int $class_id The TVET class ID
+     * @param int $teacher_id The staff/teacher ID
+     * @return array List of subjects taught by this teacher in this class
+     */
+    public function getTeacherSubjectsByClass($class_id, $teacher_id)
+    {
+        $this->db->select('teacher_subjects.subject_id, subjects.name as subject_name, subjects.code')
+            ->from('teacher_subjects')
+            ->join('subjects', 'teacher_subjects.subject_id = subjects.id')
+            ->where('teacher_subjects.class_id', $class_id)
+            ->where('teacher_subjects.teacher_id', $teacher_id)
+            ->where('teacher_subjects.session_id', $this->current_session)
+            ->where('teacher_subjects.is_active', 1);
+
+        return $this->db->get()->result_array();
+    }
+
 }

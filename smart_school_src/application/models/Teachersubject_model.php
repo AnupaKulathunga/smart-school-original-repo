@@ -180,4 +180,83 @@ class Teachersubject_model extends MY_Model
         return $query->result();
     }
 
+    // ============================================================================
+    // TVET METHODS - Use class table (no sections)
+    // ============================================================================
+
+    /**
+     * Get teacher subject details by class (TVET)
+     * Replaces getDetailbyClsandSection() for TVET architecture
+     *
+     * Each class_id represents ONE cohort for ONE subject-level combination
+     * So assigning exam to class_id automatically assigns to specific cohort
+     *
+     * @param int $class_id The TVET class ID (includes cohort)
+     * @param int $exam_id The exam ID
+     * @return array Teacher subjects with exam schedule details
+     */
+    public function getDetailbyClass($class_id, $exam_id)
+    {
+        $this->db->select('teacher_subjects.*,
+                          exam_schedules.date_of_exam, exam_schedules.start_to,
+                          exam_schedules.end_from, exam_schedules.room_no,
+                          exam_schedules.full_marks, exam_schedules.passing_marks,
+                          subjects.name, subjects.type, subjects.code,
+                          class.class_code, class.cohort_name,
+                          level.name as level_name')
+            ->from('teacher_subjects')
+            ->join('exam_schedules', 'exam_schedules.teacher_subject_id = teacher_subjects.id
+                   AND exam_schedules.exam_id = ' . $this->db->escape($exam_id), 'left')
+            ->join('subjects', 'teacher_subjects.subject_id = subjects.id')
+            ->join('class', 'teacher_subjects.class_id = class.id')
+            ->join('subject_level', 'class.subject_level_id = subject_level.id', 'left')
+            ->join('level', 'subject_level.level_id = level.id', 'left')
+            ->where('class.id', $class_id)
+            ->where('teacher_subjects.session_id', $this->current_session);
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Get all subjects for a specific class (TVET)
+     * Replaces getSubjectByClsandSection() for timetable display
+     *
+     * @param int $class_id The TVET class ID
+     * @param string $classteacher Optional filter for class teacher
+     * @return array Teacher subjects with details
+     */
+    public function getSubjectByClass($class_id, $classteacher = 'yes')
+    {
+        $userdata = $this->customlib->getUserData();
+        $role_id  = $userdata["role_id"];
+        $where = " ";
+
+        if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            // Check if this teacher is assigned to this class
+            $is_class_teacher = $this->db->select('*')
+                ->from('class_lecturer')
+                ->where('class_id', $class_id)
+                ->where('staff_id', $userdata["id"])
+                ->where('role', 'Primary')
+                ->get()->num_rows();
+
+            if ($is_class_teacher == 0 && $classteacher == 'yes') {
+                $where = " and teacher_subjects.teacher_id = " . $userdata["id"];
+            }
+        }
+
+        $sql = "SELECT teacher_subjects.*, staff.name as teacher_name, staff.surname,
+                subjects.name, subjects.type, subjects.code,
+                class.class_code, class.cohort_name
+                FROM teacher_subjects
+                INNER JOIN subjects ON teacher_subjects.subject_id = subjects.id
+                INNER JOIN class ON teacher_subjects.class_id = class.id
+                INNER JOIN staff ON staff.id = teacher_subjects.teacher_id
+                WHERE class.id = " . $this->db->escape($class_id) . "
+                AND teacher_subjects.session_id = " . $this->db->escape($this->current_session) . " " . $where;
+
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
 }

@@ -51,36 +51,16 @@
 
                             <?php echo $this->customlib->getCSRF(); ?>
                             <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('class'); ?><small class="req"> *</small></label>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-foreach ($classlist as $class) {
-    ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                        <?php
-}
-?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
+                                <div class="col-md-6">
+                                    <?php
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist,
+                                        'onchange' => 'loadSubjectGroup()'
+                                    ]);
+                                    ?>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('section'); ?><small class="req"> *</small></label>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label><?php echo $this->lang->line('subject_group'); ?><small class="req"> *</small></label>
                                         <select  id="subject_group_id" name="subject_group_id" class="form-control" >
@@ -174,7 +154,7 @@ $count = 1;
         if ($count == 1) {
         }
         ?>
-                                    <li <?php echo $cls; ?>><a href="#tab_<?php echo $count; ?>" data-c="<?php echo set_value('class_id'); ?>" data-days="<?php echo $days_value; ?>" data-s="<?php echo set_value('section_id'); ?>" data-group="<?php echo set_value('subject_group_id'); ?>" data-day="<?php echo $days_key; ?>" data-toggle="tab" aria-expanded="true"><?php echo $days_value; ?></a></li>
+                                    <li <?php echo $cls; ?>><a href="#tab_<?php echo $count; ?>" data-c="<?php echo set_value('class_id'); ?>" data-days="<?php echo $days_value; ?>" data-group="<?php echo set_value('subject_group_id'); ?>" data-day="<?php echo $days_key; ?>" data-toggle="tab" aria-expanded="true"><?php echo $days_value; ?></a></li>
 
                                     <?php
 $count++;
@@ -219,113 +199,60 @@ $count++;
                         format: 'LT'
                     });
                 });
+                // TVET: No section dropdown - class_id is self-contained
+                // Load subject_group directly from class_id
                 var tot_count = 0;
                 var class_id = $('#class_id').val();
-                var section_id = '<?php echo set_value('section_id') ?>';
                 var subject_group_id = '<?php echo set_value('subject_group_id') ?>';
+
                 $(document).ready(function () {
+                    $('#myTabs a:first').tab('show'); // Select first tab
 
-                    $('#myTabs a:first').tab('show') // Select first tab
-                    getSectionByClass(class_id, section_id);
-                    getGroupByClassandSection(class_id, section_id, subject_group_id);
-
-                    $(document).on('change', '#class_id', function (e) {
-                        $('#section_id').html("");
-                        var class_id = $(this).val();
-                        var base_url = '<?php echo base_url() ?>';
-                        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-                        $.ajax({
-                            type: "GET",
-                            url: base_url + "sections/getByClass",
-                            data: {'class_id': class_id},
-                            dataType: "json",
-                            success: function (data) {
-                                $.each(data, function (i, obj)
-                                {
-                                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                                });
-
-                                $('#section_id').append(div_data);
-                            }
-                        });
-                    });
-
-                    $(document).on('change', '#section_id', function (e) {
-                        $('#subject_group_id').html("");
-                        var section_id = $(this).val();
-                        var class_id = $('#class_id').val();
-                        var base_url = '<?php echo base_url() ?>';
-                        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                        $.ajax({
-                            type: "POST",
-                            url: base_url + "admin/subjectgroup/getGroupByClassandSection",
-                            data: {'class_id': class_id, 'section_id': section_id},
-                            dataType: "json",
-                            success: function (data) {
-                                $.each(data, function (i, obj)
-                                {
-                                    div_data += "<option value=" + obj.subject_group_id + ">" + obj.name + "</option>";
-                                });
-
-                                $('#subject_group_id').append(div_data);
-                            }
-                        });
-                    });
+                    // Load subject groups on page load if class is selected
+                    if (class_id && subject_group_id) {
+                        loadSubjectGroupByClass(class_id, subject_group_id);
+                    }
                 });
 
-                function getSectionByClass(class_id, section_id) {
-                    if (class_id != "" && section_id != "") {
-                        $('#section_id').html("");
-                        var base_url = '<?php echo base_url() ?>';
-                        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
+                // Load subject groups when class changes
+                function loadSubjectGroup() {
+                    var class_id = $('#class_id').val();
+                    $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
 
+                    if (class_id) {
                         $.ajax({
-                            type: "GET",
-                            url: base_url + "sections/getByClass",
+                            type: "POST",
+                            url: base_url + "admin/subjectgroup/getGroupByClass",
                             data: {'class_id': class_id},
                             dataType: "json",
                             success: function (data) {
-                                $.each(data, function (i, obj)
-                                {
-                                    var sel = "";
-                                    if (section_id == obj.section_id) {
-                                        sel = "selected";
-                                    }
-                                    div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
+                                $.each(data, function (i, obj) {
+                                    $('#subject_group_id').append(
+                                        "<option value=" + obj.subject_group_id + ">" + obj.name + "</option>"
+                                    );
                                 });
-                                $('#section_id').append(div_data);
                             }
                         });
                     }
                 }
 
-                function getGroupByClassandSection(class_id, section_id, subject_group_id) {
-                    if (class_id != "" && section_id != "" && subject_group_id != "") {
-                        $('#subject_group_id').html("");
+                function loadSubjectGroupByClass(class_id, selected_group_id) {
+                    $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
 
-                        var base_url = '<?php echo base_url() ?>';
-                        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                        $.ajax({
-                            type: "POST",
-                            url: base_url + "admin/subjectgroup/getGroupByClassandSection",
-                            data: {'class_id': class_id, 'section_id': section_id},
-                            dataType: "json",
-                            success: function (data) {
-                                console.log(subject_group_id);
-                                $.each(data, function (i, obj)
-                                {
-                                    var sel = "";
-                                    if (subject_group_id == obj.subject_group_id) {
-                                        sel = "selected";
-                                    }
-                                    div_data += "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>";
-                                });
-
-                                $('#subject_group_id').append(div_data);
-                            }
-                        });
-                    }
+                    $.ajax({
+                        type: "POST",
+                        url: base_url + "admin/subjectgroup/getGroupByClass",
+                        data: {'class_id': class_id},
+                        dataType: "json",
+                        success: function (data) {
+                            $.each(data, function (i, obj) {
+                                var sel = (selected_group_id == obj.subject_group_id) ? "selected" : "";
+                                $('#subject_group_id').append(
+                                    "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>"
+                                );
+                            });
+                        }
+                    });
                 }
 
                 $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -337,11 +264,11 @@ $count++;
                 })
 
                 function getGroupdata(target, target_id, ajax_data) {
-
+                    // TVET: Removed section_id from AJAX call
                     $.ajax({
                         type: 'POST',
                         url: base_url + "admin/timetable/getBydategroupclasssection",
-                        data: {'day': ajax_data.day, 'class_id': ajax_data.c, 'section_id': ajax_data.s, 'subject_group_id': ajax_data.group},
+                        data: {'day': ajax_data.day, 'class_id': ajax_data.c, 'subject_group_id': ajax_data.group},
                         dataType: 'json',
                         beforeSend: function () {
                             $(target).addClass('show');

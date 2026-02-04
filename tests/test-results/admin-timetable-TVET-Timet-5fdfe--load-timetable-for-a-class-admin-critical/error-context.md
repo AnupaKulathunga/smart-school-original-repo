@@ -1,0 +1,297 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - link "Your School Name" [ref=e4] [cursor=pointer]:
+      - /url: http://localhost:8080/admin/admin/dashboard
+      - img "Your School Name" [ref=e6]
+    - navigation [ref=e7]:
+      - button " Toggle Navigation" [ref=e8] [cursor=pointer]:
+        - text: 
+        - generic [ref=e9]: Toggle Navigation
+      - generic [ref=e11]: Your School Name
+      - generic [ref=e13]:
+        - search [ref=e14]:
+          - generic [ref=e15]:
+            - textbox "Search By Student Name, Roll Number, Enroll Number, National Id, Local Id Etc." [ref=e16]
+            - button "" [ref=e18] [cursor=pointer]:
+              - generic [ref=e19]: 
+        - generic [ref=e20]:
+          - generic "Currency" [ref=e21]:
+            - generic [ref=e22]:
+              - button "USD ($)" [ref=e23] [cursor=pointer]:
+                - generic [ref=e24]: USD ($)
+              - text: 
+          - generic "Language" [ref=e25]:
+            - generic [ref=e26]:
+              - button "English" [ref=e27] [cursor=pointer]:
+                - generic [ref=e28]: English
+              - text: 
+          - list [ref=e30]:
+            - listitem [ref=e31]:
+              - link "" [ref=e32] [cursor=pointer]:
+                - /url: http://localhost:8080/admin/calendar/events
+                - generic [ref=e33]: 
+            - listitem "Task" [ref=e34]:
+              - link "" [ref=e35] [cursor=pointer]:
+                - /url: "#"
+                - generic [ref=e36]: 
+            - text: 
+            - listitem [ref=e37]:
+              - link "" [ref=e38] [cursor=pointer]:
+                - /url: http://localhost:8080/admin/chat
+                - generic [ref=e39]: 
+            - listitem [ref=e40]:
+              - link "User Image" [ref=e41] [cursor=pointer]:
+                - /url: "#"
+                - img "User Image" [ref=e42]
+  - complementary [ref=e43]:
+    - text: 
+    - generic [ref=e45]:
+      - list [ref=e46]:
+        - listitem [ref=e47] [cursor=pointer]:
+          - generic [ref=e48]:
+            - text: "Current Session: 2025-26"
+            - generic [ref=e49]: 
+        - listitem [ref=e50]:
+          - link "Quick Links " [ref=e51] [cursor=pointer]:
+            - /url: "#"
+            - text: Quick Links
+            - generic [ref=e52]: 
+      - list [ref=e53]:
+        - listitem [ref=e54]:
+          - link " Front Office " [ref=e55] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e56]: 
+            - text: Front Office
+            - generic [ref=e57]: 
+          - text:       
+        - listitem [ref=e58]:
+          - link " Student Information " [ref=e59] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e60]: 
+            - text: Student Information
+            - generic [ref=e61]: 
+          - text:           
+        - listitem [ref=e62]:
+          - link " Fees Collection " [ref=e63] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e64]: 
+            - text: Fees Collection
+            - generic [ref=e65]: 
+          - text:          
+        - listitem [ref=e66]:
+          - link " Teams Live Classes " [ref=e67] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e68]: 
+            - text: Teams Live Classes
+            - generic [ref=e69]: 
+          - text:   
+        - listitem [ref=e70]:
+          - link " Income " [ref=e71] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e72]: 
+            - text: Income
+            - generic [ref=e73]: 
+          - text:   
+        - listitem [ref=e74]:
+          - link " Expenses " [ref=e75] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e76]: 
+            - text: Expenses
+            - generic [ref=e77]: 
+          - text:   
+        - listitem [ref=e78]:
+          - link " Academic Management " [ref=e79] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e80]: 
+            - text: Academic Management
+            - generic [ref=e81]: 
+          - text:              
+        - listitem [ref=e82]:
+          - link " Examinations " [ref=e83] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e84]: 
+            - text: Examinations
+            - generic [ref=e85]: 
+          - text:         
+        - listitem [ref=e86]:
+          - link " Attendance " [ref=e87] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e88]: 
+            - text: Attendance
+            - generic [ref=e89]: 
+          - text:   
+        - listitem [ref=e90]:
+          - link " Online Examinations " [ref=e91] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e92]: 
+            - text: Online Examinations
+            - generic [ref=e93]: 
+          - text:   
+        - listitem [ref=e94]:
+          - link " Lesson Plan " [ref=e95] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e96]: 
+            - text: Lesson Plan
+            - generic [ref=e97]: 
+          - text:     
+        - listitem [ref=e98]:
+          - link " Annual Calendar " [ref=e99] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e100]: 
+            - text: Annual Calendar
+            - generic [ref=e101]: 
+          - text:  
+        - listitem [ref=e102]:
+          - link " Human Resource " [ref=e103] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e104]: 
+            - text: Human Resource
+            - generic [ref=e105]: 
+          - text:          
+        - listitem [ref=e106]:
+          - link " Communicate " [ref=e107] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e108]: 
+            - text: Communicate
+            - generic [ref=e109]: 
+          - text:        
+        - listitem [ref=e110]:
+          - link " Download Center " [ref=e111] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e112]: 
+            - text: Download Center
+            - generic [ref=e113]: 
+          - text:    
+        - listitem [ref=e114]:
+          - link " Assignments " [ref=e115] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e116]: 
+            - text: Assignments
+            - generic [ref=e117]: 
+          - text:  
+        - listitem [ref=e118]:
+          - link " Library " [ref=e119] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e120]: 
+            - text: Library
+            - generic [ref=e121]: 
+          - text:    
+        - listitem [ref=e122]:
+          - link " Inventory " [ref=e123] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e124]: 
+            - text: Inventory
+            - generic [ref=e125]: 
+          - text:      
+        - listitem [ref=e126]:
+          - link " Transport " [ref=e127] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e128]: 
+            - text: Transport
+            - generic [ref=e129]: 
+          - text:       
+        - listitem [ref=e130]:
+          - link " Student CV " [ref=e131] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e132]: 
+            - text: Student CV
+            - generic [ref=e133]: 
+          - text:  
+        - listitem [ref=e134]:
+          - link " Hostel " [ref=e135] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e136]: 
+            - text: Hostel
+            - generic [ref=e137]: 
+          - text:   
+        - listitem [ref=e138]:
+          - link " Certificate " [ref=e139] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e140]: 
+            - text: Certificate
+            - generic [ref=e141]: 
+          - text:      
+        - listitem [ref=e142]:
+          - link " Front CMS " [ref=e143] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e144]: 
+            - text: Front CMS
+            - generic [ref=e145]: 
+          - text:       
+        - listitem [ref=e146]:
+          - link " Alumni " [ref=e147] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e148]: 
+            - text: Alumni
+            - generic [ref=e149]: 
+          - text:  
+        - listitem [ref=e150]:
+          - link " Reports " [ref=e151] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e152]: 
+            - text: Reports
+            - generic [ref=e153]: 
+          - text:               
+        - listitem [ref=e154]:
+          - link " System Setting " [ref=e155] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e156]: 
+            - text: System Setting
+            - generic [ref=e157]: 
+          - text:                       
+  - generic [ref=e159]:
+    - text: 
+    - generic [ref=e163]:
+      - generic [ref=e164]:
+        - heading "Select Criteria" [level=3] [ref=e165]:  Select Criteria
+        - link " Add" [ref=e167] [cursor=pointer]:
+          - /url: http://localhost:8080/admin/timetable/create
+          - generic [ref=e168]: 
+          - text: Add
+      - generic [ref=e169]:
+        - generic [ref=e173]:
+          - generic [ref=e174]: Class *
+          - combobox "Class *" [ref=e175]:
+            - option "Select"
+            - option "Business Management N4 - N4 Business Management (Evening)" [selected]
+            - option "Business Management N4 - N4 Business Management (Group A)"
+            - option "Business Management N4 - N4 Business Management (Group B)"
+            - option "Business Management N4 - N5 Business Management (Evening)"
+            - option "Business Management N4 - N5 Business Management (Group A)"
+            - option "Business Management N4 - N5 Business Management (Group B)"
+            - option "Business Management N4 - NCV Engineering L2 (Evening)"
+            - option "Business Management N4 - NCV Engineering L2 (Group A)"
+            - option "Business Management N4 - NCV Engineering L2 (Group B)"
+            - option "Entrepreneurship N4 - N4 Business Management (Evening)"
+            - option "Entrepreneurship N4 - N4 Business Management (Group A)"
+            - option "Entrepreneurship N4 - N4 Business Management (Group B)"
+            - option "Entrepreneurship N4 - N5 Business Management (Evening)"
+            - option "Entrepreneurship N4 - N5 Business Management (Group A)"
+            - option "Entrepreneurship N4 - N5 Business Management (Group B)"
+            - option "Entrepreneurship N4 - NCV Engineering L2 (Evening)"
+            - option "Entrepreneurship N4 - NCV Engineering L2 (Group A)"
+            - option "Entrepreneurship N4 - NCV Engineering L2 (Group B)"
+            - option "Financial Management N4 - N4 Business Management (Evening)"
+            - option "Financial Management N4 - N4 Business Management (Group A)"
+            - option "Financial Management N4 - N4 Business Management (Group B)"
+            - option "Financial Management N4 - N5 Business Management (Evening)"
+            - option "Financial Management N4 - N5 Business Management (Group A)"
+            - option "Financial Management N4 - N5 Business Management (Group B)"
+            - option "Financial Management N4 - NCV Engineering L2 (Evening)"
+            - option "Financial Management N4 - NCV Engineering L2 (Group A)"
+            - option "Financial Management N4 - NCV Engineering L2 (Group B)"
+            - option "Marketing & Communication N4 - N4 Business Management (Evening)"
+            - option "Marketing & Communication N4 - N4 Business Management (Group A)"
+            - option "Marketing & Communication N4 - N4 Business Management (Group B)"
+            - option "Marketing & Communication N4 - N5 Business Management (Evening)"
+            - option "Marketing & Communication N4 - N5 Business Management (Group A)"
+            - option "Marketing & Communication N4 - N5 Business Management (Group B)"
+            - option "Marketing & Communication N4 - NCV Engineering L2 (Evening)"
+            - option "Marketing & Communication N4 - NCV Engineering L2 (Group A)"
+            - option "Marketing & Communication N4 - NCV Engineering L2 (Group B)"
+        - button "Search" [ref=e177] [cursor=pointer]
+  - contentinfo [ref=e178]: © 2026 Your School Name
+```

@@ -23,31 +23,15 @@ if ($this->rbac->hasPrivilege('lesson', 'can_add')) {
                                 <?php }?>
                                 <?php echo $this->customlib->getCSRF(); ?>
                                 <div class="form-group">
-
-                                    <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                    <select autofocus="" id="searchclassid" name="class_id" onchange="getSectionByClass(this.value, 0, 'secid')"  class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($classlist as $class) {
-        ?>
-                                            <option <?php
-if ($class_id == $class["id"]) {
-            echo "selected";
-        }
-        ?> value="<?php echo $class['id'] ?>" ><?php echo $class['class'] ?></option>
-                                                <?php
-}
-    ?>
-                                    </select>
+                                    <?php
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => $class_id,
+                                        'classlist' => $classlist,
+                                        'id' => 'searchclassid',
+                                        'onchange' => 'getSubjectGroupByClass()'
+                                    ]);
+                                    ?>
                                     <input type="hidden" id="lesson_subjectid" name="lesson_subjectid"  >
-                                    <span class="class_id_error text-danger"><?php echo form_error('class_id'); ?></span>
-                                </div>
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                    <select  id="secid" name="section_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="section_id_error text-danger"></span>
                                 </div>
                                 <div class="form-group">
                                     <label><?php echo $this->lang->line('subject_group'); ?></label><small class="req"> *</small>
@@ -150,62 +134,22 @@ if ($this->rbac->hasPrivilege('lesson', 'can_add')) {
 
 <script>
     $(document).ready(function (e) {
-
-        getSectionByClass("<?php echo $class_id ?>", "<?php echo $section_id ?>", 'secid');
-        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id')
-        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
+        getSubjectGroupByClass("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id');
+        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
     });
 
-    function getSectionByClass(class_id, section_id, select_control) {
+    // TVET: Load subject groups directly from class (no section needed)
+    function getSubjectGroupByClass(class_id, subjectgroup_id, subject_group_target) {
         if (class_id != "") {
-            $('#' + select_control).html("");
-            var base_url = '<?php echo base_url() ?>';
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#' + select_control).addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#' + select_control).html(div_data);
-                },
-                complete: function () {
-                    $('#' + select_control).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-
-    $(document).on('change', '#secid', function () {
-        var class_id = $('#searchclassid').val();
-        var section_id = $(this).val();
-        getSubjectGroup(class_id, section_id, 0, 'subject_group_id');
-    });
-
-    function getSubjectGroup(class_id, section_id, subjectgroup_id, subject_group_target) {
-        if (class_id != "" && section_id != "") {
-
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
             $.ajax({
                 type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
-                data: {'class_id': class_id, 'section_id': section_id},
+                url: base_url + 'admin/subjectgroup/getGroupByClass',
+                data: {'class_id': class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
-                    // setting a timeout
                     $('#' + subject_group_target).html("").addClass('dropdownloading');
+                    $('#subid').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
                 },
                 success: function (data) {
                     $.each(data, function (i, obj)
@@ -218,9 +162,8 @@ if ($this->rbac->hasPrivilege('lesson', 'can_add')) {
                     });
                     $('#' + subject_group_target).html(div_data);
                 },
-                error: function (xhr) { // if error occured
+                error: function (xhr) {
                     alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-
                 },
                 complete: function () {
                     $('#' + subject_group_target).removeClass('dropdownloading');
@@ -231,13 +174,12 @@ if ($this->rbac->hasPrivilege('lesson', 'can_add')) {
 
     $(document).on('change', '#subject_group_id', function () {
         var class_id = $('#searchclassid').val();
-        var section_id = $('#secid').val();
         var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, 0, 'subid');
+        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subid');
     });
 
-    function getsubjectBySubjectGroup(class_id, section_id, subject_group_id, subject_group_subject_id, subject_target) {
-        if (class_id != "" && section_id != "" && subject_group_id != "") {
+    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target) {
+        if (class_id != "" && subject_group_id != "") {
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
             $.ajax({

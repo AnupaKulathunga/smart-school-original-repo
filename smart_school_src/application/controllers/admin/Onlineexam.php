@@ -34,7 +34,9 @@ class Onlineexam extends Admin_Controller
         $data['questionOpt']    = $questionOpt;
         $data['question_type']  = $this->config->item('question_type');
         $data['question_level'] = $this->config->item('question_level');
-        $data['classList']      = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+        $session = $this->setting_model->getCurrentSession();
+        $data['classList'] = $this->classmodel_model->getClassesBySession($session);
         
         $this->load->view('layout/header', $data);
         $this->load->view('admin/onlineexam/index', $data);
@@ -50,7 +52,8 @@ class Onlineexam extends Admin_Controller
         $questionOpt    = $questionOpt;
         $question_type  = $this->config->item('question_type');
         $question_level = $this->config->item('question_level');
-        $classList      = $this->class_model->get();
+        $session = $this->setting_model->getCurrentSession();
+        $classList = $this->classmodel_model->getClassesBySession($session);
         $m              = json_decode($questionList);
 
         $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
@@ -199,7 +202,8 @@ class Onlineexam extends Admin_Controller
         $questionOpt    = $questionOpt;
         $question_type  = $this->config->item('question_type');
         $question_level = $this->config->item('question_level');
-        $classList      = $this->class_model->get();
+        $session = $this->setting_model->getCurrentSession();
+        $classList = $this->classmodel_model->getClassesBySession($session);
         $m              = json_decode($questionList);
 
         $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
@@ -316,10 +320,10 @@ class Onlineexam extends Admin_Controller
 
         $data['sch_setting'] = $this->sch_setting_detail;
         if ($this->input->server('REQUEST_METHOD') == 'POST') {
+            // TVET: No section_id, class_id includes cohort
             $data['class_id']      = $this->input->post('class_id');
-            $data['section_id']    = $this->input->post('section_id');
             $data['onlineexam_id'] = $this->input->post('onlineexam_id');
-            $resultlist            = $this->onlineexam_model->searchOnlineExamStudents($data['class_id'], $data['section_id'], $data['onlineexam_id']);
+            $resultlist            = $this->onlineexam_model->searchOnlineExamStudents($data['class_id'], $data['onlineexam_id']);
 
             $data['resultlist'] = $resultlist;
         }
@@ -353,12 +357,10 @@ class Onlineexam extends Admin_Controller
 
             $where_search = array();
 
+            // TVET: No section_id, class_id includes cohort
             /* Check if there is a string inputted on the search box */
             if (!empty($_POST['data']['class_id'])) {
                 $where_search['class_id'] = $_POST['data']['class_id'];
-            }
-            if (!empty($_POST['data']['section_id'])) {
-                $where_search['section_id'] = $_POST['data']['section_id'];
             }
             if (!empty($_POST['data']['question_id'])) {
                 $where_search['question_id'] = $_POST['data']['question_id'];
@@ -463,8 +465,10 @@ class Onlineexam extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'Online_Examinations/Onlineexam');
         $data['id']          = $id;
         $data['title']       = 'student fees';
-        $class               = $this->class_model->get();
-        $data['classlist']   = $class;
+        // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+        $session = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session);
+        $data['classlist'] = $class;
         $onlineexam          = $this->onlineexam_model->get($id);
         $data['onlineexam']  = $onlineexam;
         $data['sch_setting'] = $this->sch_setting_detail;
@@ -474,6 +478,7 @@ class Onlineexam extends Admin_Controller
             $this->load->view('admin/onlineexam/assign', $data);
             $this->load->view('layout/footer', $data);
         } else {
+            // TVET: No section_id validation, class_id includes cohort
             $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
             if ($this->form_validation->run() == false) {
                 $this->load->view('layout/header', $data);
@@ -481,9 +486,8 @@ class Onlineexam extends Admin_Controller
                 $this->load->view('layout/footer', $data);
             } else {
                 $data['class_id']      = $this->input->post('class_id');
-                $data['section_id']    = $this->input->post('section_id');
                 $data['onlineexam_id'] = $this->input->post('onlineexam_id');
-                $resultlist            = $this->onlineexam_model->searchOnlineExamStudents($data['class_id'], $data['section_id'], $data['onlineexam_id']);
+                $resultlist            = $this->onlineexam_model->searchOnlineExamStudents($data['class_id'], $data['onlineexam_id']);
                 $data['resultlist']    = $resultlist;
                 $data['sch_setting']   = $this->sch_setting_detail;
                 $this->load->view('layout/header', $data);
@@ -504,19 +508,18 @@ class Onlineexam extends Admin_Controller
             $array = array('status' => 'fail', 'error' => $data);
             echo json_encode($array);
         } else {
-
+            // TVET: No section_id, use enrolment_id instead of student_session_id
             $array_insert  = array();
             $array_delete  = array();
             $class_id      = $this->input->post('post_class_id');
-            $section_id    = $this->input->post('post_section_id');
             $onlineexam_id = $this->input->post('onlineexam_id');
-            $resultlist    = $this->onlineexam_model->searchOnlineExamStudents($class_id, $section_id, $onlineexam_id);
+            $resultlist    = $this->onlineexam_model->searchOnlineExamStudents($class_id, $onlineexam_id);
             $all_students  = array();
             if (!empty($resultlist)) {
 
                 foreach ($resultlist as $each_student_key => $each_student_value) {
-                    if ($each_student_value['onlineexam_student_session_id'] != 0) {
-                        $all_students[] = $each_student_value['onlineexam_student_session_id'];
+                    if ($each_student_value['onlineexam_enrolment_id'] != 0) {
+                        $all_students[] = $each_student_value['onlineexam_enrolment_id'];
                     }
 
                 }
@@ -532,17 +535,17 @@ class Onlineexam extends Admin_Controller
 
             }
             if (!empty($students_id)) {
-                $student_session_array = array();
+                $enrolment_array = array();
                 foreach ($students_id as $student_key => $student_value) {
-                    $student_session_array[] = $student_value;
+                    $enrolment_array[] = $student_value;
                 }
 
-                $student_array = array_diff($student_session_array, $all_students);
+                $student_array = array_diff($enrolment_array, $all_students);
                 if (!empty($student_array)) {
                     foreach ($student_array as $insert_key => $insert_value) {
                         $array_insert[] = array(
-                            'onlineexam_id'      => $onlineexam_id,
-                            'student_session_id' => $insert_value,
+                            'onlineexam_id' => $onlineexam_id,
+                            'enrolment_id'  => $insert_value,
                         );
                     }
                 }
@@ -577,7 +580,7 @@ class Onlineexam extends Admin_Controller
         $question_type      = $this->input->post('question_type');
         $question_level     = $this->input->post('question_level');
         $class_id           = $this->input->post('class_id');
-        $section_id         = $this->input->post('section_id');
+        // TVET: No section_id, class_id includes cohort
 
         if (isset($page)) {
             $max      = 100;
@@ -599,8 +602,7 @@ class Onlineexam extends Admin_Controller
                 ($_POST['keyword'] != "") ||
                 ($_POST['question_level'] != "") ||
                 ($_POST['question_type'] != "") ||
-                ($_POST['class_id'] != "") ||
-                ($_POST['section_id'] != "")
+                ($_POST['class_id'] != "")
             ) {
                 $search                         = $this->input->post('search');
                 $where_search['subject']        = $search;
@@ -608,52 +610,81 @@ class Onlineexam extends Admin_Controller
                 $where_search['question_level'] = $question_level;
                 $where_search['question_type']  = $question_type;
                 $where_search['class_id']       = $class_id;
-                $where_search['section_id']     = $section_id;
             }
             $where_search['is_quiz'] = $is_quiz;
             $data['question_type']   = $this->config->item('question_type');
             $data['question_level']  = $this->config->item('question_level');
             $questionList            = $this->onlineexamquestion_model->getByExamID($exam_id, $per_page, $start, $where_search);
 
+            // TVET: Updated teacher restriction logic to use classes instead of sections
             $dt_data = array();
             if ($role_id == 2) {
                 foreach ($questionList as $questionList_key => $questionList_value) {
 
-                    $my_section = array();
+                    $my_classes = array();
 
                     if ($this->sch_setting_detail->class_teacher == 'yes' && $this->sch_setting_detail->my_question == '1') {
+                        // Get lecturer's assigned classes (primary or additional)
+                        $staff_id = $this->customlib->getStaffID();
+                        $session = $this->setting_model->getCurrentSession();
 
-                        $my_class = $this->class_model->get();
-                        foreach ($my_class as $class_key => $class_value) {
+                        // Get classes where lecturer is primary
+                        $primary_classes = $this->db->select('id')
+                            ->from('class')
+                            ->where('primary_lecturer_id', $staff_id)
+                            ->where('session_id', $session)
+                            ->where('is_active', 1)
+                            ->get()->result_array();
 
-                            $section_id = $this->teacher_model->get_teacherrestricted_modesections($this->customlib->getStaffID(), $class_value['id']);
+                        foreach ($primary_classes as $class_row) {
+                            $my_classes[] = $class_row['id'];
+                        }
 
-                            foreach ($section_id as $section_idkey => $section_idvalue) {
-                                $my_section[] = $section_idvalue['section_id'];
-                            }
+                        // Get classes where lecturer is additional
+                        $additional_classes = $this->db->select('class_id')
+                            ->from('class_lecturer')
+                            ->where('lecturer_id', $staff_id)
+                            ->get()->result_array();
 
-                            if (in_array($questionList_value->section_id, $my_section, true) && $class_value['id'] == $questionList_value->class_id) {
+                        foreach ($additional_classes as $class_row) {
+                            $my_classes[] = $class_row['class_id'];
+                        }
 
-                                $dt_data[]          = $questionList_value;
-                                $recordsTotal_flter = count($dt_data);
-
-                            }
+                        if (in_array($questionList_value->class_id, $my_classes, true)) {
+                            $dt_data[]          = $questionList_value;
+                            $recordsTotal_flter = count($dt_data);
                         }
 
                     } elseif ($this->sch_setting_detail->class_teacher == 'yes' && $this->sch_setting_detail->my_question == '0') {
+                        // Get lecturer's assigned classes (primary or additional)
+                        $staff_id = $this->customlib->getStaffID();
+                        $session = $this->setting_model->getCurrentSession();
 
-                        $my_class = $this->class_model->get();
-                        foreach ($my_class as $class_key => $class_value) {
+                        // Get classes where lecturer is primary
+                        $primary_classes = $this->db->select('id')
+                            ->from('class')
+                            ->where('primary_lecturer_id', $staff_id)
+                            ->where('session_id', $session)
+                            ->where('is_active', 1)
+                            ->get()->result_array();
 
-                            $section_id = $this->teacher_model->get_teacherrestricted_modesections($this->customlib->getStaffID(), $class_value['id']);
-                            foreach ($section_id as $section_idkey => $section_idvalue) {
-                                $my_section[] = $section_idvalue['section_id'];
-                            }
+                        foreach ($primary_classes as $class_row) {
+                            $my_classes[] = $class_row['id'];
+                        }
 
-                            if (in_array($questionList_value->section_id, $my_section, true) && $class_value['id'] == $questionList_value->class_id) {
-                                $dt_data[]          = $questionList_value;
-                                $recordsTotal_flter = count($dt_data);
-                            }
+                        // Get classes where lecturer is additional
+                        $additional_classes = $this->db->select('class_id')
+                            ->from('class_lecturer')
+                            ->where('lecturer_id', $staff_id)
+                            ->get()->result_array();
+
+                        foreach ($additional_classes as $class_row) {
+                            $my_classes[] = $class_row['class_id'];
+                        }
+
+                        if (in_array($questionList_value->class_id, $my_classes, true)) {
+                            $dt_data[]          = $questionList_value;
+                            $recordsTotal_flter = count($dt_data);
                         }
 
                     } elseif ($this->sch_setting_detail->class_teacher == 'no' && $this->sch_setting_detail->my_question == '1') {
@@ -1121,8 +1152,10 @@ class Onlineexam extends Admin_Controller
         $this->session->set_userdata('subsub_menu', 'Reports/online_examinations/online_exam_report');
         $examList            = $this->onlineexam_model->get();
         $data['examList']    = $examList;
-        $class               = $this->class_model->get();
-        $data['classlist']   = $class;
+        // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+        $session = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session);
+        $data['classlist'] = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
         $this->load->view('layout/header', $data);
         $this->load->view('admin/onlineexam/report', $data);
@@ -1131,26 +1164,27 @@ class Onlineexam extends Admin_Controller
 
     public function getstudentresult()
     {
-        $onlineexam_student_id      = $this->input->post('recordid');
-        $examid                     = $this->input->post('examid');
-        $student_session_id         = $this->input->post('student_session_id');
-        $data['student_session_id'] = $this->input->post('student_session_id');
-        $admission_no               = '';
+        // TVET: Use enrolment_id instead of student_session_id
+        $onlineexam_student_id  = $this->input->post('recordid');
+        $examid                 = $this->input->post('examid');
+        $enrolment_id           = $this->input->post('enrolment_id');
+        $data['enrolment_id']   = $this->input->post('enrolment_id');
+        $admission_no           = '';
 
-        $student_list = $this->onlineexam_model->getstudentbystudentsessionid($data['student_session_id']);
+        $student_list = $this->onlineexam_model->getstudentbyenrolmentid($data['enrolment_id']);
 
         if ($student_list['admission_no'] != '') {
             $admission_no = ' (' . $student_list['admission_no'] . ')';
         }
 
         $data['student_name'] = $student_list['firstname'] . ' ' . $student_list['lastname'] . $admission_no;
-        $data['class']        = $student_list['class'];
-        $data['section']      = $student_list['section'];
+        $data['class']        = $student_list['class_code'];
+        $data['cohort']       = $student_list['cohort_name'];
         $data['father_name']  = $student_list['father_name'];
 
         $exam         = $this->onlineexam_model->get($examid);
         $data['exam'] = $exam;
-        $online_exam_validate = $this->onlineexam_model->examstudentsID($student_session_id, $examid);
+        $online_exam_validate = $this->onlineexam_model->examstudentsID($enrolment_id, $examid);
 
         $data['question_result']       = $this->onlineexamresult_model->getResultByStudent($onlineexam_student_id, $examid);
         $data['result_prepare']        = $this->onlineexamresult_model->checkResultPrepare($onlineexam_student_id);
@@ -1213,23 +1247,21 @@ class Onlineexam extends Admin_Controller
 
     public function searchloginvalidation()
     {
-        $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $exam_id    = $this->input->post('exam_id');
+        // TVET: No section_id validation, class_id includes cohort
+        $class_id = $this->input->post('class_id');
+        $exam_id  = $this->input->post('exam_id');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('exam_id', $this->lang->line('exam'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
             $error = array();
 
-            $error['class_id']   = form_error('class_id');
-            $error['section_id'] = form_error('section_id');
-            $error['exam_id']    = form_error('exam_id');
-            $array               = array('status' => 0, 'error' => $error);
+            $error['class_id'] = form_error('class_id');
+            $error['exam_id']  = form_error('exam_id');
+            $array             = array('status' => 0, 'error' => $error);
             echo json_encode($array);
         } else {
-            $params = array('class_id' => $class_id, 'section_id' => $section_id, 'exam_id' => $exam_id);
+            $params = array('class_id' => $class_id, 'exam_id' => $exam_id);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
@@ -1237,11 +1269,11 @@ class Onlineexam extends Admin_Controller
 
     public function dtreportlist()
     {
+        // TVET: No section_id, class_id includes cohort
         $exam_id     = $this->input->post('exam_id');
         $class_id    = $this->input->post('class_id');
-        $section_id  = $this->input->post('section_id');
         $sch_setting = $this->sch_setting_detail;
-        $results     = $this->onlineexamresult_model->getStudentByExam($exam_id, $class_id, $section_id);
+        $results     = $this->onlineexamresult_model->getStudentByExam($exam_id, $class_id);
         $resultlist  = json_decode($results);
         $dt_data     = array();
 
@@ -1256,12 +1288,13 @@ class Onlineexam extends Admin_Controller
                 } else {
                     $attempt_btn = " <i class='fa fa-remove'></i><span style='display:none'>" . $this->lang->line('no') . "</span>";
                 }
-                $action = "<button type='button' title=" . $this->lang->line('view') . " class='btn btn-info btn-xs student_result' data-toggle='tooltip' id='load' data-recordid=" . $student->onlineexam_student_id . " data-student_session_id=" . $student->student_session_id . " data-examid=" . $student->exam_id . " data-loading-text='<i class=fa fa-spinner fa-spin></i>'   ><i class='fa fa-eye'></i></button>";
+                // TVET: Use enrolment_id instead of student_session_id
+                $action = "<button type='button' title=" . $this->lang->line('view') . " class='btn btn-info btn-xs student_result' data-toggle='tooltip' id='load' data-recordid=" . $student->onlineexam_student_id . " data-enrolment_id=" . $student->enrolment_id . " data-examid=" . $student->exam_id . " data-loading-text='<i class=fa fa-spinner fa-spin></i>'   ><i class='fa fa-eye'></i></button>";
 
                 $row       = array();
                 $row[]     = $student->admission_no;
                 $row[]     = $viewbtn;
-                $row[]     = $student->class . "(" . $student->section . ")";
+                $row[]     = $student->class_code . " (" . $student->cohort_name . ")";
                 $row[]     = $student->attempt;
                 $row[]     = $student->attempt - $student->total_counter;
                 $row[]     = $attempt_btn;

@@ -42,8 +42,8 @@ class Stuattendence extends Admin_Controller
         $is_first_time_attendance = true;
 
         // Get TVET classes for current session
-        $session = $this->session_model->get_current_session();
-        $classlist = $this->classmodel_model->getClassesBySession($session['id']);
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $classlist;
 
         // TVET: Only class_id and date required (NO section_id)

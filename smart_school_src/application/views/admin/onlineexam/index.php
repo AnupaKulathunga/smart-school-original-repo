@@ -346,7 +346,7 @@ foreach ($subjectlist as $subject_key => $subject_value) {
                             </select>
                         </div>
                      </div>
-                      <div class="col-md-3 col-sm-6">
+                      <div class="col-md-4 col-sm-6">
                         <div class="form-group">
                             <label><?php echo $this->lang->line('class') ?></label>
                             <select class="form-control" name="class_id" id="class_id">
@@ -359,14 +359,6 @@ foreach ($classList as $class_key => $class_value) {
 }
 ?>
                         </select>
-                        </div>
-                     </div>
-                        <div class="col-md-3 col-sm-6">
-                        <div class="form-group">
-                            <label><?php echo $this->lang->line('section') ?></label>
-                          <select  id="section_id" name="section_id" class="form-control" >
-                         <option value=""><?php echo $this->lang->line('select'); ?></option>
-                    </select>
                         </div>
                      </div>
                     <div class="col-md-2 col-sm-6">
@@ -868,11 +860,10 @@ $(document).on('submit','#delete_question',function(e) {
         var question_type = $('#form_search #question_type').val();
         var question_level = $('#form_search #question_level').val();
         var class_id = $('#form_search #class_id').val();
-        var section_id = $('#form_search #section_id').val();
         $.ajax({
             type: "POST",
             url: base_url + 'admin/onlineexam/searchQuestionByExamID',
-            data: {'page': page, 'exam_id': exam_id, 'search': search,'keyword':keyword,'question_type':question_type,'question_level': question_level,'class_id':class_id,'section_id':section_id,'is_quiz':is_quiz}, // serializes the form's elements.
+            data: {'page': page, 'exam_id': exam_id, 'search': search,'keyword':keyword,'question_type':question_type,'question_level': question_level,'class_id':class_id,'is_quiz':is_quiz}, // serializes the form's elements.
             dataType: "JSON", // serializes the form's elements.
             beforeSend: function () {
             },
@@ -946,42 +937,7 @@ $(document).on('submit','#delete_question',function(e) {
          table.ajax.reload( null, false );
         });
 
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, section_id);
-    });
-
-       function getSectionByClass(class_id, section_id) {
-        if (class_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
+    // TVET: No section dropdown - class_id is self-contained
 
            $(document).on('click', '.exam_ques_list', function () {
             var $this=$(this);

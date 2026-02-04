@@ -17,36 +17,18 @@
                         <div class="box-body">
                             <?php echo $this->customlib->getCSRF(); ?>
                             <div class="row">
-                                <div class="col-md-12">                                   
+                                <div class="col-md-12">
                                     <?php if ($this->session->flashdata('msg')) { ?>
                                         <?php echo $this->session->flashdata('msg'); $this->session->unset_userdata('msg'); ?>
                                     <?php } ?>
                                 </div>
-                                <div class="col-md-6">                                   
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select  id="class_id" name="class_id" class="form-control"  >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-                                            foreach ($classlist as $class) {
-                                                ?>
-                                                <option value="<?php echo $class['id'] ?>"<?php if (set_value('class_id') == $class['id']) echo "selected=selected" ?>><?php echo $class['class'] ?></option>
-                                                <?php
-                                                $count++;
-                                            }
-                                            ?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""   ><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
+                                <div class="col-md-12">
+                                    <?php
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div>
                             </div>
 
@@ -139,7 +121,7 @@
                                                             </td>
 
                                                             <td class="mailbox-date pull-right">
-                                                                <button type="button" class="btn btn-default btn-xs viewer-list" id="load" data-recordid="<?php echo $liveclass_value->id; ?>" data-class_id="<?php echo $class_id; ?>" data-section_id="<?php echo $section_id; ?>"  title="<?php echo $this->lang->line('join_list'); ?>" data-loading-text="<i class='fa fa-spinner fa-spin'></i>"><i class="fa fa-list"></i></button>
+                                                                <button type="button" class="btn btn-default btn-xs viewer-list" id="load" data-recordid="<?php echo $liveclass_value->id; ?>" data-class_id="<?php echo $class_id; ?>" title="<?php echo $this->lang->line('join_list'); ?>" data-loading-text="<i class='fa fa-spinner fa-spin'></i>"><i class="fa fa-list"></i></button>
                                                             </td>
                                                         </tr>
                                                         <?php
@@ -186,13 +168,6 @@
 
             });
 
-            var class_id = $('#class_id').val();
-            var section_id = '<?php echo set_value('section_id', 0) ?>';
-            var hostel_id = $('#hostel_id').val();
-            var hostel_room_id = '<?php echo set_value('hostel_room_id', 0) ?>';
-
-            getSectionByClass(class_id, section_id);
-
             $.extend($.fn.dataTable.defaults, {
                 searching: true,
                 ordering: true,
@@ -202,11 +177,8 @@
                 info: false
             });
         });
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            getSectionByClass(class_id, 0);
-        });
+
+        // TVET: No section dropdown - class_id is self-contained
 
     })(jQuery);
 
@@ -240,11 +212,10 @@
             var $this = $(this);
             var recordid = $this.data('recordid');
             var class_id= $this.data('class_id');
-            var section_id=$this.data('section_id');
             $.ajax({
                 type: 'POST',
                 url: baseurl + "admin/conference/getViewerList",
-                data: {'recordid': recordid,'type':'student','class_id':class_id,'section_id':section_id},
+                data: {'recordid': recordid,'type':'student','class_id':class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
                     $this.button('loading');
@@ -334,36 +305,4 @@
 
         });
     })(jQuery);
-
-    function getSectionByClass(class_id, section_id) {
-
-        if (class_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
 </script>

@@ -23,17 +23,17 @@ class Timetable extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Academics');
         $this->session->set_userdata('sub_menu', 'Academics/timetable');
         $session            = $this->setting_model->getCurrentSession();
-        $data['title']      = 'Exam Marks';
+        $data['title']      = 'Class Timetable';
         $data['exam_id']    = "";
         $data['class_id']   = "";
-        $data['section_id'] = "";
 
-        $class             = $this->class_model->get();
+        // TVET: Get classes from current session
+        $class             = $this->classmodel_model->getClassesBySession($session);
         $data['classlist'] = $class;
 
+        // TVET: Only class_id required (no section)
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
+
         if ($this->form_validation->run() == false) {
             $this->load->view('layout/header', $data);
             $this->load->view('admin/timetable/timetableList', $data);
@@ -41,11 +41,10 @@ class Timetable extends Admin_Controller
         } else {
 
             $class_id           = $this->input->post('class_id');
-            $section_id         = $this->input->post('section_id');
-            $section_id         = $this->input->post('group_id');
             $data['class_id']   = $class_id;
-            $data['section_id'] = $section_id;
-            $result_subjects    = $this->teachersubject_model->getSubjectByClsandSection($class_id, $section_id);
+
+            // TVET: Get subjects by class only (class already includes subject via subject_level)
+            $result_subjects    = $this->teachersubject_model->getSubjectByClass($class_id);
 
             $getDaysnameList         = $this->customlib->getDaysname();
             $data['getDaysnameList'] = $getDaysnameList;
@@ -153,27 +152,29 @@ class Timetable extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'Academics/timetable');
 
         $session            = $this->setting_model->getCurrentSession();
-        $data['title']      = 'Exam Schedule';
+        $data['title']      = 'Create Timetable';
         $data['subject_id'] = "";
         $data['class_id']   = "";
-        $data['section_id'] = "";
+
         $exam               = $this->exam_model->get();
-        $class              = $this->class_model->get('', $classteacher = 'yes');
+
+        // TVET: Get classes from current session
+        $class              = $this->classmodel_model->getClassesBySession($session);
         $data['examlist']   = $exam;
         $data['classlist']  = $class;
         $userdata           = $this->customlib->getUserData();
         $staff                   = $this->staff_model->getStaffbyrole(2);
         $data['staff']           = $staff;
         $data['subject']         = array();
+
+        // TVET: Only class_id and subject_group_id required (no section)
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
+
         $class_id         = $this->input->post('class_id');
-        $section_id       = $this->input->post('section_id');
         $subject_group_id = $this->input->post('subject_group_id');
 
         $data['class_id']         = $class_id;
-        $data['section_id']       = $section_id;
         $data['subject_group_id'] = $subject_group_id;
 
         if ($this->form_validation->run() == false) {
@@ -200,12 +201,14 @@ class Timetable extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Academics');
         $this->session->set_userdata('sub_menu', 'Academics/timetable');
         $session                 = $this->setting_model->getCurrentSession();
-        $data['title']           = 'Exam Schedule';
+        $data['title']           = 'Class Timetable Report';
         $data['subject_id']      = "";
         $data['class_id']        = "";
-        $data['section_id']      = "";
+
         $exam                    = $this->exam_model->get();
-        $class                   = $this->class_model->get('', $classteacher = 'yes');
+
+        // TVET: Get classes from current session
+        $class                   = $this->classmodel_model->getClassesBySession($session);
         $data['examlist']        = $exam;
         $data['classlist']       = $class;
         $userdata                = $this->customlib->getUserData();
@@ -213,20 +216,18 @@ class Timetable extends Admin_Controller
         $data['staff']           = $staff;
         $data['subject']         = array();
 
+        // TVET: Only class_id required (no section)
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == true) {
             if (isset($_POST['search'])) {
 
                 $class_id    = $this->input->post('class_id');
-                $section_id  = $this->input->post('section_id');
                 $days        = $this->customlib->getDaysname();
                 $days_record = array();
                 foreach ($days as $day_key => $day_value) {
-                    $class_id              = $this->input->post('class_id');
-                    $section_id            = $this->input->post('section_id');
-                    $days_record[$day_key] = $this->subjecttimetable_model->getSubjectByClassandSectionDay($class_id, $section_id, $day_key);
+                    // TVET: Get timetable by class and day only
+                    $days_record[$day_key] = $this->subjecttimetable_model->getSubjectByClassDay($class_id, $day_key);
                 }
 
                 $data['timetable'] = $days_record;
@@ -270,11 +271,11 @@ class Timetable extends Admin_Controller
         $data['total_count'] = 1;
         $day                 = $this->input->post('day');
         $class_id            = $this->input->post('class_id');
-        $section_id          = $this->input->post('section_id');
         $subject_group_id    = $this->input->post('subject_group_id');
         $subject             = $this->subjectgroup_model->getGroupsubjects($subject_group_id);
 
-        $prev_record = $this->subjecttimetable_model->getBySubjectGroupDayClassSection($subject_group_id, $day, $class_id, $section_id);
+        // TVET: Get timetable by class only (no section)
+        $prev_record = $this->subjecttimetable_model->getBySubjectGroupDayClass($subject_group_id, $day, $class_id);
 
         $staff         = $this->staff_model->getStaffbyrole(2);
         $data['staff'] = $staff;
@@ -287,7 +288,6 @@ class Timetable extends Admin_Controller
         $data['subject']          = $subject;
         $data['day']              = $day;
         $data['class_id']         = $class_id;
-        $data['section_id']       = $section_id;
         $data['subject_group_id'] = $subject_group_id;
 
         $data['html'] = $this->load->view('admin/timetable/addrow', $data, true);
@@ -300,7 +300,7 @@ class Timetable extends Admin_Controller
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required');
         $this->form_validation->set_rules('day', $this->lang->line('day'), 'trim|required');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required');
+        // TVET: No section_id validation
         $total_rows = $this->input->post('total_row');
 
         if (isset($total_rows) && !empty($total_rows)) {
@@ -317,7 +317,6 @@ class Timetable extends Admin_Controller
         if (!$this->form_validation->run()) {
             $json = array(
                 'subject_group_id' => form_error('subject_group_id', '<li>', '</li>'),
-                'section_id'       => form_error('section_id', '<li>', '</li>'),
                 'day'              => form_error('day', '<li>', '</li>'),
                 'class_id'         => form_error('class_id', '<li>', '</li>'),
                 'rows'             => form_error('rows', '<li>', '</li>'),
@@ -336,7 +335,6 @@ class Timetable extends Admin_Controller
         } else {
             $day              = $this->input->post('day');
             $class_id         = $this->input->post('class_id');
-            $section_id       = $this->input->post('section_id');
             $subject_group_id = $this->input->post('subject_group_id');
             $total_row        = $this->input->post('total_row');
             $session          = $this->setting_model->getCurrentSession();
@@ -355,10 +353,10 @@ class Timetable extends Admin_Controller
                     $prev_id = $this->input->post('prev_id_' . $total_value);
 
                     if ($prev_id == 0) {
+                        // TVET: Insert without section_id
                         $insert_array[] = array(
                             'day'                      => $day,
                             'class_id'                 => $class_id,
-                            'section_id'               => $section_id,
                             'subject_group_id'         => $subject_group_id,
                             'subject_group_subject_id' => $this->input->post('subject_' . $total_value),
                             'staff_id'                 => $this->input->post('staff_' . $total_value),
@@ -371,11 +369,11 @@ class Timetable extends Admin_Controller
                         );
                     } else {
                         $preserve_array[] = $prev_id;
+                        // TVET: Update without section_id
                         $update_array[]   = array(
                             'id'                       => $prev_id,
                             'day'                      => $day,
                             'class_id'                 => $class_id,
-                            'section_id'               => $section_id,
                             'subject_group_id'         => $subject_group_id,
                             'subject_group_subject_id' => $this->input->post('subject_' . $total_value),
                             'staff_id'                 => $this->input->post('staff_' . $total_value),
@@ -441,16 +439,17 @@ class Timetable extends Admin_Controller
     public function printclasstimetable()
     {
 
-
         $class_id    = $this->input->post('class_id');
-        $section_id  = $this->input->post('section_id');
         $days        = $this->customlib->getDaysname();
-        $class_section=$this->section_model->getClassAndSectionNameByClassIDSectionID($class_id, $section_id);
-        $data['class_section']=$class_section;
+
+        // TVET: Get class info by class_id only
+        $class_info = $this->classmodel_model->getClassById($class_id);
+        $data['class_section'] = $class_info;
+
         $days_record = array();
         foreach ($days as $day_key => $day_value) {
-
-            $days_record[$day_key] = $this->subjecttimetable_model->getSubjectByClassandSectionDay($class_id, $section_id, $day_key);
+            // TVET: Get timetable by class and day only
+            $days_record[$day_key] = $this->subjecttimetable_model->getSubjectByClassDay($class_id, $day_key);
         }
         $data['timetable']=$days_record;
         $timetable_page = $this->load->view('admin/timetable/_printclasstimetable', $data, true);

@@ -25,18 +25,22 @@ class Mark extends Admin_Controller
         $data['title']      = 'Exam Marks';
         $data['exam_id']    = "";
         $data['class_id']   = "";
-        $data['section_id'] = "";
+
         $exam               = $this->exam_model->get();
-        $class              = $this->class_model->get();
+
+        // TVET: Get classes from current session
+        $class              = $this->classmodel_model->getClassesBySession($session);
         $data['examlist']   = $exam;
         $data['classlist']  = $class;
         $userdata           = $this->customlib->getUserData();
 
         $feecategory             = $this->feecategory_model->get();
         $data['feecategorylist'] = $feecategory;
+
+        // TVET: Only exam_id and class_id required (no section)
         $this->form_validation->set_rules('exam_id', 'Exam', 'trim|required|xss_clean');
         $this->form_validation->set_rules('class_id', 'Class', 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', 'Section', 'trim|required|xss_clean');
+
         if ($this->form_validation->run() == false) {
             $this->load->view('layout/header', $data);
             $this->load->view('admin/mark/markList', $data);
@@ -45,12 +49,12 @@ class Mark extends Admin_Controller
             $feecategory_id       = $this->input->post('feecategory_id');
             $exam_id              = $this->input->post('exam_id');
             $class_id             = $this->input->post('class_id');
-            $section_id           = $this->input->post('section_id');
             $data['exam_id']      = $exam_id;
             $data['class_id']     = $class_id;
-            $data['section_id']   = $section_id;
-            $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, $section_id, $exam_id);
-            $studentList          = $this->student_model->searchByClassSection($class_id, $section_id);
+
+            // TVET: Get exam schedule and students by class only
+            $examSchedule         = $this->examschedule_model->getDetailbyClass($class_id, $exam_id);
+            $studentList          = $this->classmodel_model->getClassStudents($class_id);
             $data['examSchedule'] = array();
             if (!empty($examSchedule)) {
                 $new_array                      = array();
@@ -128,18 +132,22 @@ class Mark extends Admin_Controller
         $data['title']      = 'Exam Schedule';
         $data['exam_id']    = "";
         $data['class_id']   = "";
-        $data['section_id'] = "";
+
         $exam               = $this->exam_model->get();
-        $class              = $this->class_model->get();
+
+        // TVET: Get classes from current session
+        $class              = $this->classmodel_model->getClassesBySession($session);
         $data['examlist']   = $exam;
         $data['classlist']  = $class;
         $userdata           = $this->customlib->getUserData();
 
         $feecategory             = $this->feecategory_model->get();
         $data['feecategorylist'] = $feecategory;
+
+        // TVET: Only exam_id and class_id required (no section)
         $this->form_validation->set_rules('exam_id', 'Exam', 'trim|required|xss_clean');
         $this->form_validation->set_rules('class_id', 'Class', 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', 'Section', 'trim|required|xss_clean');
+
         if ($this->form_validation->run() == false) {
             $this->load->view('layout/header', $data);
             $this->load->view('admin/mark/markCreate', $data);
@@ -148,19 +156,21 @@ class Mark extends Admin_Controller
             $feecategory_id     = $this->input->post('feecategory_id');
             $exam_id            = $this->input->post('exam_id');
             $class_id           = $this->input->post('class_id');
-            $section_id         = $this->input->post('section_id');
             $data['exam_id']    = $exam_id;
             $data['class_id']   = $class_id;
-            $data['section_id'] = $section_id;
             $userdata           = $this->customlib->getUserData();
+
+            // TVET: Get teacher subjects by class only
             $getTeacherSubjects = array();
             if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-                $getTeacherSubjects = $this->examschedule_model->getTeacherSubjects($class_id, $section_id, $userdata["id"]);
+                // Note: This method needs to be updated in examschedule_model to use class_id only
+                $getTeacherSubjects = $this->examschedule_model->getTeacherSubjectsByClass($class_id, $userdata["id"]);
             }
             $data["teacher_subjects"] = $getTeacherSubjects;
-            $examSchedule             = $this->examschedule_model->getDetailbyClsandSection($class_id, $section_id, $exam_id);
 
-            $studentList = $this->student_model->searchByClassSection($class_id, $section_id);
+            // TVET: Get exam schedule and students by class only
+            $examSchedule             = $this->examschedule_model->getDetailbyClass($class_id, $exam_id);
+            $studentList              = $this->classmodel_model->getClassStudents($class_id);
 
             if (!empty($examSchedule)) {
                 $new_array = array();

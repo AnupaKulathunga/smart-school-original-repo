@@ -22,37 +22,15 @@ if ($this->session->flashdata('msg')) {
 ?>
                             <?php echo $this->customlib->getCSRF(); ?>
                             <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-foreach ($classlist as $class) {
-    ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected =selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                        <?php
-$count++;
-}
-?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
+                                <div class="col-md-6">
+                                    <?php
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="exampleInputEmail1">
                                             <?php echo $this->lang->line('date'); ?>
@@ -165,54 +143,5 @@ function getattendencetype($attendencetype, $find)
 ?>
 
             <script type="text/javascript">
-                $(document).ready(function () {
-                    var section_id_post = "<?php echo set_value('section_id'); ?>";
-                    var class_id_post = "<?php echo set_value('class_id'); ?>";
-                    var date_post = "<?php echo set_value('date'); ?>";
-                    var subject_timetable_id = "<?php echo set_value('subject_timetable_id', 0); ?>";
-                    populateSection(section_id_post, class_id_post);
-                    function populateSection(section_id_post, class_id_post) {
-                        if (section_id_post != "" && class_id_post != "") {
-                            $('#section_id').html("");
-                            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                            $.ajax({
-                                type: "GET",
-                                url: baseurl + "sections/getByClass",
-                                data: {'class_id': class_id_post},
-                                dataType: "json",
-                                success: function (data) {
-                                    $.each(data, function (i, obj)
-                                    {
-                                        var select = "";
-                                        if (section_id_post == obj.section_id) {
-                                            var select = "selected=selected";
-                                        }
-                                        div_data += "<option value=" + obj.section_id + " " + select + ">" + obj.section + "</option>";
-                                    });
-                                    $('#section_id').html(div_data);
-                                }
-                            });
-                        }
-                    }
-
-                    $(document).on('change', '#class_id', function (e) {
-                        $('#section_id').html("");
-                        var class_id = $(this).val();
-                        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                        var url = "";
-                        $.ajax({
-                            type: "GET",
-                            url: baseurl + "sections/getByClass",
-                            data: {'class_id': class_id},
-                            dataType: "json",
-                            success: function (data) {
-                                $.each(data, function (i, obj)
-                                {
-                                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                                });
-                                $('#section_id').html(div_data);
-                            }
-                        });
-                    });
-                });
+                // TVET: No section dropdown - class_id is self-contained
             </script>

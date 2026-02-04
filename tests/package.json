@@ -1,0 +1,20 @@
+{
+  "name": "smart-school-tvet-tests",
+  "version": "1.0.0",
+  "description": "E2E tests for Smart School TVET transformation",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:ui": "playwright test --ui",
+    "sanity": "bash scripts/sanity_check.sh"
+  },
+  "keywords": ["tvet", "testing", "playwright", "e2e"],
+  "author": "Smart School Team",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0"
+  }
+}

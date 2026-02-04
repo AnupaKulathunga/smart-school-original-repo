@@ -58,30 +58,16 @@ $language_name = $language["short_code"];
                             </div>
                         </div>
 
-                        <div class="col-md-2 col-lg-2 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                <select id="old_class_id" name="old_class_id" class="form-control">
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-                                    foreach ($classlist as $class) {
-                                    ?>
-                                        <option <?php echo set_select('old_class_id', $class['id']); ?> value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                    <?php
-                                    }
-                                    ?>
-                                </select>
-                                <span class="old_class_id_error text-danger"><?php echo form_error('old_class_id'); ?></span>
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-lg-2 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                <select id="old_section_id" name="old_section_id" class="form-control">
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="old_section_id_error text-danger"><?php echo form_error('old_section_id'); ?></span>
-                            </div>
+                        <div class="col-md-4 col-lg-4 col-sm-6">
+                            <?php
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => set_value('old_class_id'),
+                                'classlist' => $classlist,
+                                'id' => 'old_class_id',
+                                'name' => 'old_class_id',
+                                'label' => $this->lang->line('class')
+                            ]);
+                            ?>
                         </div>
                         <div class="col-md-3 col-lg-3 col-sm-6">
                             <div class="form-group">
@@ -252,93 +238,24 @@ $language_name = $language["short_code"];
 
 <script>
     $(document).ready(function(e) {
-
         var session_id = $('#old_session_id').val();
         var class_id = $('#old_class_id').val();
-        var section_id = '<?php echo set_value('old_section_id', 0) ?>';
         var subject_group_id = '<?php echo set_value('old_subject_group_id', 0) ?>';
         var subject_id = '<?php echo set_value('old_subject_id', 0) ?>';
 
-        getSectionByClass(class_id, section_id, 'old_section_id');
-        getSubjectGroup(class_id, section_id, subject_group_id, 'old_subject_group_id', session_id);
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, subject_id, 'old_subject_id', session_id);
+        getSubjectGroupByClass(class_id, subject_group_id, 'old_subject_group_id', session_id);
+        getsubjectBySubjectGroup(class_id, subject_group_id, subject_id, 'old_subject_id', session_id);
     });
 
-    $(document).on('change', '#class_id', function(e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, 0, 'section_id');
-    });
-
-    $(document).on('change', '#section_id', function() {
-        let class_id = $('#class_id').val();
-        let section_id = $(this).val();
-        getSubjectGroup(class_id, section_id, 0, 'subject_group_id');
-    });
-
-    $(document).on('change', '#subject_group_id', function() {
-        let class_id = $('#class_id').val();
-        let section_id = $('#section_id').val();
-        let subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, 0, 'subject_id');
-    });
-
-    $(document).on('change', '#old_class_id', function(e) {
-        $('#old_section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, 0, 'old_section_id');
-    });
-
-    function getSectionByClass(class_id, section_id, select_control) {
+    // TVET: Load subject groups directly from class (no section needed)
+    function getSubjectGroupByClass(class_id, subjectgroup_id, subject_group_target, session_id = null) {
         if (class_id != "") {
-            $('#' + select_control).html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {
-                    'class_id': class_id
-                },
-                dataType: "json",
-                beforeSend: function() {
-                    $('#' + select_control).addClass('dropdownloading');
-                },
-                success: function(data) {
-                    $.each(data, function(i, obj) {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#' + select_control).append(div_data);
-                },
-                complete: function() {
-                    $('#' + select_control).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-
-    $(document).on('change', '#old_section_id', function() {
-        let session_id = $('#old_session_id').val();
-        let class_id = $('#old_class_id').val();
-        let section_id = $(this).val();
-        getSubjectGroup(class_id, section_id, 0, 'old_subject_group_id', session_id);
-    });
-
-    function getSubjectGroup(class_id, section_id, subjectgroup_id, subject_group_target, session_id = null) {
-        console.log(class_id);
-        console.log(section_id);
-        if (class_id != "" && section_id != "") {
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
             $.ajax({
                 type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
+                url: base_url + 'admin/subjectgroup/getGroupByClass',
                 data: {
                     'class_id': class_id,
-                    'section_id': section_id,
                     'session_id': session_id
                 },
                 dataType: 'JSON',
@@ -370,13 +287,12 @@ $language_name = $language["short_code"];
     $(document).on('change', '#old_subject_group_id', function() {
         let session_id = $('#old_session_id').val();
         let class_id = $('#old_class_id').val();
-        let section_id = $('#old_section_id').val();
         let subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, 0, 'old_subject_id', session_id);
+        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'old_subject_id', session_id);
     });
 
-    function getsubjectBySubjectGroup(class_id, section_id, subject_group_id, subject_group_subject_id, subject_target, session_id = null) {
-        if (class_id != "" && section_id != "" && subject_group_id != "") {
+    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target, session_id = null) {
+        if (class_id != "" && subject_group_id != "") {
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
             $.ajax({

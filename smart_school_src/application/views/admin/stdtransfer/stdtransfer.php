@@ -17,36 +17,18 @@
                         <div class="box-body">
                             <?php echo $this->customlib->getCSRF(); ?>
                             <div class="row">
-                                <div class="col-md-6">                                   
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-                                            foreach ($classlist as $class) {
-                                                ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_id') == $class['id']) echo "selected=selected"; ?>><?php echo $class['class'] ?></option>
-                                                <?php
-                                                $count++;
-                                            }
-                                            ?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                    </div>
+                                <div class="col-md-12">
+                                    <?php
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div>
                             </div>
                             <h4> <?php echo $this->lang->line('promote_students_in_next_session'); ?></h4>
                              <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="exampleInputEmail1"><?php echo $this->lang->line('promote_in_session'); ?> </label><small class="req"> *</small>
                                             <select  id="session_id" name="session_id" class="form-control" >
@@ -59,35 +41,19 @@
                                                     $count++;
                                                 }
                                                 ?>
-                                            </select>                                           
+                                            </select>
                                                   <span class="text-danger"><?php echo form_error('session_id'); ?></span>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                            <select  id="class_promote_id" name="class_promote_id" class="form-control" >
-                                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                <?php
-                                                foreach ($classlist as $class) {
-                                                    ?>
-        <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_promote_id') == $class['id']) echo "selected=selected"; ?>><?php echo $class['class'] ?></option>
-                                                    <?php
-                                                    $count++;
-                                                }
-                                                ?>
-                                            </select>
-                                               <span class="text-danger"><?php echo form_error('class_promote_id'); ?></span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                            <select  id="section_promote_id" name="section_promote_id" class="form-control" >
-                                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            </select>
-                                          <span class="text-danger"><?php echo form_error('section_promote_id'); ?></span>
-                                        </div>
+                                    <div class="col-md-6">
+                                        <?php
+                                        $this->load->view('admin/_partials/class_selector', [
+                                            'selected_class_id' => set_value('class_promote_id'),
+                                            'classlist' => $classlist,
+                                            'name' => 'class_promote_id',
+                                            'id' => 'class_promote_id'
+                                        ]);
+                                        ?>
                                     </div>
                                 </div>
                         </div>
@@ -226,76 +192,9 @@
         document.getElementById('search_btn').disabled = true;
     });  
 
-    function getSectionByClass(class_id, section_id) {
-        if (class_id != "" && section_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            var url = "<?php
-            $userdata = $this->customlib->getUserData();
-            if (($userdata["role_id"] == 2)) {
-                echo "getClassTeacherSection";
-            } else {
-                echo "getByClass";
-            }
-            ?>";
-
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/" + url,
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        }
-    }
+    // TVET: No section dropdown - class_id is self-contained
 
     $(document).ready(function () {
-        var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id') ?>';
-        var class_promote_id = $('#class_promote_id').val();
-        var section_promote_id = '<?php echo set_value('section_promote_id', 0) ?>';
-        getPromotedSectionByClass(class_promote_id, section_promote_id);
-        getSectionByClass(class_id, section_id);
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            var url = "<?php
-            $userdata = $this->customlib->getUserData();
-            if (($userdata["role_id"] == 2)) {
-                echo "getClassTeacherSection";
-            } else {
-                echo "getByClass";
-            }
-            ?>";
-
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/" + url,
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                    });
-
-                    $('#section_id').append(div_data);
-                }
-            });
-        });
         
         $(document).on('change', '#feecategory_id', function (e) {
             $('#feetype_id').html("");
@@ -316,44 +215,6 @@
                 }
             });
         });
-    });
-
-   function getPromotedSectionByClass(class_id, section_id) {
-
-        if (class_id != "") {
-            $('#section_promote_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_promote_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_promote_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_promote_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-
-    $(document).on('change', '#class_promote_id', function (e) {
-        $('#section_promote_id').html("");
-        var class_id = $(this).val();
-        getPromotedSectionByClass(class_id, 0);
     });
 </script>
 

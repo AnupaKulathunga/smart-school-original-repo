@@ -79,7 +79,9 @@ class Onlinestudent extends Admin_Controller
         $session                       = $this->setting_model->getCurrentSession();
         $vehroute_result               = $this->vehroute_model->getRouteVehiclesList();
         $data['vehroutelist']          = $vehroute_result;
-        $class                         = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+        $session = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session);
         $setting_result                = $this->setting_model->get();
         $data["bloodgroup"]            = $this->blood_group;
         $data["student_categorize"]    = 'class';
@@ -130,7 +132,7 @@ class Onlinestudent extends Admin_Controller
         $this->form_validation->set_rules('guardian_pic', $this->lang->line('image'), 'callback_handle_upload[guardian_pic]');
         $this->form_validation->set_rules('dob', $this->lang->line('date_of_birth'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: No section_id validation, class_id includes cohort
         $this->form_validation->set_rules('gender', $this->lang->line('gender'), 'trim|required|xss_clean');
         if ($this->sch_setting_detail->guardian_name) {
             $this->form_validation->set_rules('guardian_name', $this->lang->line('guardian_name'), 'trim|required|xss_clean');
@@ -157,9 +159,9 @@ class Onlinestudent extends Admin_Controller
             $transport_feemaster_id = $this->input->post('transport_feemaster_id');
             $discount_id            = $this->input->post('discount_id[]');
 
+            // TVET: No section_id, class_id includes cohort
             $student_id     = $this->input->post('student_id');
             $class_id       = $this->input->post('class_id');
-            $section_id     = $this->input->post('section_id');
             $hostel_room_id = empty2null($this->input->post('hostel_room_id'));
             $fees_discount  = $this->input->post('fees_discount');            
 
@@ -208,7 +210,7 @@ class Onlinestudent extends Admin_Controller
                 'guardian_address'      => $this->input->post('guardian_address'),
                 'hostel_room_id'        => $hostel_room_id,
                 'note'                  => $this->input->post('note'),
-                'class_section_id'      => $section_id,
+                'class_id'              => $class_id,
                 'route_pickup_point_id' => $route_pickup_point_id,
                 'vehroute_id'           => $vehroute_id,
             );
@@ -445,7 +447,9 @@ class Onlinestudent extends Admin_Controller
 
     public function getstudentlist()
     {
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession() instead of class_model->get()
+        $session = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session);
         $data['classlist'] = $class;
         $sch_setting       = $this->sch_setting_detail;
         $carray = array();

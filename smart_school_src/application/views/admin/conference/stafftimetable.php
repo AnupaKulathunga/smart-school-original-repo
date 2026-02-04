@@ -212,25 +212,12 @@ foreach ($conference_value->classes as $confernce_class_key => $confernce_class_
                         </div>
                         <div class="clearfix"></div>
                         <div class="form-group col-sm-12 col-md-12 col-lg-12">
-                            <label for="class"><?php echo $this->lang->line('class'); ?> <small class="req"> *</small></label>
-                            <select  id="class_id" name="class_id" class="form-control" >
-                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                <?php
-                                foreach ($classlist as $class) {
-                                    ?>
-                                    <option value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                    <?php
-                                }
-                                ?>
-                            </select>
-                            <span class="text text-danger" id="class_error"></span>
-                        </div>
-                             <div class="form-group col-sm-12 col-md-12 col-lg-12">
-                            <label for="section"><?php echo $this->lang->line('section'); ?><small class="req"> *</small></label>
-                            <select  id="section_id" name="section_id[]" class="form-control section-list fullselectbox"  multiple="multiple">
-                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                            </select>
-                            <span class="text text-danger" id="section_error"></span>
+                            <?php
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => null,
+                                'classlist' => $classlist
+                            ]);
+                            ?>
                         </div>
                         
                         <div class="clearfix"></div>
@@ -314,7 +301,6 @@ $(document).ready(function () {
         });
         $('#modal-online-timetable').on('shown.bs.modal', function (e) {
             $("#class_id").prop("selectedIndex", 0);
-            $("#section_id").find('option:not(:first)').remove();
             var password = makeid(5);
             $('#password').val("").val(password);
         })
@@ -364,11 +350,9 @@ $(document).ready(function () {
             $('input:radio[name="host_video"][value="1"]').prop('checked', true);
             $('input:radio[name="client_video"][value="1"]').prop('checked', true);
         });
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            getSectionByClass(class_id, 0);
-        });
+
+        // TVET: No section dropdown - class_id is self-contained
+
         $(document).on('change', '#role_id', function (e) {
             $('#staff_id').html("");
             var role_id = $(this).val();
@@ -442,38 +426,6 @@ $(document).ready(function () {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
-    }
-  function getSectionByClass(class_id, section_id) {
-
-        if (class_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '';
-            
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').html("").html(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
     }
 
     function getEmployeeName(role) {

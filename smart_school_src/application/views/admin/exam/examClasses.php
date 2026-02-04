@@ -31,7 +31,7 @@ if (!empty($classsectionList)) {
                                 <table class="table table-hover table-striped">
                                     <thead>
                                         <tr>
-                                            <th><?php echo $this->lang->line('class'); ?>(<?php echo $this->lang->line('section'); ?>)</th>
+                                            <th><?php echo $this->lang->line('class'); ?></th>
                                             <th class="text text-center"><?php echo $this->lang->line('exam_scheduled'); ?></th>
                                             <th class="text text-right"><?php echo $this->lang->line('marks_register_prepared'); ?></th>
                                         </tr>
@@ -40,14 +40,18 @@ if (!empty($classsectionList)) {
                                         <?php
 $count = 1;
     foreach ($classsectionList as $clssection) {
+        // TVET: Display format: "Subject - Level (Cohort)"
+        $class_display = isset($clssection['subject_name'])
+            ? $clssection['subject_name'] . ' - ' . $clssection['level_name'] . ' (' . $clssection['cohort_name'] . ')'
+            : $clssection['class'];
         ?>
                                             <tr>
                                                 <td class="mailbox-name">
-                                                    <strong><?php echo $clssection['class'] . "(" . $clssection['section'] . ")" ?></strong>
+                                                    <strong><?php echo $class_display; ?></strong>
                                                 </td>
                                                 <td  class="text text-center">
                                                     <span class="label label-success"><?php echo $this->lang->line('yes'); ?></span><br/>
-                                                    <a href="#"  class="schedule_modal" data-toggle="tooltip" title="<?php echo $this->lang->line('view_schedule'); ?>"  data-examid="<?php echo $clssection['exam_id']; ?>" data-original-title="<?php echo $this->lang->line('view_detail'); ?>" data-sectionid="<?php echo $clssection['section_id'] ?>" data-classid="<?php echo $clssection['class_id'] ?>" data-classname="<?php echo $clssection['class'] ?>"  data-sectionname="<?php echo $clssection['section'] ?>">
+                                                    <a href="#"  class="schedule_modal" data-toggle="tooltip" title="<?php echo $this->lang->line('view_schedule'); ?>"  data-examid="<?php echo $clssection['exam_id']; ?>" data-original-title="<?php echo $this->lang->line('view_detail'); ?>" data-classid="<?php echo $clssection['class_id'] ?>" data-classname="<?php echo $class_display; ?>">
                                                         <i class="fa fa-calendar-times-o"></i>  <?php echo $this->lang->line('view_schedule'); ?>
                                                     </a><br>
                                                 </td>
@@ -105,25 +109,24 @@ $count++;
 </div><!-- /.content-wrapper -->
 
 <script type="text/javascript">
+    // TVET: Updated to work with class-only (no section)
     $(document).on('click', '.schedule_modal', function () {
         $('.modal-title').html("");
         var examname = '<?php echo $exam['name'] ?>';
         var exam_id = $(this).data('examid');
-        var section_id = $(this).data('sectionid');
         var class_id = $(this).data('classid');
         var classname = $(this).data('classname');
-        var sectionname = $(this).data('sectionname');
         $('.modal-title').html("<?php echo $this->lang->line('exam'); ?> " + examname);
         var base_url = '<?php echo base_url() ?>';
         $.ajax({
             type: "post",
             url: base_url + "admin/examschedule/getexamscheduledetail",
-            data: {'exam_id': exam_id, 'section_id': section_id, 'class_id': class_id},
+            data: {'exam_id': exam_id, 'class_id': class_id},
             dataType: "json",
             success: function (response) {
                 var data = "";
                 data += '<div class="table-responsive">';
-                data += "<p class='lead titlefix pt0'><?php echo $this->lang->line('class'); ?>: " + classname + "(" + sectionname + ")</p>";
+                data += "<p class='lead titlefix pt0'><?php echo $this->lang->line('class'); ?>: " + classname + "</p>";
                 data += '<table class="table table-hover sss">';
                 data += '<thead>';
                 data += '<tr>';

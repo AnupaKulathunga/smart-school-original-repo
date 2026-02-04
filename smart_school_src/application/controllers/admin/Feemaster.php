@@ -272,8 +272,12 @@ class Feemaster extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'admin/feemaster');
         $data['id']              = $id;
         $data['title']           = $this->lang->line('student_fees');
-        $class                   = $this->class_model->get();
+
+        // TVET: Get classes from current session
+        $session                 = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session);
         $data['classlist']       = $class;
+
         $feegroup_result         = $this->feesessiongroup_model->getFeesByGroup($id);
         $data['feegroupList']    = $feegroup_result;
         $data['adm_auto_insert'] = $this->sch_setting_detail->adm_auto_insert;
@@ -292,9 +296,9 @@ class Feemaster extends Admin_Controller
             $data['gender']      = $this->input->post('gender');
             $data['rte_status']  = $this->input->post('rte');
             $data['class_id']    = $this->input->post('class_id');
-            $data['section_id']  = $this->input->post('section_id');
 
-            $resultlist         = $this->studentfeemaster_model->searchAssignFeeByClassSection($data['class_id'], $data['section_id'], $id, $data['category_id'], $data['gender'], $data['rte_status']);
+            // TVET: Search students by class only (no section)
+            $resultlist         = $this->studentfeemaster_model->searchAssignFeeByClass($data['class_id'], $id, $data['category_id'], $data['gender'], $data['rte_status']);
             $data['resultlist'] = $resultlist;
         }
 

@@ -311,10 +311,30 @@ class Lessonplan_model extends MY_model
         }
     }
 
+    // TVET: Original method with section_id (kept for backward compatibility during transition)
     public function getsubject_group_class_sectionsId($class_id, $section_id, $subject_group_id,$session_id=NULL)
     {
         $session_id=IsNullOrEmptyString($session_id) ? $this->current_session :$session_id;
         $sql   = "SELECT subject_groups.name, subject_group_class_sections.* from subject_group_class_sections INNER JOIN class_sections on class_sections.id=subject_group_class_sections.class_section_id INNER JOIN subject_groups on subject_groups.id=subject_group_class_sections.subject_group_id WHERE class_sections.class_id=" . $this->db->escape($class_id) . " and class_sections.section_id=" . $this->db->escape($section_id) . " and subject_groups.id=" . $this->db->escape($subject_group_id) . "and subject_groups.session_id=" . $this->db->escape($session_id) . " ORDER by subject_groups.id DESC";
+        $query = $this->db->query($sql);
+        return $query->row_array();
+    }
+
+    // TVET: New method without section_id - CLASS already includes cohort
+    public function getsubject_group_classId($class_id, $subject_group_id, $session_id=NULL)
+    {
+        $session_id = IsNullOrEmptyString($session_id) ? $this->current_session : $session_id;
+
+        // Use class table instead of class_sections
+        $sql = "SELECT subject_groups.name, subject_group_class_sections.*
+                FROM subject_group_class_sections
+                INNER JOIN class_sections ON class_sections.id = subject_group_class_sections.class_section_id
+                INNER JOIN subject_groups ON subject_groups.id = subject_group_class_sections.subject_group_id
+                WHERE class_sections.class_id = " . $this->db->escape($class_id) . "
+                AND subject_groups.id = " . $this->db->escape($subject_group_id) . "
+                AND subject_groups.session_id = " . $this->db->escape($session_id) . "
+                ORDER BY subject_groups.id DESC";
+
         $query = $this->db->query($sql);
         return $query->row_array();
     }
@@ -357,20 +377,47 @@ class Lessonplan_model extends MY_model
         return $query->result_array();
     }
 
-    public function ifclassteacher($class_id, $section_id, $staff_id, $subject_group_id, $subject_group_subject_id)
+    // TVET: Updated to work without section_id - CLASS already includes cohort
+    public function ifclassteacher($class_id, $staff_id, $subject_group_id, $subject_group_subject_id)
     {
-        $class_teacher = $this->db->select('*')->from('class_teacher')->where('class_id', $class_id)->where('section_id', $section_id)->where('staff_id', $staff_id)->get()->num_rows();
-        if ($class_teacher > 0) {
-            return 1;
-        } else {
-            $subject_teacher = $this->db->select('*')->from('subject_timetable')->where('class_id', $class_id)->where('section_id', $section_id)->where('staff_id', $staff_id)->where('subject_group_id', $subject_group_id)->where('subject_group_subject_id', $subject_group_subject_id)->get()->num_rows();
+        // Check if staff is the primary lecturer for this class
+        $class_lecturer = $this->db->select('*')
+            ->from('class')
+            ->where('id', $class_id)
+            ->where('primary_lecturer_id', $staff_id)
+            ->get()->num_rows();
 
-            if ($subject_teacher > 0) {
-                return 1;
-            } else {
-                return 0;
-            }
+        if ($class_lecturer > 0) {
+            return 1;
         }
+
+        // Check if staff is assigned as additional lecturer for this class
+        $additional_lecturer = $this->db->select('*')
+            ->from('class_lecturer')
+            ->where('class_id', $class_id)
+            ->where('lecturer_id', $staff_id)
+            ->get()->num_rows();
+
+        if ($additional_lecturer > 0) {
+            return 1;
+        }
+
+        // Legacy check: Check subject_timetable (for backward compatibility during transition)
+        // Note: This uses class_sections table which will be removed in Phase 6
+        $subject_teacher = $this->db->select('st.*')
+            ->from('subject_timetable st')
+            ->join('class_sections cs', 'st.class_id = cs.class_id AND st.section_id = cs.section_id')
+            ->where('cs.class_id', $class_id)
+            ->where('st.staff_id', $staff_id)
+            ->where('st.subject_group_id', $subject_group_id)
+            ->where('st.subject_group_subject_id', $subject_group_subject_id)
+            ->get()->num_rows();
+
+        if ($subject_teacher > 0) {
+            return 1;
+        }
+
+        return 0;
     }
 
     public function gettopiclist($session)

@@ -32,12 +32,13 @@ class Homework extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'homework');
         $data["title"] = "Create Homework";
 
-        $data['classlist'] = $this->class_model->get();
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
 
         $userdata                 = $this->customlib->getUserData();
         $carray                   = array();
         $data['class_id']         = "";
-        $data['section_id']       = "";
         $data['subject_group_id'] = "";
         $data['subject_id']       = "";
 
@@ -49,10 +50,10 @@ class Homework extends Admin_Controller
     public function searchvalidation()
     {
         $class_id         = $this->input->post('class_id');
-        $section_id       = $this->input->post('section_id');
         $subject_group_id = $this->input->post('subject_group_id');
         $subject_id       = $this->input->post('subject_id');
 
+        // TVET: Only class_id required (no section)
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
             $error = array();
@@ -62,9 +63,8 @@ class Homework extends Admin_Controller
             echo json_encode($array);
         } else {
             $class_id   = $this->input->post('class_id');
-            $section_id = $this->input->post('section_id');
 
-            $params = array('class_id' => $class_id, 'section_id' => $section_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id);
+            $params = array('class_id' => $class_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
@@ -74,12 +74,12 @@ class Homework extends Admin_Controller
     {
         $currency_symbol  = $this->customlib->getSchoolCurrencyFormat();
         $class_id         = $this->input->post('class_id');
-        $section_id       = $this->input->post('section_id');
         $subject_group_id = $this->input->post('subject_group_id');
         $subject_id       = $this->input->post('subject_id');
 
         $carray       = array();
-        $homeworklist = $this->homework_model->search_dthomework($class_id, $section_id, $subject_group_id, $subject_id);
+        // TVET: Search homework by class only (no section)
+        $homeworklist = $this->homework_model->search_dthomework($class_id, $subject_group_id, $subject_id);
         $homework = json_decode($homeworklist);
 
         $getStaffRole       = $this->customlib->getStaffRole();
@@ -156,13 +156,13 @@ class Homework extends Admin_Controller
     {
         $currency_symbol  = $this->customlib->getSchoolCurrencyFormat();
         $class_id         = $this->input->post('class_id');
-        $section_id       = $this->input->post('section_id');
         $subject_group_id = $this->input->post('subject_group_id');
         $subject_id       = $this->input->post('subject_id');
 
         $userdata     = $this->customlib->getUserData();
         $carray       = array();
-        $homeworklist = $this->homework_model->search_closehomework($class_id, $section_id, $subject_group_id, $subject_id);
+        // TVET: Search closed homework by class only (no section)
+        $homeworklist = $this->homework_model->search_closehomework($class_id, $subject_group_id, $subject_id);
 
         $homework           = json_decode($homeworklist);
         $getStaffRole       = $this->customlib->getStaffRole();
@@ -293,14 +293,17 @@ class Homework extends Admin_Controller
         }
 
         $data["title"]      = "Create Homework";
-        $class              = $this->class_model->get();
+
+        // TVET: Get classes from current session
+        $session            = $this->setting_model->getCurrentSession();
+        $class              = $this->classmodel_model->getClassesBySession($session);
         $data['classlist']  = $class;
         $data['class_id']   = "";
-        $data['section_id'] = "";
+
         $userdata           = $this->customlib->getUserData();
         $this->form_validation->set_rules('record_id', $this->lang->line('record_id'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('modal_class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('modal_section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: No section_id validation
         $this->form_validation->set_rules('modal_subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('modal_subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('homework_date', $this->lang->line('homework_date'), 'trim|required|xss_clean');
@@ -312,7 +315,6 @@ class Homework extends Admin_Controller
             $msg = array(
                 'record_id'              => form_error('record_id'),
                 'modal_class_id'         => form_error('modal_class_id'),
-                'modal_section_id'       => form_error('modal_section_id'),
                 'modal_subject_group_id' => form_error('modal_subject_group_id'),
                 'modal_subject_id'       => form_error('modal_subject_id'),
                 'homework_date'          => form_error('homework_date'),
@@ -326,18 +328,18 @@ class Homework extends Admin_Controller
 
             $session_id = $this->setting_model->getCurrentSession();
             $record_id  = $this->input->post('record_id');
-            
+
             if ($this->input->post("homework_marks")) {
                 $marks    =    $this->input->post("homework_marks");
             } else {
                 $marks    = NULL;
             }
 
+            // TVET: No section_id in data array
             $data       = array(
                 'id'                       => $record_id,
                 'session_id'               => $session_id,
                 'class_id'                 => $this->input->post("modal_class_id"),
-                'section_id'               => $this->input->post("modal_section_id"),
                 'homework_date'            => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('homework_date'))),
                 'submit_date'              => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('submit_date'))),
                 'staff_id'                 => $userdata["id"],
@@ -378,9 +380,9 @@ class Homework extends Admin_Controller
             if ($record_id == 0) {
                 $homework_detail = $this->homework_model->get($id);
 
+                // TVET: No section_id in sender details
                 $sender_details = array(
                     'class_id'      => $this->input->post("modal_class_id"),
-                    'section_id'    => $this->input->post("modal_section_id"),
                     'homework_date' => date($this->customlib->getSchoolDateFormat(), $this->customlib->dateYYYYMMDDtoStrtotime($homework_detail['homework_date'])),
                     'submit_date'   => date($this->customlib->getSchoolDateFormat(), $this->customlib->dateYYYYMMDDtoStrtotime($homework_detail['submit_date'])),
                     'subject'       => $homework_detail['subject_name'],
@@ -454,17 +456,19 @@ class Homework extends Admin_Controller
         $id            = $this->input->post("homeworkid");
         $data["title"] = "Edit Homework";
 
-        $class              = $this->class_model->get();
+        // TVET: Get classes from current session
+        $session            = $this->setting_model->getCurrentSession();
+        $class              = $this->classmodel_model->getClassesBySession($session);
         $data['classlist']  = $class;
         $result             = $this->homework_model->get($id);
         $data["result"]     = $result;
         $data['class_id']   = $result["class_id"];
-        $data['section_id'] = $result["section_id"];
         $data['subject_id'] = $result["subject_id"];
         $data["id"]         = $id;
         $userdata           = $this->customlib->getUserData();
+
+        // TVET: No section_id validation
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('homework_date', $this->lang->line('homework_date'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('description', $this->lang->line('description'), 'trim|required|xss_clean');
@@ -472,7 +476,6 @@ class Homework extends Admin_Controller
         if ($this->form_validation->run() == false) {
             $msg = array(
                 'class_id'      => form_error('class_id'),
-                'section_id'    => form_error('section_id'),
                 'subject_id'    => form_error('subject_id'),
                 'homework_date' => form_error('homework_date'),
                 'description'   => form_error('description'),
@@ -493,15 +496,14 @@ class Homework extends Admin_Controller
                 $document = $this->input->post("document");
             }
 
+            // TVET: No section_id in data array
             $data = array(
                 'id'            => $id,
                 'class_id'      => $this->input->post("class_id"),
-                'section_id'    => $this->input->post("section_id"),
                 'subject_id'    => $this->input->post("subject_id"),
                 'homework_date' => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('homework_date'))),
                 'submit_date'   => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('submit_date'))),
                 'staff_id'      => $userdata["id"],
-                'subject_id'    => $this->input->post("subject_id"),
                 'description'   => $this->input->post("description"),
                 'create_date'   => date("Y-m-d"),
                 'document'      => $document,
@@ -552,7 +554,6 @@ class Homework extends Admin_Controller
         $result               = $this->homework_model->getRecord($id);
 
         $class_id      = $result["class_id"];
-        $section_id    = $result["section_id"];
         $data['marks'] = $result["marks"];
 
         $data["studentlist"] = $this->homework_model->getStudents($id);
@@ -685,11 +686,11 @@ class Homework extends Admin_Controller
                 $homework_detail = $this->homework_model->get($homework_id);
                 $sender_details = array(
                         'class_id'        => $this->input->post("student_class_id"),
-                        'section_id'      => $this->input->post("student_section_id"),
+                        // TVET: No section_id needed, class includes cohort
                         'homework_date'   => date($this->customlib->getSchoolDateFormat(), $this->customlib->dateYYYYMMDDtoStrtotime($homework_detail['homework_date'])),
                         'submit_date'     => date($this->customlib->getSchoolDateFormat(), $this->customlib->dateYYYYMMDDtoStrtotime($homework_detail['submit_date'])),
                         'subject'         => $homework_detail['subject_name'],
-                        'homework_id'     => $homework_detail['id']                      
+                        'homework_id'     => $homework_detail['id']
                 );
                 $this->mailsmsconf->mailsms('homework_evaluation', $sender_details);
             //***send mail sms and notification to student and parents on insertion of evaluted mark***//
@@ -709,26 +710,24 @@ class Homework extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'homework/homeworkreport');
         $this->session->set_userdata('subsub_menu', 'homework/evaluation_report');
 
-        $class                    = $this->class_model->get();
+        // TVET: Get classes from current session
+        $session                  = $this->setting_model->getCurrentSession();
+        $class                    = $this->classmodel_model->getClassesBySession($session);
         $data['classlist']        = $class;
         $userdata                 = $this->customlib->getUserData();
         $carray                   = array();
         $data['class_id']         = $class_id         = "";
-        $data['section_id']       = $section_id       = "";
         $data['subject_id']       = $subject_id       = "";
         $data['subject_group_id'] = $subject_group_id = "";
 
         $class_id                 = $this->input->post("class_id");
-        $section_id               = $this->input->post("section_id");
         $subject_group_id         = $this->input->post("subject_group_id");
         $subject_id               = $this->input->post("subject_id");
         $data['class_id']         = $class_id;
-        $data['section_id']       = $section_id;
         $data['subject_group_id'] = $subject_group_id;
         $data['subject_id']       = $subject_id;
-        
+
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
 
@@ -736,10 +735,10 @@ class Homework extends Admin_Controller
             $data['resultlist'] = array();
             $data["report"]     = array();
         } else {
-            $data['resultlist'] = $this->homework_model->search_homework($class_id, $section_id, $subject_group_id, $subject_id);
+            $data['resultlist'] = $this->homework_model->search_homework($class_id, $subject_group_id, $subject_id);
 
             foreach ($data['resultlist'] as $key => $value) {
-                $report                       = $this->count_percentage($value["id"], $value["class_id"], $value["section_id"]);
+                $report                       = $this->count_percentage($value["id"], $value["class_id"]);
                 $data["report"][$value['id']] = $report;
             }
         }
@@ -755,14 +754,14 @@ class Homework extends Admin_Controller
         if (!empty($result)) {
             $data["result"]       = $result;
             $class_id             = $result[0]["class_id"];
-            $section_id           = $result[0]["section_id"];
             $create_data          = $this->staff_model->get($result[0]["created_by"]);
             $eval_data            = $this->staff_model->get($result[0]["evaluated_by"]);
             $created_by           = $create_data["name"] . " " . $create_data["surname"];
             $evaluated_by         = $eval_data["name"] . " " . $eval_data["surname"];
             $data["created_by"]   = $created_by;
             $data["evaluated_by"] = $evaluated_by;
-            $studentlist          = $this->homework_model->getStudents($class_id, $section_id);
+            // Pass homework id, not class_id
+            $studentlist          = $this->homework_model->getStudents($id);
             $data["studentlist"]  = $studentlist;
             $this->load->view("homework/evaluation_report", $data);
         } else {
@@ -770,11 +769,11 @@ class Homework extends Admin_Controller
         }
     }
 
-    public function count_percentage($id, $class_id, $section_id)
+    public function count_percentage($id, $class_id)
     {
         $data               = array();
-        $count_students     = $this->homework_model->count_students($class_id, $section_id);
-        $count_evalstudents = $this->homework_model->count_evalstudents($id, $class_id, $section_id);
+        $count_students     = $this->homework_model->count_students($class_id);
+        $count_evalstudents = $this->homework_model->count_evalstudents($id, $class_id);
         if ($count_students > 0) {
             $total_students     = $count_students;
             $total_evalstudents = $count_evalstudents['total'];
@@ -789,7 +788,9 @@ class Homework extends Admin_Controller
 
     public function getClass()
     {
-        $class = $this->class_model->get();
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $class = $this->classmodel_model->getClassesBySession($session);
         echo json_encode($class);
     }
 
@@ -842,7 +843,6 @@ class Homework extends Admin_Controller
     public function searchdailyassignment()
     {
         $class_id                 = $this->input->post('class_id');
-        $section_id               = $this->input->post('section_id');
         $subject_group_id         = $this->input->post('subject_group_id');
         $subject_group_subject_id = $this->input->post('subject_id');
         $date                     = $this->input->post('date');
@@ -858,7 +858,7 @@ class Homework extends Admin_Controller
         $userdata        = $this->customlib->getUserData();
         $login_staff_id  = $userdata["id"];
 
-        $dailyassignment = $this->homework_model->searchdailyassignment($class_id, $section_id, $subject_group_id, $subject_group_subject_id, $date);
+        $dailyassignment = $this->homework_model->searchdailyassignment($class_id, $subject_group_id, $subject_group_subject_id, $date);
         $dailyassignment = json_decode($dailyassignment);
 
         $dt_data = array();
@@ -924,13 +924,11 @@ class Homework extends Admin_Controller
     public function assignmentvalidation()
     {
         $class_id         = $this->input->post('class_id');
-        $section_id       = $this->input->post('section_id');
         $subject_group_id = $this->input->post('subject_group_id');
         $subject_id       = $this->input->post('subject_id');
         $date             = $this->input->post('date');
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('date', $this->lang->line('date'), 'trim|required|xss_clean');
@@ -938,7 +936,6 @@ class Homework extends Admin_Controller
             $error = array();
 
             $error['class_id']         = form_error('class_id');
-            $error['section_id']       = form_error('section_id');
             $error['subject_group_id'] = form_error('subject_group_id');
             $error['subject_id']       = form_error('subject_id');
             $error['date']             = form_error('date');
@@ -946,10 +943,9 @@ class Homework extends Admin_Controller
             $array = array('status' => 0, 'error' => $error);
             echo json_encode($array);
         } else {
-            $class_id   = $this->input->post('class_id');
-            $section_id = $this->input->post('section_id');
+            $class_id = $this->input->post('class_id');
 
-            $params = array('class_id' => $class_id, 'section_id' => $section_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id, 'date' => $date);
+            $params = array('class_id' => $class_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id, 'date' => $date);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
@@ -1019,17 +1015,18 @@ class Homework extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'homework/homeworkreport');
         $this->session->set_userdata('subsub_menu', 'homework/homeworkreport');
 
-        $data['classlist'] = $this->class_model->get();
+        // TVET: Get classes from current session
+        $session = $this->setting_model->getCurrentSession();
+        $data['classlist'] = $this->classmodel_model->getClassesBySession($session);
 
         $userdata                 = $this->customlib->getUserData();
         $carray                   = array();
         $data['class_id']         = $class_id   =   $this->input->post('class_id');
-        $data['section_id']       = $section_id =   $this->input->post('section_id');
         $data['subject_group_id'] = $subject_group_id   =   $this->input->post('subject_group_id');
         $data['subject_id']       = $subject_id =   $this->input->post('subject_id');
 
         if (isset($_POST["search"])) {
-            $homeworklist = $this->homework_model->search_dthomeworkreport($class_id, $section_id, $subject_group_id, $subject_id);
+            $homeworklist = $this->homework_model->search_dthomeworkreport($class_id, $subject_group_id, $subject_id);
             $data["resultlist"] = $homeworklist;
         }
 
@@ -1040,20 +1037,18 @@ class Homework extends Admin_Controller
 
     public function getStudentByClassSection()
     {
-        $data               = array();
-        $class_id           = $this->input->post('class_id');
-        $section_id         = $this->input->post('section_id');
-        $homework_id        = $this->input->post('homework_id');
-        $type           = $this->input->post('type');
+        $data        = array();
+        $class_id    = $this->input->post('class_id');
+        $homework_id = $this->input->post('homework_id');
+        $type        = $this->input->post('type');
 
-        $class_sections = $this->classsection_model->getDetailbyClassSection($class_id, $section_id);
-
+        // TVET: Get students by class (no section needed)
         if ($type == 'student_count') {
-            $student_list         = $this->student_model->getStudentBy_class_section_id($class_sections['id']);
+            $student_list = $this->classmodel_model->getClassStudents($class_id);
         } elseif ($type == 'homework_submitted') {
-            $student_list         = $this->homework_model->get_submitted_homework($homework_id);
+            $student_list = $this->homework_model->get_submitted_homework($homework_id);
         } elseif ($type == 'pending_student') {
-            $student_list         = $this->homework_model->get_not_submitted_homework($class_id, $section_id, $homework_id);
+            $student_list = $this->homework_model->get_not_submitted_homework($class_id, $homework_id);
         }
 
         $data['student_list'] = $student_list;
@@ -1093,7 +1088,6 @@ class Homework extends Admin_Controller
     public function searchdailyassignmentreport()
     {
         $class_id                 = $this->input->post('class_id');
-        $section_id               = $this->input->post('section_id');
         $subject_group_id         = $this->input->post('subject_group_id');
         $subject_group_subject_id = $this->input->post('subject_id');
 
@@ -1116,7 +1110,7 @@ class Homework extends Admin_Controller
         $staffrole       = json_decode($getStaffRole);
         $userdata        = $this->customlib->getUserData();
         $login_staff_id  = $userdata["id"];
-        $dailyassignment = $this->homework_model->dailyassignmentreport($class_id, $section_id, $subject_group_id, $subject_group_subject_id, $condition);
+        $dailyassignment = $this->homework_model->dailyassignmentreport($class_id, $subject_group_id, $subject_group_subject_id, $condition);
         $dailyassignment = json_decode($dailyassignment);
 
         $dt_data = array();
@@ -1202,12 +1196,10 @@ class Homework extends Admin_Controller
     {
         $this->form_validation->set_rules('search_type', $this->lang->line('search_type'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
 
         $class_id         = $this->input->post('class_id');
-        $section_id       = $this->input->post('section_id');
         $subject_group_id = $this->input->post('subject_group_id');
         $subject_id       = $this->input->post('subject_id');
 
@@ -1217,7 +1209,6 @@ class Homework extends Admin_Controller
             $error['search_type'] = form_error('search_type');
 
             $error['class_id']         = form_error('class_id');
-            $error['section_id']       = form_error('section_id');
             $error['subject_group_id'] = form_error('subject_group_id');
             $error['subject_id']       = form_error('subject_id');
 
@@ -1232,10 +1223,9 @@ class Homework extends Admin_Controller
                 $date_to   = $this->input->post('date_to');
             }
 
-            $class_id   = $this->input->post('class_id');
-            $section_id = $this->input->post('section_id');
+            $class_id = $this->input->post('class_id');
 
-            $params = array('search_type' => $search_type, 'date_from' => $date_from, 'date_to' => $date_to, 'class_id' => $class_id, 'section_id' => $section_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id);
+            $params = array('search_type' => $search_type, 'date_from' => $date_from, 'date_to' => $date_to, 'class_id' => $class_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }

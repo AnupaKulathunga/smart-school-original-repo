@@ -46,32 +46,13 @@ if (!$adm_auto_insert) {
                                             </div>
                                         </div>
                                     <?php }?>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                                <select  id="class_id" name="class_id" class="form-control" >
-                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                    <?php
-foreach ($classlist as $class) {
-    ?>
-                                                        <option value="<?php echo $class['id'] ?>" <?php
-if ($student['class_id'] == $class['id']) {
-        echo "selected =selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                    <?php }?>
-                                                </select>
-                                                <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                                <select  id="section_id" name="section_id" class="form-control" >
-                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                </select>
-                                                <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                            </div>
+                                        <div class="col-md-6">
+                                            <?php
+                                            $this->load->view('admin/_partials/class_selector', [
+                                                'selected_class_id' => $student['class_id'],
+                                                'classlist' => $classlist
+                                            ]);
+                                            ?>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -886,23 +867,15 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
 
 <script type="text/javascript">
 
+    // TVET: No section dropdown - class_id is self-contained
     $(document).ready(function () {
         var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';
-        var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id', $student['section_id']) ?>';
         var hostel_id = $('#hostel_id').val();
         var hostel_room_id = '<?php echo set_value('hostel_room_id', $student['hostel_room_id']) ?>';
         getHostel(hostel_id, hostel_room_id);
-        getSectionByClass(class_id, section_id, 'section_id');
         var vehroute_id = '<?php echo set_value('vehroute_id', 0) ?>';
         var route_pickup_point_id = '<?php echo set_value('route_pickup_point_id', 0) ?>';
         get_pickup_point(vehroute_id,route_pickup_point_id);
-
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            getSectionByClass(class_id, 0, 'section_id');
-        });
 
         $(document).on('change', '#hostel_id', function (e) {
             var hostel_id = $(this).val();
@@ -945,36 +918,7 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
             });
         }
 
-        function getSectionByClass(class_id, section_id, select_control) {
-            if (class_id != "") {
-                $('#' + select_control).html("");
-                var base_url = '<?php echo base_url() ?>';
-                var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                $.ajax({
-                    type: "POST",
-                    url: base_url + "admin/onlinestudent/getByClass",
-                    data: {'class_id': class_id},
-                    dataType: "JSON",
-                    beforeSend: function () {
-                        $('#' + select_control).addClass('dropdownloading');
-                    },
-                    success: function (data) {
-                        $.each(data, function (i, obj)
-                        {
-                            var sel = "";
-                            if (section_id == obj.section_id) {
-                                sel = "selected";
-                            }
-                            div_data += "<option value=" + obj.id + " " + sel + ">" + obj.section + "</option>";
-                        });
-                        $('#' + select_control).append(div_data);
-                    },
-                    complete: function () {
-                        $('#' + select_control).removeClass('dropdownloading');
-                    }
-                });
-            }
-        }
+        // TVET: Removed getSectionByClass function
 
         function getHostel(hostel_id, hostel_room_id) {
             if (hostel_room_id == "") {
