@@ -113,7 +113,9 @@ class Disabilitytype extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'disabilitytype/students');
 
         $data['title']       = $this->lang->line('disabled_students_report');
-        $data['classlist']   = $this->class_model->get();
+        // TVET: Use classmodel_model->getClassesBySession()
+        $session_id          = $this->setting_model->getCurrentSession();
+        $data['classlist']   = $this->classmodel_model->getClassesBySession($session_id);
         $data['typelist']    = $this->disability_type_model->get();
         $data['sch_setting'] = $this->sch_setting_detail;
         $data['resultlist']  = array();
