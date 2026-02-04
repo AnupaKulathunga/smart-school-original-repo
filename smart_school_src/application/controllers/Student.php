@@ -2003,7 +2003,7 @@ class Student extends Admin_Controller
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
 
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
 
@@ -2408,7 +2408,7 @@ class Student extends Admin_Controller
         $carray          = array();
         if (!empty($classlist)) {
             foreach ($classlist as $ckey => $cvalue) {
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
 

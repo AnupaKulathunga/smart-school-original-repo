@@ -103,7 +103,7 @@ class Mailsms extends Admin_Controller
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
 
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
         $date          = date('Y-m-d');
@@ -179,7 +179,7 @@ class Mailsms extends Admin_Controller
 
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
 

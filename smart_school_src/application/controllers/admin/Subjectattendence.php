@@ -56,7 +56,7 @@ class Subjectattendence extends Admin_Controller
 
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
         $data['class_id']    = "";

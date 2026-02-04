@@ -1156,7 +1156,7 @@ class Report extends Admin_Controller
         $data['alumni_studets'] = $alumni_studets;
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
 

@@ -184,7 +184,7 @@ class Hostelroom extends Admin_Controller
         if (!empty($classlist)) {
             foreach ($classlist as $ckey => $cvalue) {
 
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
 

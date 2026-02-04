@@ -1027,7 +1027,7 @@ class Admin extends Admin_Controller
         $carray          = array();
         if (!empty($classlist)) {
             foreach ($classlist as $ckey => $cvalue) {
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
         $search=$this->input->post('search');
