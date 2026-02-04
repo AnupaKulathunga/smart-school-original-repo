@@ -105,7 +105,9 @@ class Question_model extends MY_model
         if ($role_id == 2) {
             $my_section = array();
             if ($this->sch_setting_detail->class_teacher == 'yes' && $this->sch_setting_detail->my_question == '1') {
-                $my_class = $this->class_model->get();
+                // TVET: Use classmodel_model to get classes for current session
+                $session_id = $this->setting_model->getCurrentSession();
+                $my_class = $this->classmodel_model->getClassesBySession($session_id);
 
                 foreach ($my_class as $class_key => $class_value) {
                     $my_class_id[] = $class_value['id'];
@@ -117,7 +119,9 @@ class Question_model extends MY_model
 				
             } elseif ($this->sch_setting_detail->class_teacher == 'yes' && $this->sch_setting_detail->my_question == '0') {
 
-                $my_class = $this->class_model->get();
+                // TVET: Use classmodel_model to get classes for current session
+                $session_id = $this->setting_model->getCurrentSession();
+                $my_class = $this->classmodel_model->getClassesBySession($session_id);
                 foreach ($my_class as $class_key => $class_value) {
                     $my_class_id[] = $class_value['id'];
                 }
