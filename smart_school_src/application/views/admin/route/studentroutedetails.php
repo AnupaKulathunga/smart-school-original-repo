@@ -16,34 +16,14 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                     <form role="form" action="<?php echo site_url('admin/route/studenttransportdetails') ?>" method="post" class="">
                         <div class="box-body row">
                             <?php echo $this->customlib->getCSRF(); ?>
-                            <div class="col-sm-3 col-md-3">
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('class'); ?></label>
-                                    <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($classlist as $class) {
-    ?>
-                                            <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                            <?php
-$count++;
-}
-?>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                </div>
-                            </div>
-                            <div class="col-sm-3 col-md-3">
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('section'); ?></label>
-                                    <select  id="section_id" name="section_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-                                </div>
+                            <div class="col-sm-6 col-md-6">
+                                <?php
+                                // TVET: Use class_selector component
+                                $this->load->view('admin/_partials/class_selector', [
+                                    'selected_class_id' => set_value('class_id'),
+                                    'classlist' => $classlist
+                                ]);
+                                ?>
                             </div>
                             <div class="col-sm-3 col-md-3">
                                 <div class="form-group">
@@ -123,7 +103,7 @@ if (empty($resultlist)) {
     foreach ($resultlist as $student) {
         ?>
                                             <tr>
-                                                <td><?php echo $student['class'] . " - " . $student["section"]; ?></td>
+                                                <td><?php echo $student['class']; ?></td>
                                                 <td><?php echo $student['admission_no']; ?></td>
                                                 <td>
                                                     <a href="<?php echo base_url(); ?>student/view/<?php echo $student['id']; ?>"><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?>
@@ -157,45 +137,11 @@ $count++;
 <script type="text/javascript">
 
     $(document).ready(function () {
-        var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id', 0) ?>';
         var pickup_point_id = '<?php echo set_value('pickup_point_id', 0) ?>';
         var vehicle_id = '<?php echo set_value('vehicle_id', 0) ?>';
-        getSectionByClass(class_id, section_id);
+        // TVET: No section dropdown to populate
         get_pickup_point($('#transport_route_id').val(),pickup_point_id,vehicle_id);
     });
-
-        $(document).on('change', '#class_id', function (e) {
-            $('#section_id').html("");
-            var class_id = $(this).val();
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            getSectionByClass(class_id, 0);
-        });
-
-    function getSectionByClass(class_id, section_id) {
-        if (class_id != "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                }
-            });
-        }
-    }
 
     function get_pickup_point(transport_route_id,pickup_point_id,vehicle_id){
            if (transport_route_id != "") {

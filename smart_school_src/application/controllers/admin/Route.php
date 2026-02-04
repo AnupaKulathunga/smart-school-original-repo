@@ -95,28 +95,29 @@ class Route extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Reports');
         $this->session->set_userdata('sub_menu', 'reports/studenttransportdetails');
         $data['title']     = 'Student Hostel Details';
-        $class             = $this->class_model->get();
-        $data['classlist'] = $class;
+        // TVET: Use TVET class structure
+        $session_id        = $this->setting_model->getCurrentSession();
+        $classlist         = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist'] = $classlist;
         $userdata          = $this->customlib->getUserData();
         $carray            = array();
 
         if (!empty($data["classlist"])) {
             foreach ($data["classlist"] as $ckey => $cvalue) {
-
-                $carray[] = $cvalue["id"];
+                $carray[] = $cvalue->id;
             }
         }
 
         $vehroute_result      = $this->route_model->get();
         $data['vehroutelist'] = $vehroute_result;
-        $section_id           = $this->input->post("section_id");
+        // TVET: No section_id needed
         $class_id             = $this->input->post("class_id");
         $transport_route_id   = $this->input->post("transport_route_id");
         $pickup_point_id      = $this->input->post("pickup_point_id");
         $vehicle_id           = $this->input->post("vehicle_id");
- 
+
         if (isset($_POST["search"])) {
-            $details            = $this->route_model->searchTransportDetails($section_id, $class_id, $transport_route_id, $pickup_point_id, $vehicle_id);
+            $details            = $this->route_model->searchTransportDetails(null, $class_id, $transport_route_id, $pickup_point_id, $vehicle_id);
             $data["resultlist"] = $details;
         }
 
