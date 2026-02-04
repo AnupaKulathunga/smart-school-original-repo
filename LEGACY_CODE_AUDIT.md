@@ -15,7 +15,7 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 ⚠️  43 form validations with section_id
 ```
 
-**Completion:** ~15% (7 of ~50 major pages fixed)
+**Completion:** ~22% (11 of ~50 major pages fixed)
 
 ---
 
@@ -34,13 +34,13 @@ After completing Approve Leave, Attendance, Exam Schedule, Exam Result, Admitcar
 
 ### Priority 2: Academic Management (7 files)
 
-9. ❌ `/admin/batchsubject/batchsubjectList.php` - Batch subject list
-10. ❌ `/admin/batchsubject/batchsubjectEdit.php` - Batch subject edit
-11. ❌ `/admin/lessonplan/copylesson.php` - Copy lesson plan
-12. ❌ `/admin/question/question.php` - Question bank (HTML fixed, needs controller)
-13. ❌ `/admin/question/_addform.php` - Add question form
-14. ❌ `/admin/question/_editform.php` - Edit question form
-15. ❌ `/admin/syllabus/index.php` - Syllabus management
+9. ❌ `/admin/batchsubject/batchsubjectList.php` - Batch subject list (architectural mismatch, TBD)
+10. ❌ `/admin/batchsubject/batchsubjectEdit.php` - Batch subject edit (architectural mismatch, TBD)
+11. ✅ `/admin/lessonplan/copylesson.php` - COMPLETED (controller + view)
+12. ✅ `/admin/question/question.php` - COMPLETED (controller + view)
+13. ✅ `/admin/question/_addform.php` - COMPLETED
+14. ✅ `/admin/question/_editform.php` - COMPLETED
+15. 🔶 `/admin/syllabus/index.php` - BLOCKED: Requires Timetable model TVET refactoring (subjecttimetable_model->getSyllabussubject uses class_sections)
 
 ### Priority 3: Administrative Pages (5 files)
 
@@ -213,11 +213,11 @@ $this->load->view('admin/_partials/class_selector', [
 | Category | Total | Fixed | Remaining | Progress |
 |----------|-------|-------|-----------|----------|
 | User-Facing Pages | 8 | 7 | 1 | 88% |
-| Academic Mgmt | 7 | 1 | 6 | 14% |
+| Academic Mgmt | 7 | 4 | 3 | 57% |
 | Administrative | 5 | 0 | 5 | 0% |
 | Auxiliary | 3 | 0 | 3 | 0% |
-| **TOTAL VIEWS** | **23** | **8** | **15** | **35%** |
-| Controllers | ~50 | ~11 | ~39 | 22% |
+| **TOTAL VIEWS** | **23** | **11** | **12** | **48%** |
+| Controllers | ~50 | ~13 | ~37 | 26% |
 | Models | ~10 | ~3 | ~7 | 30% |
 
 ---
@@ -231,12 +231,15 @@ $this->load->view('admin/_partials/class_selector', [
 5. ✅ Rank Report - View (JavaScript)
 6. ✅ Admitcard - Controller, View
 7. ✅ Marksheet - View (JavaScript)
-8. ✅ Question Bank - View (JavaScript, controller needs work)
+8. ✅ Question Bank Main Page - Controller (7 methods), View
 9. ✅ Examgroup Exam Page - Controller, View
 10. ✅ Examgroup Add Mark - Controller, View
 11. ✅ Examgroup Assign - Controller, View
 12. ✅ Examgroup Add Exam - View (complex with multiple modals)
 13. ✅ Mark List - View (controller already updated)
+14. ✅ Question Add Form - View (_addform.php)
+15. ✅ Question Edit Form - View (_editform.php)
+16. ✅ Lessonplan Copy - View, JavaScript handlers
 
 ---
 
