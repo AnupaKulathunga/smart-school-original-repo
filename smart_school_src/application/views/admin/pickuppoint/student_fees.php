@@ -16,36 +16,19 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                             <?php echo $this->customlib->getCSRF(); ?>
                             <div class="row">
                                 <div class="col-lg-6 col-md-6">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-foreach ($classlist as $class) {
-    ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                        <?php
-}
-?>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
+                                    <?php
+                                    // TVET: Use class_selector component
+                                    $this->load->view('admin/_partials/class_selector', [
+                                        'selected_class_id' => set_value('class_id'),
+                                        'classlist' => $classlist
+                                    ]);
+                                    ?>
                                 </div>
                                 <div class="col-lg-6 col-md-6">
                                     <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
+                                        <label class="dhide" style="display: block; visibility:hidden;"><?php echo $this->lang->line('class') ?></label>
+                                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
                                     </div>
-                                </div>
-                                <div class="col-sm-12">
-                                    <button type="submit" class="btn btn-primary btn-sm pull-right"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
                                 </div>
                             </div>
                         </div>
@@ -98,7 +81,7 @@ if (empty($students)) {?>
                                                         <a href="<?php echo base_url(); ?>student/view/<?php echo $student['id']; ?>"><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?>
                                                         </a>
                                                     </td>
-                                                    <td><?php echo $student['class'] . "(" . $student['section'] . ")" ?></td>
+                                                    <td><?php echo $student['class']; ?></td>
                                                     <?php if ($sch_setting->father_name) {?>
                                                     <td><?php echo $student['father_name']; ?></td>
                                                     <?php }?>
@@ -176,74 +159,7 @@ $('#feeMonthModal').modal({
 })
 });
 
-    var class_id = '<?php echo set_value('class_id', 0) ?>';
-    var section_id = '<?php echo set_value('section_id', 0) ?>';
-    getSectionByClass(class_id, section_id);
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, 0);
-    });
-
-    $(document).on('change', '.class_id', function (e) {
-        var class_id = $(this).val();
-        var target_dropdown = $(this).closest("div.row").find('select.section_id');
-        target_dropdown.html("");
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: baseurl + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            beforeSend: function () {
-                target_dropdown.html("").addClass('dropdownloading');
-            },
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    var sel = "";
-                    if (section_id == obj.section_id) {
-                        sel = "selected";
-                    }
-                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                });
-                target_dropdown.append(div_data);
-            },
-            complete: function () {
-                target_dropdown.removeClass('dropdownloading');
-            }
-        });
-    });
-
-    function getSectionByClass(class_id, section_id) {
-        if (class_id != 0 && class_id !== "") {
-            $('#section_id').html("");
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "GET",
-                url: baseurl + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
+    // TVET: No section dropdown to populate
 
     $(document).on('click', '.route_fees', function () {
         var $this = $(this);

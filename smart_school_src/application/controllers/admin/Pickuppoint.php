@@ -139,8 +139,10 @@ class Pickuppoint extends Admin_Controller
 
         $this->session->set_userdata('top_menu', 'Transport');
         $this->session->set_userdata('sub_menu', 'pickuppoint/student_fees');
-        $class               = $this->class_model->get();
-        $data['classlist']   = $class;
+        // TVET: Use TVET class structure
+        $session_id          = $this->setting_model->getCurrentSession();
+        $classlist           = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']   = $classlist;
         $data['sch_setting'] = $this->sch_setting_detail;
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
@@ -148,13 +150,11 @@ class Pickuppoint extends Admin_Controller
         if ($this->form_validation->run() == false) {
 
         } else {
-            $class                   = $this->class_model->get();
-            $data['classlist']       = $class;
             $data['student_due_fee'] = array();
             $class_id                = $this->input->post('class_id');
-            $section_id              = $this->input->post('section_id');
+            // TVET: No section_id needed
 
-            $students         = $this->student_model->searchByClassSection($class_id, $section_id);
+            $students         = $this->student_model->searchByClassSection($class_id, null);
             $data['students'] = $students;
         }
 
