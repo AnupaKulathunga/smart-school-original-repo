@@ -52,7 +52,6 @@ class Student extends Admin_Controller
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
 
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
@@ -63,9 +62,12 @@ class Student extends Admin_Controller
             $data['classlist']       = $class;
             $data['student_due_fee'] = array();
             $class_id                = $this->input->post('class_id');
-            $section_id              = $this->input->post('section_id');
-            $data['classes']         = $this->classsection_model->allClassSections();
-            $students                = $this->studentsession_model->searchMultiStudentByClassSection($class_id, $section_id);
+
+            // TVET: Get all classes for the dropdown
+            $data['classes']         = $class;
+
+            // TVET: Get students enrolled in this class
+            $students                = $this->classmodel_model->getClassStudents($class_id);
             $data['students']        = $students;
         }
         $this->load->view('layout/header', $data);
