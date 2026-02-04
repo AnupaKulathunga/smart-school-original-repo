@@ -42,7 +42,9 @@ class Studentfee extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'studentfee/index');
         $data['sch_setting'] = $this->sch_setting_detail;
         $data['title']       = 'student fees';
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $this->load->view('layout/header', $data);
         $this->load->view('studentfee/studentfeeSearch', $data);
@@ -137,7 +139,9 @@ class Studentfee extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Fees Collection');
         $this->session->set_userdata('sub_menu', 'studentfee/feesearch');
         $data['title']       = $this->lang->line('student_fees');
-        $class               = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id          = $this->setting_model->getCurrentSession();
+        $class               = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']   = $class;
         $data['sch_setting'] = $this->sch_setting_detail;
         $feesessiongroup     = $this->feesessiongroup_model->getFeesByGroup();
@@ -280,7 +284,9 @@ class Studentfee extends Admin_Controller
     {
         $data['title']     = 'student fees';
         $data['title']     = 'student fees';
-        $class             = $this->class_model->get();
+        // TVET: Use classmodel_model to get classes for current session
+        $session_id        = $this->setting_model->getCurrentSession();
+        $class             = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist'] = $class;
         if ($this->input->server('REQUEST_METHOD') == "GET") {
             $this->load->view('layout/header', $data);
