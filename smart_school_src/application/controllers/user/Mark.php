@@ -18,7 +18,7 @@ class Mark extends Student_Controller
         $data['title']           = 'Exam Marks';
         $data['exam_id']         = "";
         $data['class_id']        = "";
-        $data['section_id']      = "";
+        // TVET: section_id removed
         $exam                    = $this->exam_model->get();
         // TVET: Use classmodel_model to get classes for current session
         $session_id              = $this->setting_model->getCurrentSession();
@@ -30,17 +30,17 @@ class Mark extends Student_Controller
         $stuid                   = $this->session->userdata('student');
         $stu_record              = $this->student_model->getRecentRecord($stuid['student_id']);
         $data['class_id']        = $stu_record['class_id'];
-        $data['section_id']      = $stu_record['section_id'];
-        $reportcard              = $this->examschedule_model->getExamByClassandSection($data['class_id'], $data['section_id']);
+        // TVET: section_id removed
+        $reportcard              = $this->examschedule_model->getExamByClassandSection($data['class_id'], null);
         $class_id                = $stu_record['class_id'];
-        $section_id              = $stu_record['section_id'];
+        // TVET: section_id removed
         foreach ($reportcard as $data) {
             echo $exam_id = $data['exam_id'];
         }
         $data['class_id']     = $stu_record['class_id'];
-        $data['section_id']   = $stu_record['section_id'];
-        $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, $section_id, $exam_id);
-        $studentList          = $this->student_model->searchByClassSection($class_id, $section_id);
+        // TVET: section_id removed
+        $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, null, $exam_id);
+        $studentList          = $this->student_model->searchByClassSection($class_id, null);
         $data['examSchedule'] = array();
         if (!empty($examSchedule)) {
             $new_array                      = array();
@@ -91,15 +91,15 @@ class Mark extends Student_Controller
         $student_id              = $this->customlib->getStudentSessionUserID();
         $student                 = $this->student_model->get($student_id);
         $class_id                = $student['class_id'];
-        $section_id              = $student['section_id'];
+        // TVET: section_id removed
         $data['title']           = 'Student Details';
         $gradeList               = $this->grade_model->get();
         $data['gradeList']       = $gradeList;
-        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($student['class_id'], $student['section_id'], $student_id);
+        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($student['class_id'], null, $student_id);
         $data['student_due_fee'] = $student_due_fee;
         $transport_fee           = $this->studenttransportfee_model->getTransportFeeByStudent($student['student_session_id']);
         $data['transport_fee']   = $transport_fee;
-        $examList                = $this->examschedule_model->getExamByClassandSection($student['class_id'], $student['section_id']);
+        $examList                = $this->examschedule_model->getExamByClassandSection($student['class_id'], null);
         $data['examSchedule']    = array();
         if (!empty($examList)) {
             $new_array                      = array();
@@ -156,7 +156,7 @@ class Mark extends Student_Controller
         $data['title']           = 'Exam Schedule';
         $data['exam_id']         = "";
         $data['class_id']        = "";
-        $data['section_id']      = "";
+        // TVET: section_id removed
         $exam                    = $this->exam_model->get();
         // TVET: Use classmodel_model to get classes for current session
         $session_id              = $this->setting_model->getCurrentSession();
@@ -167,7 +167,7 @@ class Mark extends Student_Controller
         $data['feecategorylist'] = $feecategory;
         $this->form_validation->set_rules('exam_id', 'Exam', 'trim|required|xss_clean');
         $this->form_validation->set_rules('class_id', 'Class', 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', 'Section', 'trim|required|xss_clean');
+        // TVET: section_id validation removed
         if ($this->form_validation->run() == false) {
             $this->load->view('layout/header', $data);
             $this->load->view('admin/mark/markCreate', $data);
@@ -176,12 +176,12 @@ class Mark extends Student_Controller
             $feecategory_id       = $this->input->post('feecategory_id');
             $exam_id              = $this->input->post('exam_id');
             $class_id             = $this->input->post('class_id');
-            $section_id           = $this->input->post('section_id');
+            // TVET: section_id removed
             $data['exam_id']      = $exam_id;
             $data['class_id']     = $class_id;
-            $data['section_id']   = $section_id;
-            $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, $section_id, $exam_id);
-            $studentList          = $this->student_model->searchByClassSection($class_id, $section_id);
+            // TVET: section_id removed
+            $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, null, $exam_id);
+            $studentList          = $this->student_model->searchByClassSection($class_id, null);
             $data['examSchedule'] = array();
             if (!empty($examSchedule)) {
                 $new_array = array();
