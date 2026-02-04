@@ -21,18 +21,20 @@ class Resume extends Admin_Controller
         $this->sch_setting_detail = $this->setting_model->getSetting();              
     }
 
-    public function index(){    
+    public function index(){
 
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;       
-        $data['sch_setting']     = $this->sch_setting_detail;       
+        // TVET: Use TVET class structure
+        $session_id              = $this->setting_model->getCurrentSession();
+        $classlist               = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
+        $data['sch_setting']     = $this->sch_setting_detail;
         if ($this->input->server('REQUEST_METHOD') == "GET") {
             $this->load->view('layout/header', $data);
             $this->load->view('admin/resume/index', $data);
             $this->load->view('layout/footer', $data);
         } else {
             $class   = $this->input->post('class_id');
-            $section = $this->input->post('section_id');
+            // TVET: No section_id needed
             $search  = $this->input->post('search');
             if (isset($search)) {
                 $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
@@ -40,9 +42,9 @@ class Resume extends Admin_Controller
                 } else {
                     $data['searchby']     = "filter";
                     $data['class_id']     = $this->input->post('class_id');
-                    $data['section_id']   = $this->input->post('section_id');
-                    $resultlist           = $this->student_model->searchByClassSection($class, $section);
-                    $data['resultlist']   = $resultlist;                     
+                    // TVET: No section_id
+                    $resultlist           = $this->student_model->searchByClassSection($class, null);
+                    $data['resultlist']   = $resultlist;
                 }
             }
             $this->load->view('layout/header', $data);
@@ -347,17 +349,20 @@ class Resume extends Admin_Controller
         return $content;    
     }
 
-	public function download(){    
-        $class                   = $this->class_model->get();
-        $data['classlist']       = $class;       
-        $data['sch_setting']     = $this->sch_setting_detail;       
+	public function download(){
+
+        // TVET: Use TVET class structure
+        $session_id              = $this->setting_model->getCurrentSession();
+        $classlist               = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $classlist;
+        $data['sch_setting']     = $this->sch_setting_detail;
         if ($this->input->server('REQUEST_METHOD') == "GET") {
             $this->load->view('layout/header', $data);
             $this->load->view('admin/resume/download', $data);
             $this->load->view('layout/footer', $data);
         } else {
             $class   = $this->input->post('class_id');
-            $section = $this->input->post('section_id');
+            // TVET: No section_id needed
             $search  = $this->input->post('search');
             if (isset($search)) {
                 $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
@@ -365,9 +370,9 @@ class Resume extends Admin_Controller
                 } else {
                     $data['searchby']     = "filter";
                     $data['class_id']     = $this->input->post('class_id');
-                    $data['section_id']   = $this->input->post('section_id');
-                    $resultlist           = $this->student_model->searchByClassSection($class, $section);
-                    $data['resultlist']   = $resultlist;                     
+                    // TVET: No section_id
+                    $resultlist           = $this->student_model->searchByClassSection($class, null);
+                    $data['resultlist']   = $resultlist;
                 }
             }
             $this->load->view('layout/header', $data);
