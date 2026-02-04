@@ -30,9 +30,9 @@ class Classmodel_model extends CI_Model
         // FIXED: Explicit column selection to avoid id column conflict
         $this->db->select('class.id as id,
             class.class_code, class.subject_level_id, class.cohort_name,
-            class.academic_year, class.session_id, class.delivery_mode,
-            class.primary_lecturer_id, class.status, class.is_active,
-            class.max_students, class.min_students, class.start_date, class.end_date,
+            class.academic_year, class.session_id, class.intake_period, class.delivery_mode,
+            class.primary_lecturer_id, class.venue, class.status, class.is_active,
+            class.max_students, class.start_date, class.end_date,
             subject_level.subject_id, subject_level.level_id,
             subjects.name as subject_name, subjects.code as subject_code, subjects.credits, subjects.notional_hours,
             level.name as level_name, level.code as level_code, level.level_type, level.nqf_level,
@@ -59,9 +59,9 @@ class Classmodel_model extends CI_Model
         // FIXED: Explicit column selection to avoid id column conflict between class and subject_level tables
         $this->db->select('class.id as id,
             class.class_code, class.subject_level_id, class.cohort_name,
-            class.academic_year, class.session_id, class.delivery_mode,
-            class.primary_lecturer_id, class.status, class.is_active,
-            class.max_students, class.min_students, class.start_date, class.end_date,
+            class.academic_year, class.session_id, class.intake_period, class.delivery_mode,
+            class.primary_lecturer_id, class.venue, class.status, class.is_active,
+            class.max_students, class.start_date, class.end_date,
             subject_level.subject_id, subject_level.level_id,
             subjects.name as subject_name, subjects.code as subject_code, subjects.programme_id,
             level.name as level_name, level.code as level_code, level.level_type, level.sequence,
@@ -147,8 +147,8 @@ class Classmodel_model extends CI_Model
         // FIXED: Explicit column selection
         $this->db->select('class.id as id,
             class.class_code, class.subject_level_id, class.cohort_name,
-            class.academic_year, class.session_id, class.delivery_mode,
-            class.primary_lecturer_id, class.status, class.is_active,
+            class.academic_year, class.session_id, class.intake_period, class.delivery_mode,
+            class.primary_lecturer_id, class.venue, class.status, class.is_active,
             subjects.name as subject_name, subjects.code as subject_code,
             level.name as level_name, level.code as level_code,
             (SELECT COUNT(*) FROM enrolment WHERE enrolment.class_id = class.id AND enrolment.status = "Active") as student_count');
