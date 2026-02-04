@@ -31,8 +31,8 @@ class Teacher extends Admin_Controller
     public function getSubjctByClassandSection()
     {
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $data       = $this->teachersubject_model->getSubjectByClsandSection($class_id, $section_id);
+        // TVET: section_id removed
+        $data       = $this->teachersubject_model->getSubjectByClsandSection($class_id, null);
         echo json_encode($data);
     }
 
@@ -64,7 +64,7 @@ class Teacher extends Admin_Controller
                 $s               = array();
                 $s['session_id'] = $this->setting_model->getCurrentSession();
                 $class_id        = $this->input->post('class_id');
-                $section_id      = $this->input->post('section_id');
+                // TVET: section_id removed
                 // TVET: Use classmodel_model to get class details
                 $dt              = $this->classmodel_model->getClassById($class_id);
 
@@ -116,7 +116,7 @@ class Teacher extends Admin_Controller
                 $s               = array();
                 $s['session_id'] = $this->setting_model->getCurrentSession();
                 $class_id        = $this->input->post('class_id');
-                $section_id      = $this->input->post('section_id');
+                // TVET: section_id removed
                 // TVET: Use classmodel_model to get class details
                 $dt              = $this->classmodel_model->getClassById($class_id);
 
@@ -149,17 +149,17 @@ class Teacher extends Admin_Controller
         }
         $this->form_validation->set_error_delimiters('', '');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section_id validation removed
         if ($this->form_validation->run()) {
             $class_id   = $this->input->post('class_id');
-            $section_id = $this->input->post('section_id');
-            $dt         = $this->classsection_model->getDetailbyClassSection($class_id, $section_id);
+            // TVET: section_id removed, use class_id directly
+            $dt         = $this->classmodel_model->getClassById($class_id);
             $data       = $this->teachersubject_model->getDetailByclassAndSection($dt['id']);
             echo json_encode(array('st' => 0, 'msg' => $data));
         } else {
             $data = array(
                 'class_id'   => form_error('class_id'),
-                'section_id' => form_error('section_id'),
+                // TVET: section_id error removed
             );
             echo json_encode(array('st' => 1, 'msg' => $data));
         }
@@ -376,13 +376,13 @@ class Teacher extends Admin_Controller
 
                     $data = array('id' => $classteacherid[$i],
                         'class_id'         => $class,
-                        'section_id'       => $section,
+                        // TVET: section_id removed
                         'staff_id'         => $teachers[$i],
                         'session_id'       => $this->current_session,
                     );
                 } else {
                     $data = array('class_id' => $class,
-                        'section_id'             => $section,
+                        // TVET: section_id removed
                         'staff_id'               => $teachers[$i],
                         'session_id'             => $this->current_session,
                     );
@@ -408,9 +408,9 @@ class Teacher extends Admin_Controller
 
         foreach ($assignteacherlist as $key => $value) {
             $class_id   = $value["class_id"];
-            $section_id = $value["section_id"];
+            // TVET: section_id removed
 
-            $tlist[] = $this->classteacher_model->teacherByClassSection($class_id, $section_id);
+            $tlist[] = $this->classteacher_model->teacherByClassSection($class_id, null);
         }
         if (!empty($tlist)) {
             $data["tlist"] = $tlist;
@@ -424,13 +424,14 @@ class Teacher extends Admin_Controller
         $this->load->view('layout/footer', $data);
     }
 
-    public function classteacheredit1111($class_id, $section_id)
+    public function classteacheredit1111($class_id)
     {
         if (!$this->rbac->hasPrivilege('assign_class_teacher', 'can_edit')) {
             access_denied();
         }
 
-        $result = $this->classteacher_model->teacherByClassSection($class_id, $section_id);
+        // TVET: section_id parameter removed
+        $result = $this->classteacher_model->teacherByClassSection($class_id, null);
 
         $data["result"] = $result;
 
@@ -439,16 +440,16 @@ class Teacher extends Admin_Controller
         $data['assignteacherlist'] = $assignteacherlist;
         foreach ($assignteacherlist as $key => $value) {
             $classid   = $value["class_id"];
-            $sectionid = $value["section_id"];
+            // TVET: section_id removed
 
-            $tlist[] = $this->classteacher_model->teacherByClassSection($classid, $sectionid);
+            $tlist[] = $this->classteacher_model->teacherByClassSection($classid, null);
         }
 
         $data["tlist"]       = $tlist;
         $teacherlist         = $this->staff_model->getStaffbyrole($role = 2);
         $data['teacherlist'] = $teacherlist;
         $data['class_id']    = $class_id;
-        $data['section_id']  = $section_id;
+        // TVET: section_id removed
         // TVET: Use classmodel_model to get classes for current session
         $session_id          = $this->setting_model->getCurrentSession();
         $classlist           = $this->classmodel_model->getClassesBySession($session_id);
@@ -462,7 +463,7 @@ class Teacher extends Admin_Controller
         $this->load->view('layout/footer', $data);
     }
 
-    public function update_class_teacher($class_id, $section_id)
+    public function update_class_teacher($class_id)
     {
         $this->session->set_userdata('top_menu', 'Academics');
         $this->session->set_userdata('sub_menu', 'classes/index');
@@ -479,7 +480,8 @@ class Teacher extends Admin_Controller
         $this->form_validation->set_rules('teachers[]', $this->lang->line('class_teacher'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
-            $result = $this->classteacher_model->teacherByClassSection($class_id, $section_id);
+            // TVET: section_id parameter removed
+            $result = $this->classteacher_model->teacherByClassSection($class_id, null);
 
             $data["result"] = $result;
 
@@ -488,16 +490,16 @@ class Teacher extends Admin_Controller
             $data['assignteacherlist'] = $assignteacherlist;
             foreach ($assignteacherlist as $key => $value) {
                 $classid   = $value["class_id"];
-                $sectionid = $value["section_id"];
+                // TVET: section_id removed
 
-                $tlist[] = $this->classteacher_model->teacherByClassSection($classid, $sectionid);
+                $tlist[] = $this->classteacher_model->teacherByClassSection($classid, null);
             }
 
             $data["tlist"]       = $tlist;
             $teacherlist         = $this->staff_model->getStaffbyrole($role = 2);
             $data['teacherlist'] = $teacherlist;
             $data['class_id'] = $class_id;
-            $data['section_id'] = $section_id;
+            // TVET: section_id removed
             // TVET: Use classmodel_model to get classes for current session
             $session_id        = $this->setting_model->getCurrentSession();
             $classlist         = $this->classmodel_model->getClassesBySession($session_id);
@@ -528,7 +530,7 @@ class Teacher extends Admin_Controller
 
                     $vehicle_array = array(
                         'class_id'   => $class_id,
-                        'section_id' => $section,
+                        // TVET: section_id removed
                         'staff_id'   => $vec_value,
                         'session_id' => $this->current_session,
                     );
@@ -537,12 +539,12 @@ class Teacher extends Admin_Controller
                 }
             } else {
                 $prev_class_id   = $this->input->post('prev_class_id');
-                $prev_section_id = $this->input->post('prev_section_id');
+                // TVET: prev_section_id removed
                 $previd          = $this->input->post('previd');
 
                 if (!empty($previd)) {
 
-                    if ($prev_class_id != $class_id || $prev_section_id != $section) {
+                    if ($prev_class_id != $class_id) {
                         $this->classteacher_model->updateTeacher($previd, $class_id, $section);
                     }
                 }
@@ -565,11 +567,12 @@ class Teacher extends Admin_Controller
         $this->load->view('layout/footer', $data);
     }
 
-    public function classteacherdelete($class_id, $section_id)
+    public function classteacherdelete($class_id)
     {
-        if ((!empty($class_id)) && (!empty($section_id))) {
+        // TVET: section_id parameter removed
+        if (!empty($class_id)) {
 
-            $this->classteacher_model->delete($class_id, $section_id, null);
+            $this->classteacher_model->delete($class_id, null, null);
             $this->session->set_flashdata('msg', '<div class="alert alert-success text-center">' . $this->lang->line('delete_message') . '</div>');
             redirect("admin/teacher/assign_class_teacher");
         }
