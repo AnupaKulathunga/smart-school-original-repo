@@ -138,28 +138,22 @@ foreach ($sessionlist as $sessions) {
                             </select>
                             <span class="text-danger"><?php echo form_error('session_id'); ?></span>
                         </div>
-                        <div id="classlist" class="form-group col-xs-12 col-sm-12 col-md-12 col-lg-12 hide">
-                            <label class="displayblock"><?php echo $this->lang->line('select_class'); ?><small class="req"> *</small></label>
-                            <select onchange="getsectionlist()" id="class_id" name="class_id" class="form-control"  >
-                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                <?php
-foreach ($classlist as $class) {
-    ?>
-                                    <option value="<?php echo $class['id'] ?>"<?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-    <?php
-}
-?>
-                            </select>
-                        </div>
-                        <div id="sectionlist" class="form-group col-md-12 hide">
-                            <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                            <ul id="section_list" class="list-group section_list listcheckbox">
-                            </ul>
-                        </div>
+                        <?php
+                        $this->load->view('admin/_partials/class_selector', [
+                            'selected_class_id' => set_value('class_id'),
+                            'classlist' => $classlist,
+                            'class_input_id' => 'class_id',
+                            'section_input_id' => 'section_list',
+                            'col_class' => 'col-xs-12 col-sm-12 col-md-12 col-lg-12 hide',
+                            'col_section' => 'col-md-12 hide',
+                            'wrapper_id_class' => 'classlist',
+                            'wrapper_id_section' => 'sectionlist',
+                            'section_multiple' => true,
+                            'section_as_checkboxes' => true,
+                            'section_class' => 'listcheckbox',
+                            'class_onchange' => 'getsectionlist()'
+                        ]);
+                        ?>
                         <div class="form-group col-md-12">
                             <label><?php echo $this->lang->line('event_title'); ?></label><small class="req"> *</small>
                             <input type="hidden" name="id" id="id">

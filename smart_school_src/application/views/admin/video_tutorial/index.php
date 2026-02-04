@@ -26,35 +26,16 @@
                                 <form role="form" action="<?php echo site_url('admin/video_tutorial/searchvalidation') ?>" method="post" class="class_search_form">
                                     <div class="col-md-6">
                                         <div class="row">
-                                          <div class="col-sm-6 col-md-6">
-                                            <div class="form-group">
-                                                <label><?php echo $this->lang->line('class'); ?></label><small class="req"> </small>
-                                                <select autofocus="" id="search_class_id" name="search_class_id" class="form-control search_class_id" >
-                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                    <?php
-                                                        foreach ($classlist as $class) {
-                                                    ?>
-                                                            <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_id') == $class['id']) {
-                                                                echo "selected=selected";
-                                                            }
-                                                            ?>><?php echo $class['class'] ?></option>
-                                                    <?php
-                                                        }
-                                                    ?>
-                                                </select>
-                                                <span class="text-danger" id="error_search_class_id"></span>
-                                            </div>
-                                        </div>    
-                                        <div class="col-sm-6 col-md-6">
-                                            <div class="form-group">
-                                                <label><?php echo $this->lang->line('section'); ?></label><small class="req"> </small>
-
-                                                <select  id="search_section_id" name="search_section_id" class="form-control search_section_id">
-                                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                </select>
-                                                <span class="text-danger" id="error_search_section_id"></span>
-                                            </div> 
-                                        </div> 
+                                          <?php
+                                            $this->load->view('admin/_partials/class_selector', [
+                                                'selected_class_id' => set_value('class_id'),
+                                                'classlist' => $classlist,
+                                                'class_input_id' => 'search_class_id',
+                                                'section_input_id' => 'search_section_id',
+                                                'error_class_id' => 'error_search_class_id',
+                                                'error_section_id' => 'error_search_section_id'
+                                            ]);
+                                            ?> 
                                       </div>     
                                     </div>
                                     <div class="col-md-6">
@@ -95,37 +76,18 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-lg-12 col-md-12 col-sm-12">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('class'); ?></label> <small class="req"> *</small>
-                                        <select autofocus="" id="class_id" name="class_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                            <?php
-                                                foreach ($classlist as $class) {
-                                            ?>
-                                                    <option value="<?php echo $class['id'] ?>" <?php if (set_value('class_id') == $class['id']) {
-                                                        echo "selected=selected";
-                                                    }
-                                                    ?>><?php echo $class['class'] ?></option>
-                                            <?php
-                                                }
-                                            ?>
-                                        </select>
-                                        <span class="text-danger" id="error_class_id"></span>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="form-group select2-container-3">
-                                        <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select id="section_id" name="section_id[]" class="form-control  section-list select2" multiple="multiple">
-
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger" id="error_section_id"><?php echo form_error('section_id'); ?></span>
-                                    </div>
-                                </div>
-                            </div>
+                            <?php
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => set_value('class_id'),
+                                'classlist' => $classlist,
+                                'class_input_id' => 'class_id',
+                                'section_input_id' => 'section_id',
+                                'error_class_id' => 'error_class_id',
+                                'error_section_id' => 'error_section_id',
+                                'section_multiple' => true,
+                                'section_class' => 'section-list select2'
+                            ]);
+                            ?>
                             <div class="row">
                                 <div class="col-sm-6">
                                     <div class="form-group">

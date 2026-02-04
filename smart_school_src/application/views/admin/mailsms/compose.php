@@ -248,25 +248,19 @@ foreach ($roles as $role_key => $role_value) {
                                             </div>
                                         </div>
                                         <div class="col-md-4">
-                                            <div class="row">
-                                                <div class="form-group col-xs-10 col-sm-12 col-md-12 col-lg-12">
-                                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('message_to'); ?></label><small class="req"> *</small>
-                                                    <select  id="class_id" name="class_id" class="form-control"  >
-                                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                                        <?php
-foreach ($classlist as $class) {
-    ?>
-                                                            <option value="<?php echo $class['id'] ?>"<?php
-if (set_value('class_id') == $class['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $class['class'] ?></option>
-                                                                    <?php
-}
-?>
-                                                    </select>
-                                                </div>
-                                            </div>
+                                            <?php
+                                            $this->load->view('admin/_partials/class_selector', [
+                                                'selected_class_id' => set_value('class_id'),
+                                                'classlist' => $classlist,
+                                                'class_input_id' => 'class_id',
+                                                'section_input_id' => 'section_list',
+                                                'col_class' => 'col-xs-10 col-sm-12 col-md-12 col-lg-12',
+                                                'col_section' => 'col-md-2',
+                                                'class_label' => $this->lang->line('message_to'),
+                                                'section_label' => '',
+                                                'show_section_row' => false
+                                            ]);
+                                            ?>
                                             <div class="dual-list list-right">
                                                 <div class="well minheight260">
                                                     <div class="wellscroll row">
