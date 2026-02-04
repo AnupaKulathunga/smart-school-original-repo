@@ -24,34 +24,34 @@ class approve_leave extends Admin_Controller
  
     public function index()
     {
- 
+
         if (!$this->rbac->hasPrivilege('approve_leave', 'can_view')) {
             access_denied();
         }
         $this->session->set_userdata('top_menu', 'Attendance');
         $this->session->set_userdata('sub_menu', 'Attendance/approve_leave');
-        $class               = $this->class_model->get();
-        $data['classlist']   = $class;
+
+        // TVET: Load classes by session
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+
+        $data['classlist']   = $classlist;
         $data['class_id']    = $class_id    = '';
-        $data['section_id']  = $section_id  = '';
         $data['sch_setting'] = $this->setting_model->getSetting();
         $data['results']     = array();
 
         if (isset($_POST['class_id']) && $_POST['class_id'] != '') {
             $data['class_id'] = $class_id = $_POST['class_id'];
         } else {
-            $listaudit = $this->apply_leave_model->get(null, null, null);
+            $listaudit = $this->apply_leave_model->getByClass(null);
         }
 
-        if (isset($_POST['section_id']) && $_POST['section_id'] != '') {
-            $data['section_id'] = $section_id = $_POST['section_id'];
-        }
+        // TVET: Validate class_id only (no section_id)
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
- 
+
         } else {
-            $listaudit = $this->apply_leave_model->get(null, $class_id, $section_id);
+            $listaudit = $this->apply_leave_model->getByClass($class_id);
         }
 
         $data['results'] = $listaudit;
@@ -67,8 +67,9 @@ class approve_leave extends Admin_Controller
         $role_id  = $userdata["role_id"];
         $can_edit = 1;
 
+        // TVET: Check permissions by class_id only (no section_id)
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-            $myclasssubjects = $this->apply_leave_model->canApproveLeave($userdata["id"], $this->input->post('class_id'), $this->input->post('section_id'));
+            $myclasssubjects = $this->apply_leave_model->canApproveLeave($userdata["id"], $this->input->post('class_id'));
             $can_edit        = $myclasssubjects;
         }
 
@@ -76,8 +77,8 @@ class approve_leave extends Admin_Controller
 
             $data = array('status' => 'fail', 'error' => $this->lang->line('not_authoried'));
         } else {
-            $data                 = $this->apply_leave_model->get($_POST['id'], null, null);
-            
+            $data                 = $this->apply_leave_model->get($_POST['id'], null);
+
             $data['leave_status'] = $data['status'];
             $data['from_date']    = date($this->customlib->getSchoolDateFormat(), strtotime($data['from_date']));
             $data['to_date']      = date($this->customlib->getSchoolDateFormat(), strtotime($data['to_date']));
@@ -89,8 +90,8 @@ class approve_leave extends Admin_Controller
     public function add()
     {
         $student_id = '';
+        // TVET: Validate class only (no section)
         $this->form_validation->set_rules('class', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('apply_date', $this->lang->line('apply_date'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('from_date', $this->lang->line('from_date'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('to_date', $this->lang->line('to_date'), 'trim|required|xss_clean');
@@ -101,7 +102,6 @@ class approve_leave extends Admin_Controller
 
             $msg = array(
                 'class'        => form_error('class'),
-                'section'      => form_error('section'),
                 'student'      => form_error('student'),
                 'apply_date'   => form_error('apply_date'),
                 'from_date'    => form_error('from_date'),
@@ -111,10 +111,11 @@ class approve_leave extends Admin_Controller
             );
 
             $array = array('status' => 'fail', 'error' => $msg, 'message' => '');
-        } else {          
+        } else {
 
             $img_name = $this->media_storage->fileupload("userfile", "./uploads/student_leavedocuments/");
 
+            // TVET: Use student_session_id (will be migrated to enrolment_id in future phase)
             $data = array(
                 'apply_date'         => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('apply_date'))),
                 'from_date'          => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('from_date'))),
@@ -162,11 +163,11 @@ class approve_leave extends Admin_Controller
         echo json_encode($array);
     }
 
-    public function searchByClassSection($class_id, $student_id)
+    // TVET: Get students by class only (no section)
+    public function searchByClass($class_id, $student_id)
     {
-        $section_id          = $_REQUEST['section_id'];
-        $resultlist          = $this->student_model->searchByClassSection($class_id, $section_id);
-        $data['resultlist']  = $resultlist;
+        $students = $this->classmodel_model->getClassStudents($class_id);
+        $data['resultlist']  = $students;
         $data['select_id']   = $student_id;
         $data['sch_setting'] = $this->sch_setting_detail;
         $this->load->view('admin/approve_leave/_student_list', $data);
@@ -178,8 +179,9 @@ class approve_leave extends Admin_Controller
         $role_id  = $userdata["role_id"];
         $can_edit = 1;
 
+        // TVET: Check permissions by class_id only (no section_id)
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-            $myclasssubjects = $this->apply_leave_model->canApproveLeave($userdata["id"], $this->input->post('class_id'), $this->input->post('section_id'));
+            $myclasssubjects = $this->apply_leave_model->canApproveLeave($userdata["id"], $this->input->post('class_id'));
             $can_edit        = $myclasssubjects;
         }
 
@@ -208,8 +210,9 @@ class approve_leave extends Admin_Controller
         $role_id  = $userdata["role_id"];
         $can_edit = 1;
 
+        // TVET: Check permissions by class_id only (no section_id)
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-            $myclasssubjects = $this->apply_leave_model->canApproveLeave($userdata["id"], $this->input->post('class_id'), $this->input->post('section_id'));
+            $myclasssubjects = $this->apply_leave_model->canApproveLeave($userdata["id"], $this->input->post('class_id'));
             $can_edit        = $myclasssubjects;
         }
 

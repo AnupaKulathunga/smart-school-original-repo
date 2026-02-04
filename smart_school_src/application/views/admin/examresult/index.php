@@ -76,25 +76,21 @@ if (set_value('session_id') == $session['id']) {
                                             <?php
 foreach ($classlist as $class) {
     ?>
-                                                <option value="<?php echo $class['id'] ?>" <?php
-if (set_value('class_id') == $class['id']) {
+                                                <option value="<?php echo $class->id ?>" <?php
+if (set_value('class_id') == $class->id) {
         echo "selected=selected";
     }
-    ?>><?php echo $class['class'] ?></option>
+    ?>>
+    <?php
+    // TVET: Display Subject - Level (Cohort)
+    echo $class->subject_name . ' - ' . $class->level_name . ' (' . $class->cohort_name . ')';
+    ?>
+    </option>
                                                         <?php
 }
 ?>
                                         </select>
                                         <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                                    </div>
-                                </div>
-                                <div class="col-sm-6 col-lg-3 col-md-6 col20">
-                                    <div class="form-group">
-                                        <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                        <select  id="section_id" name="section_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('section_id'); ?></span>
                                     </div>
                                 </div>
                                 <div class="col-sm-12">
@@ -405,57 +401,18 @@ function findGradePoints($exam_grades, $percentage)
     });
 
     var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';
-    var class_id = '<?php echo set_value('class_id') ?>';
-    var section_id = '<?php echo set_value('section_id') ?>';
     var session_id = '<?php echo set_value('session_id') ?>';
     var exam_group_id = '<?php echo set_value('exam_group_id') ?>';
     var exam_id = '<?php echo set_value('exam_id') ?>';
-    getSectionByClass(class_id, section_id); 
+
+    // TVET: Load exams on page load
     getExamByExamgroup(exam_group_id, exam_id);
+
     $(document).on('change', '#exam_group_id', function (e) {
         $('#exam_id').html("");
         var exam_group_id = $(this).val();
         getExamByExamgroup(exam_group_id, 0);
     });
-
-    $(document).on('change', '#class_id', function (e) {
-        $('#section_id').html("");
-        var class_id = $(this).val();
-        getSectionByClass(class_id, 0);
-    });
-
-    function getSectionByClass(class_id, section_id) {
-
-        if (class_id !== "") {
-            $('#section_id').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: "GET",
-                url: base_url + "sections/getByClass",
-                data: {'class_id': class_id},
-                dataType: "json",
-                beforeSend: function () {
-                    $('#section_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (section_id === obj.section_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.section_id + " " + sel + ">" + obj.section + "</option>";
-                    });
-                    $('#section_id').append(div_data);
-                },
-                complete: function () {
-                    $('#section_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
 
     function getExamByExamgroup(exam_group_id, exam_id) {
 

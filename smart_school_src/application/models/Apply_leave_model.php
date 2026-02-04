@@ -14,10 +14,39 @@ class apply_leave_model extends MY_Model
         $this->current_date    = $this->setting_model->getDateYmd();
     }
 
+    // TVET: Updated to support both legacy (with carray/section_array) and new structure (with just id)
     public function get($id = null, $carray = null, $section_array = null)
     {
         $userdata = $this->customlib->getUserData();
-        $class_section_array=$this->customlib->get_myClassSection();
+
+        // If fetching by ID only (for detail view), use TVET structure
+        if ($id != null && $carray == null && $section_array == null) {
+            $this->db->select('student_applyleave.*,
+                student_applyleave.status as apply_leave_status,
+                students.firstname, students.middlename, students.lastname,
+                students.id as stud_id, students.admission_no,
+                staff.employee_id as staff_id, staff.name as staff_name, staff.surname,
+                class.id as class_id, class.class_code, class.cohort_name,
+                subjects.name as subject_name, subjects.code as subject_code,
+                level.name as level_name, level.code as level_code')
+                ->from('student_applyleave')
+                ->join('student_session', 'student_session.id = student_applyleave.student_session_id')
+                ->join('students', 'students.id = student_session.student_id', 'inner')
+                ->join('staff', 'staff.id = student_applyleave.approve_by', 'left')
+                ->join('enrolment', 'enrolment.student_id = students.id AND enrolment.session_id = student_session.session_id', 'left')
+                ->join('class', 'enrolment.class_id = class.id', 'left')
+                ->join('subject_level', 'class.subject_level_id = subject_level.id', 'left')
+                ->join('subjects', 'subject_level.subject_id = subjects.id', 'left')
+                ->join('level', 'subject_level.level_id = level.id', 'left');
+
+            $this->db->where('student_applyleave.id', $id);
+            $this->db->where('students.is_active', 'yes');
+            $query = $this->db->get();
+            return $query->row_array();
+        }
+
+        // Legacy structure for backward compatibility
+        $class_section_array = $this->customlib->get_myClassSection();
         $this->db->select('student_applyleave.*,student_applyleave.status as `apply_leave_status`,students.firstname,students.middlename,students.lastname,staff.employee_id as staff_id,staff.name as staff_name,students.id as stud_id,students.admission_no as admission_no,staff.surname,classes.id as class_id,sections.id as section_id,classes.class,sections.section')->from('student_applyleave')
             ->join('student_session', 'student_session.id = student_applyleave.student_session_id')
             ->join('students', 'students.id=student_session.student_id', 'inner')
@@ -26,28 +55,30 @@ class apply_leave_model extends MY_Model
             ->join('classes', 'student_session.class_id = classes.id')
             ->join('sections', 'sections.id = student_session.section_id');
         $this->db->where('students.is_active', 'yes');
-         if(!empty($class_section_array)){ 
+
+        if (!empty($class_section_array)) {
             $this->db->group_start();
             foreach ($class_section_array as $class_sectionkey => $class_sectionvalue) {
-                $query_string="";
-                        foreach ($class_sectionvalue as $class_sectionvaluekey => $class_sectionvaluevalue) {
-                            $query_string="( student_session.class_id=".$class_sectionkey." and student_session.section_id=".$class_sectionvaluevalue." )";
-                            $this->db->or_where($query_string);
-                        }    
+                $query_string = "";
+                foreach ($class_sectionvalue as $class_sectionvaluekey => $class_sectionvaluevalue) {
+                    $query_string = "( student_session.class_id=".$class_sectionkey." and student_session.section_id=".$class_sectionvaluevalue." )";
+                    $this->db->or_where($query_string);
+                }
             }
             $this->db->group_end();
         }
+
         if ($this->session->has_userdata('admin')) {
-            $getStaffRole       = $this->customlib->getStaffRole();
-            $staffrole          = json_decode($getStaffRole);
+            $getStaffRole = $this->customlib->getStaffRole();
+            $staffrole = json_decode($getStaffRole);
             $superadmin_visible = $this->customlib->superadmin_visible();
             if ($superadmin_visible == 'disabled' && $staffrole->id != 7) {
                 $this->db->group_start();
                 $this->db->where("staff_roles.role_id !=", 7);
-                $this->db->or_where('staff_roles.role_id is  NULL', NULL, FALSE);
+                $this->db->or_where('staff_roles.role_id is NULL', NULL, FALSE);
                 $this->db->group_end();
             }
-        } 
+        }
 
         if ($carray != null) {
             $this->db->where_in('classes.id', $carray);
@@ -67,18 +98,69 @@ class apply_leave_model extends MY_Model
 
         $query = $this->db->get();
         if ($id != null) {
-            $result= $query->row_array();
+            $result = $query->row_array();
         } else {
-            $result =$query->result_array();
+            $result = $query->result_array();
         }
+
         if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes") && (empty($class_section_array))) {
-            $result=array();
+            $result = array();
         }
+
         return $result;
     }
 
+    // TVET: Get leave applications by class (using enrolment)
+    public function getByClass($class_id = null)
+    {
+        $userdata = $this->customlib->getUserData();
+
+        $this->db->select('student_applyleave.*,
+            student_applyleave.status as apply_leave_status,
+            students.firstname, students.middlename, students.lastname,
+            students.id as stud_id, students.admission_no,
+            staff.employee_id as staff_id, staff.name as staff_name, staff.surname,
+            class.id as class_id, class.class_code, class.cohort_name,
+            subjects.name as subject_name, subjects.code as subject_code,
+            level.name as level_name, level.code as level_code')
+            ->from('student_applyleave')
+            ->join('student_session', 'student_session.id = student_applyleave.student_session_id')
+            ->join('students', 'students.id = student_session.student_id', 'inner')
+            ->join('enrolment', 'enrolment.student_id = students.id AND enrolment.session_id = '.$this->current_session, 'inner')
+            ->join('staff', 'staff.id = student_applyleave.approve_by', 'left')
+            ->join('staff_roles', 'staff_roles.staff_id = staff.id', 'left')
+            ->join('class', 'enrolment.class_id = class.id')
+            ->join('subject_level', 'class.subject_level_id = subject_level.id')
+            ->join('subjects', 'subject_level.subject_id = subjects.id')
+            ->join('level', 'subject_level.level_id = level.id');
+
+        $this->db->where('students.is_active', 'yes');
+        $this->db->where('enrolment.status', 'Active');
+
+        if ($class_id != null) {
+            $this->db->where('class.id', $class_id);
+        }
+
+        // Handle superadmin visibility
+        if ($this->session->has_userdata('admin')) {
+            $getStaffRole = $this->customlib->getStaffRole();
+            $staffrole = json_decode($getStaffRole);
+            $superadmin_visible = $this->customlib->superadmin_visible();
+            if ($superadmin_visible == 'disabled' && $staffrole->id != 7) {
+                $this->db->group_start();
+                $this->db->where("staff_roles.role_id !=", 7);
+                $this->db->or_where('staff_roles.role_id is NULL', NULL, FALSE);
+                $this->db->group_end();
+            }
+        }
+
+        $this->db->order_by('student_applyleave.id', 'desc');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
     public function get_student($student_session_id = null)
-    {       
+    {
         $this->db->select('student_applyleave.*,students.firstname,students.middlename,students.lastname,staff.name as staff_name,staff.surname,classes.id as class_id,sections.id as section_id,classes.class,sections.section')->from('student_applyleave')->join('student_session', 'student_session.id = student_applyleave.student_session_id')->join('students', 'students.id=student_session.student_id', 'inner')->join('staff', 'staff.id=student_applyleave.approve_by', 'left')->join('classes', 'student_session.class_id = classes.id')->join('sections', 'sections.id = student_session.section_id');
         $this->db->where('student_session.session_id', $this->current_session);
         $this->db->where('student_session.id', $student_session_id);
@@ -166,19 +248,34 @@ class apply_leave_model extends MY_Model
         }
     }
 
-    public function canApproveLeave($staff_id, $class_id, $section_id)
+    // TVET: Updated to work with class_id only (no section_id)
+    public function canApproveLeave($staff_id, $class_id)
     {
-        $class_teacher = $this->db->select('*')->from('class_teacher')->where('class_id', $class_id)->where('section_id', $section_id)->where('staff_id', $staff_id)->get()->num_rows();
-        if ($class_teacher > 0) {
+        // Check if staff is lecturer for this class (TVET structure)
+        $class_lecturer = $this->db->select('*')
+            ->from('class_lecturer')
+            ->where('class_id', $class_id)
+            ->where('staff_id', $staff_id)
+            ->where('is_active', 1)
+            ->get()->num_rows();
+
+        if ($class_lecturer > 0) {
             return 1;
-        } else {
-            $subject_teacher = $this->db->select('*')->from('subject_timetable')->join('subject_group_subjects', 'subject_timetable.subject_group_subject_id=subject_group_subjects.id')->where('class_id', $class_id)->where('section_id', $section_id)->where('staff_id', $staff_id)->get()->num_rows();
-            if ($subject_teacher > 0) {
-                return 1;
-            } else {
-                return 0;
-            }
         }
+
+        // Also check if staff is primary lecturer for the class
+        $primary_lecturer = $this->db->select('*')
+            ->from('class')
+            ->where('id', $class_id)
+            ->where('primary_lecturer_id', $staff_id)
+            ->where('is_active', 1)
+            ->get()->num_rows();
+
+        if ($primary_lecturer > 0) {
+            return 1;
+        }
+
+        return 0;
     }
 
     public function getclassteacherbyclasssection($class_id, $section_id)

@@ -286,15 +286,20 @@ class Examresult extends Admin_Controller
         $data['examgrouplist'] = $examgroup_result;
         $marksheet_result      = $this->marksheet_model->get();
         $data['marksheetlist'] = $marksheet_result;
-        $class                 = $this->class_model->get();
+
+        // TVET: Load classes by session
+        $session_id = $this->setting_model->getCurrentSession();
+        $classlist = $this->classmodel_model->getClassesBySession($session_id);
+
         $data['title']         = 'Add Batch';
         $data['title_list']    = 'Recent Batch';
         $data['examType']      = $this->exam_type;
-        $data['classlist']     = $class;
+        $data['classlist']     = $classlist;
         $session               = $this->session_model->get();
         $data['sessionlist']   = $session;
+
+        // TVET: Validate class only (no section)
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('session_id', $this->lang->line('session'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('exam_group_id', $this->lang->line('exam_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('exam_id', $this->lang->line('exam'), 'trim|required|xss_clean');
@@ -304,12 +309,13 @@ class Examresult extends Admin_Controller
             $exam_id       = $this->input->post('exam_id');
             $session_id    = $this->input->post('session_id');
             $class_id      = $this->input->post('class_id');
-            $section_id    = $this->input->post('section_id');
 
             $marksheet_template         = $this->input->post('marksheet');
             $data['marksheet_template'] = $marksheet_template;
             $exam_details               = $this->examgroup_model->getExamByID($exam_id);
-            $studentList                = $this->examgroupstudent_model->searchExamStudents($exam_group_id, $exam_id, $class_id, $section_id, $session_id);
+
+            // TVET: Search by class only (section_id removed)
+            $studentList = $this->examgroupstudent_model->searchExamStudents($exam_group_id, $exam_id, $class_id, null, $session_id);
 
             $exam_subjects       = $this->batchsubject_model->getExamSubjects($exam_id);
             $data['subjectList'] = $exam_subjects;

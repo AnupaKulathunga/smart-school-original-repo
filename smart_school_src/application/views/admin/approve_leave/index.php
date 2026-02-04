@@ -26,34 +26,14 @@
                             <?php } ?>
                             <?php echo $this->customlib->getCSRF(); ?>
                         </div>
-                        <div class="col-md-6 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('class'); ?></label><small class="req"> *</small>
-                                <select autofocus="" id="searchclassid" name="class_id" onchange="getSectionByClass(this.value)"  class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    <?php
-                                    foreach ($classlist as $class) {
-                                        ?>
-                                        <option <?php
-                                        if ($class_id == $class["id"]) {
-                                            echo "selected";
-                                        }
-                                        ?> value="<?php echo $class['id'] ?>"><?php echo $class['class'] ?></option>
-                                            <?php
-                                        }
-                                        ?>
-                                </select>
-                                <span class="class_id_error text-danger"><?php echo form_error('class_id'); ?></span>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                                <select  id="secid" name="section_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="class_id_error text-danger"><?php echo form_error('section_id'); ?></span>
-                            </div>
+                        <div class="col-md-6">
+                            <?php
+                            // TVET: Use class_selector component (single dropdown for complete CLASS)
+                            $this->load->view('admin/_partials/class_selector', [
+                                'selected_class_id' => isset($class_id) ? $class_id : '',
+                                'classlist' => $classlist
+                            ]);
+                            ?>
                         </div>
                     </div>
                     <button type="submit" id="search_filter" name="search" value="search_filter" class="btn btn-primary btn-sm checkbox-toggle pull-right"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
@@ -77,14 +57,13 @@
                                     <tr>
                                         <th><?php echo $this->lang->line('student_name') ?></th>
                                         <th><?php echo $this->lang->line('class'); ?></th>
-                                        <th><?php echo $this->lang->line('section'); ?></th>
                                         <th><?php echo $this->lang->line('apply_date'); ?></th>
                                         <th><?php echo $this->lang->line('from_date'); ?></th>
                                         <th><?php echo $this->lang->line('to_date'); ?></th>
                                         <th><?php echo $this->lang->line('status'); ?></th>
                                         <th><?php echo $this->lang->line('approve_disapprove_by'); ?></th>
                                         <th class="text-right noExport"><?php echo $this->lang->line('action'); ?></th>
-                                    </tr> 
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     <?php
@@ -92,11 +71,18 @@
 
                                         ?>
                                         <tr>
-                                            <td><?php 
+                                            <td><?php
 
                                             echo $this->customlib->getFullName($value['firstname'],$value['middlename'],$value['lastname'],$sch_setting->middlename,$sch_setting->lastname)." (".$value['admission_no'].")"; ?></td>
-                                            <td><?php echo $value['class']; ?></td>
-                                            <td><?php echo $value['section']; ?></td>
+                                            <td><?php
+                                            // TVET: Show complete CLASS (Subject - Level (Cohort))
+                                            if (isset($value['subject_name']) && isset($value['level_name']) && isset($value['cohort_name'])) {
+                                                echo $value['subject_name'].' - '.$value['level_name'].' ('.$value['cohort_name'].')';
+                                            } else {
+                                                // Fallback for historical data
+                                                echo isset($value['class']) ? $value['class'] : '';
+                                            }
+                                            ?></td>
                                             <td><?php echo date($this->customlib->getSchoolDateFormat(), strtotime($value['apply_date'])); ?></td>
                                             <td><?php echo date($this->customlib->getSchoolDateFormat(), strtotime($value['from_date'])); ?></td>
                                             <td><?php echo date($this->customlib->getSchoolDateFormat(), strtotime($value['to_date'])); ?></td>
