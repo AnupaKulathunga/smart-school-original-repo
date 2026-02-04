@@ -22,13 +22,13 @@ class Report extends Admin_Controller
     {
         $data                    = [];
         $class_id                = $this->uri->segment(3);
-        $section_id              = $this->uri->segment(4);
-        $student_id              = $this->uri->segment(5);
+        // TVET: section_id removed (was segment 4)
+        $student_id              = $this->uri->segment(4);  // Now segment 4 instead of 5
         $student                 = $this->student_model->get($student_id);
         $setting_result          = $this->setting_model->get();
         $data['settinglist']     = $setting_result;
         $data['student']         = $student;
-        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($class_id, $section_id, $student_id);
+        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($class_id, null, $student_id);
         $data['student_due_fee'] = $student_due_fee;
         $html                    = $this->load->view('reports/students_detail', $data, true);
         $pdfFilePath             = $this->time . ".pdf";
@@ -118,16 +118,16 @@ class Report extends Admin_Controller
         $data['settinglist']   = $setting_result;
         $exam_id               = $this->uri->segment(3);
         $class_id              = $this->uri->segment(4);
-        $section_id            = $this->uri->segment(5);
+        // TVET: section_id removed
         $data['exam_id']       = $exam_id;
         $data['class_id']      = $class_id;
-        $data['section_id']    = $section_id;
+        // TVET: section_id removed
         $exam_arrylist         = $this->exam_model->get($exam_id);
         $data['exam_arrylist'] = $exam_arrylist;
-        $section               = $this->section_model->getClassNameBySection($class_id, $section_id);
-        $data['class']         = $section;
-        $examSchedule          = $this->examschedule_model->getDetailbyClsandSection($class_id, $section_id, $exam_id);
-        $studentList           = $this->student_model->searchByClassSection($class_id, $section_id);
+        $class_info            = $this->class_model->get($class_id);
+        $data['class']         = $class_info;
+        $examSchedule          = $this->examschedule_model->getDetailbyClsandSection($class_id, null, $exam_id);
+        $studentList           = $this->student_model->searchByClassSection($class_id, null);
         $data['examSchedule']  = array();
         if (!empty($examSchedule)) {
             $new_array                      = array();
@@ -179,12 +179,12 @@ class Report extends Admin_Controller
     {
         $data                = [];
         $class_id            = $this->uri->segment(3);
-        $section_id          = $this->uri->segment(4);
+        // TVET: section_id removed
         $setting_result      = $this->setting_model->get();
-        $section             = $this->section_model->getClassNameBySection($class_id, $section_id);
-        $data['class']       = $section;
+        $class_info          = $this->class_model->get($class_id);
+        $data['class']       = $class_info;
         $data['settinglist'] = $setting_result;
-        $resultlist          = $this->student_model->searchByClassSection($class_id, $section_id);
+        $resultlist          = $this->student_model->searchByClassSection($class_id, null);
         $data['resultlist']  = $resultlist;
         $html                = $this->load->view('reports/pdfStudentListByClassSection', $data, true);
         $pdfFilePath         = $this->time . ".pdf";
@@ -197,17 +197,14 @@ class Report extends Admin_Controller
     {
         $data           = [];
         $class_id       = $this->input->get('class_id');
-        $section_id     = $this->input->get('section_id');
+        // TVET: section_id removed
         $category_id    = $this->input->get('category_id');
         $gender         = $this->input->get('gender');
         $rte            = $this->input->get('rte');
         $setting_result = $this->setting_model->get();
         $class          = $this->class_model->get($class_id);
         $data['class']  = $class;
-        if ($section_id != "") {
-            $section         = $this->section_model->getClassNameBySection($class_id, $section_id);
-            $data['section'] = $section;
-        }
+        // TVET: section check removed
         if ($gender != "") {
             $data['gender'] = $gender;
         }
@@ -219,7 +216,7 @@ class Report extends Admin_Controller
             $data['category'] = $category;
         }
         $data['settinglist'] = $setting_result;
-        $resultlist          = $this->student_model->searchByClassSectionCategoryGenderRte($class_id, $section_id, $category_id, $gender, $rte);
+        $resultlist          = $this->student_model->searchByClassSectionCategoryGenderRte($class_id, null, $category_id, $gender, $rte);
         $data['resultlist']  = $resultlist;
         $html                = $this->load->view('reports/pdfStudentListDifferentCriteria', $data, true);
         $pdfFilePath         = $this->time . ".pdf";
@@ -232,12 +229,12 @@ class Report extends Admin_Controller
     {
         $data                = [];
         $class_id            = $this->uri->segment(3);
-        $section_id          = "";
+        // TVET: section_id removed
         $setting_result      = $this->setting_model->get();
-        $section             = $this->class_model->get($class_id);
-        $data['class']       = $section;
+        $class_info          = $this->class_model->get($class_id);
+        $data['class']       = $class_info;
         $data['settinglist'] = $setting_result;
-        $resultlist          = $this->student_model->searchByClassSection($class_id, $section_id);
+        $resultlist          = $this->student_model->searchByClassSection($class_id, null);
         $data['resultlist']  = $resultlist;
         $html                = $this->load->view('reports/pdfStudentListByClass', $data, true);
         $pdfFilePath         = $this->time . ".pdf";
@@ -1167,7 +1164,7 @@ class Report extends Admin_Controller
             $this->load->view('layout/footer', $data);
         } else {
             $class              = $this->input->post('class_id');
-            $section            = $this->input->post('section_id');
+            // TVET: section removed
             $search             = $this->input->post('search');
             $search_text        = $this->input->post('search_text');
             $data['session_id'] = $session_id = $this->input->post('session_id');
@@ -1179,9 +1176,9 @@ class Report extends Admin_Controller
                     } else {
                         $data['searchby']    = "filter";
                         $data['class_id']    = $this->input->post('class_id');
-                        $data['section_id']  = $this->input->post('section_id');
+                        // TVET: section_id removed
                         $data['search_text'] = $this->input->post('search_text');
-                        $resultlist          = $this->student_model->search_alumniStudentReport($class, $section, $session_id);
+                        $resultlist          = $this->student_model->search_alumniStudentReport($class, null, $session_id);
                         $data['resultlist']  = $resultlist;
                     }
                 } else if ($search == 'search_full') {
@@ -1930,9 +1927,9 @@ class Report extends Admin_Controller
     public function checkvalidation()
     {
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
+        // TVET: section_id removed
         $status     = $this->input->post('status');
-        $params     = array('class_id' => $class_id, 'section_id' => $section_id, 'status' => $status);
+        $params     = array('class_id' => $class_id, 'status' => $status);
         $array      = array('status' => 1, 'error' => '', 'params' => $params);
         echo json_encode($array);
     }
@@ -1940,10 +1937,10 @@ class Report extends Admin_Controller
     public function dtonlineadmissionreportlist()
     {
         $class_id   = $this->input->post("class_id");
-        $section_id = $this->input->post("section_id");
+        // TVET: section_id removed
         $status     = $this->input->post("status");
         $sch_setting = $this->sch_setting_detail;
-        $result          = $this->student_model->getonlineadmissionreport($class_id, $section_id, $status);
+        $result          = $this->student_model->getonlineadmissionreport($class_id, null, $status);
         $resultlist      = json_decode($result);
         $dt_data         = array();
         $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
@@ -2036,7 +2033,7 @@ class Report extends Admin_Controller
     public function studentreportvalidation()
     {
         $class_id    = $this->input->post('class_id');
-        $section_id  = $this->input->post('section_id');
+        // TVET: section_id removed
         $category_id = $this->input->post('category_id');
         $gender      = $this->input->post('gender');
         $rte         = $this->input->post('rte');
@@ -2048,7 +2045,7 @@ class Report extends Admin_Controller
             $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
             if ($this->form_validation->run() == true) {
 
-                $params = array('srch_type' => $srch_type, 'class_id' => $class_id, 'section_id' => $section_id, 'category_id' => $category_id, 'gender' => $gender, 'rte' => $rte);
+                $params = array('srch_type' => $srch_type, 'class_id' => $class_id, 'category_id' => $category_id, 'gender' => $gender, 'rte' => $rte);
                 $array  = array('status' => 1, 'error' => '', 'params' => $params);
                 echo json_encode($array);
             } else {
@@ -2059,7 +2056,7 @@ class Report extends Admin_Controller
                 echo json_encode($array);
             }
         } else {
-            $params = array('srch_type' => 'search_full', 'class_id' => $class_id, 'section_id' => $section_id);
+            $params = array('srch_type' => 'search_full', 'class_id' => $class_id);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
@@ -2069,7 +2066,7 @@ class Report extends Admin_Controller
     {
         $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
         $class           = $this->input->post('class_id');
-        $section         = $this->input->post('section_id');
+        // TVET: section removed
         $category_id     = $this->input->post('category_id');
         $gender          = $this->input->post('gender');
         $rte             = $this->input->post('rte');
@@ -2323,22 +2320,22 @@ class Report extends Admin_Controller
     public function searchloginvalidation()
     {
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
+        // TVET: section_id removed
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section_id validation removed
 
         if ($this->form_validation->run() == false) {
             $error = array();
 
             $error['class_id']   = form_error('class_id');
-            $error['section_id'] = form_error('section_id');
+            // TVET: section_id error removed
 
             $array = array('status' => 0, 'error' => $error);
             echo json_encode($array);
         } else {
 
-            $params = array('class_id' => $class_id, 'section_id' => $section_id);
+            $params = array('class_id' => $class_id);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
@@ -2348,8 +2345,8 @@ class Report extends Admin_Controller
     {
         $sch_setting = $this->sch_setting_detail;
         $class_id    = $this->input->post("class_id");
-        $section_id  = $this->input->post("section_id");
-        $result      = $this->student_model->getdtforlogincredential($class_id, $section_id);
+        // TVET: section_id removed
+        $result      = $this->student_model->getdtforlogincredential($class_id, null);
         $resultlist  = json_decode($result);
         $dt_data     = array();
 
@@ -2408,8 +2405,8 @@ class Report extends Admin_Controller
     {
         $sch_setting = $this->sch_setting_detail;
         $class_id    = $this->input->post("class_id");
-        $section_id  = $this->input->post("section_id");
-        $result      = $this->student_model->getdtforlogincredential($class_id, $section_id);
+        // TVET: section_id removed
+        $result      = $this->student_model->getdtforlogincredential($class_id, null);
         $resultlist  = json_decode($result);
         $dt_data     = array();
 
