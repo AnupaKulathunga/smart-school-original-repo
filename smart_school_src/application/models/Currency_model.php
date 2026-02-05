@@ -20,7 +20,7 @@ class Currency_model extends MY_Model
      */
     public function get($id = null)
     {
-        $this->db->select('currencies.*,IFNULL(sch_settings.currency, 0) as `currency_id`')->from('currencies');
+        $this->db->select('currencies.*,IFNULL(sch_settings.currency, 0) as `currency_id`', FALSE)->from('currencies');
         $this->db->join('sch_settings', 'currencies.id=sch_settings.currency', 'left');
 
         if ($id != null) {

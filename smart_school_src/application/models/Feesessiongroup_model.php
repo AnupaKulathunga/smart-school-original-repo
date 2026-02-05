@@ -43,7 +43,7 @@ class Feesessiongroup_model extends MY_Model
 
     public function getFeesByGroupByStudent($student_session_id)
     {
-        $this->db->select('fee_session_groups.*,fee_groups.name as `group_name`,IFNULL(student_fees_master.id,0) as `student_fees_master_id`,student_session.student_id,fee_groups.nature');
+        $this->db->select('fee_session_groups.*,fee_groups.name as `group_name`,IFNULL(student_fees_master.id,0) as `student_fees_master_id`,student_session.student_id,fee_groups.nature', FALSE);
         $this->db->from('fee_session_groups');
         $this->db->join('fee_groups', 'fee_groups.id = fee_session_groups.fee_groups_id');
         $this->db->join('student_fees_master',

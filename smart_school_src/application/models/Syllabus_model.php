@@ -148,7 +148,7 @@ class syllabus_model extends MY_Model
 
     public function get_subjectteachersreport($subject_group_subject_id, $subject_group_class_sections_id)
     {
-        $this->db->select('GROUP_CONCAT(subject_syllabus.id) as subject_syllabus_id,CONCAT_WS(" ",staff.name,staff.surname,"(",staff.employee_id,")") as name,count(subject_syllabus.id) as total_priodes,subjects.name as subject_name,subjects.code')
+        $this->db->select('GROUP_CONCAT(subject_syllabus.id) as subject_syllabus_id,CONCAT_WS(" ",staff.name,staff.surname,"(",staff.employee_id,")") as name,count(subject_syllabus.id) as total_priodes,subjects.name as subject_name,subjects.code', FALSE)
             ->from('subject_syllabus')->join('topic', 'topic.id=subject_syllabus.topic_id')->join('lesson', 'lesson.id=topic.lesson_id')
             ->join('staff', 'staff.id=subject_syllabus.created_for');
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id");

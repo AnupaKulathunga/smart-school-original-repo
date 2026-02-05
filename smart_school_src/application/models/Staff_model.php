@@ -43,7 +43,7 @@ class Staff_model extends MY_Model
 
     public function getrat()
     {
-        $this->db->select('staff.id,staff.employee_id,CONCAT_WS(" ",staff.name,staff.surname,"(",staff.employee_id,")") as name,roles.name as user_type,roles.id as role_id,staff_rating.rate,staff_rating.status,staff_rating.comment,staff_rating.id as rate_id,CONCAT_WS(" ",students.firstname,students.middlename,students.lastname,"(",students.admission_no,")") as student_name')->from('staff')->join("staff_roles", "staff_roles.staff_id = staff.id", "left")->join("roles", "staff_roles.role_id = roles.id", "left")->join("staff_rating", "staff_rating.staff_id = staff.id", "inner")->join("users", "users.id=staff_rating.user_id", "left")->join("students", "students.id=users.user_id", "left");
+        $this->db->select('staff.id,staff.employee_id,CONCAT_WS(" ",staff.name,staff.surname,"(",staff.employee_id,")") as name,roles.name as user_type,roles.id as role_id,staff_rating.rate,staff_rating.status,staff_rating.comment,staff_rating.id as rate_id,CONCAT_WS(" ",students.firstname,students.middlename,students.lastname,"(",students.admission_no,")") as student_name', FALSE)->from('staff')->join("staff_roles", "staff_roles.staff_id = staff.id", "left")->join("roles", "staff_roles.role_id = roles.id", "left")->join("staff_rating", "staff_rating.staff_id = staff.id", "inner")->join("users", "users.id=staff_rating.user_id", "left")->join("students", "students.id=users.user_id", "left");
         $this->db->where('staff.is_active', 1);
         $this->db->where_not_in('roles.id', 7);
         $this->db->order_by('staff.id');
@@ -596,7 +596,7 @@ class Staff_model extends MY_Model
 
     public function get_staff_name($id) {
 
-        $filter_get_student_name = $this->db->select('CONCAT_WS(" ",name,surname,"(",employee_id,")") as name')->from('staff')->where('staff.id', $id)->get()->row_array();
+        $filter_get_student_name = $this->db->select('CONCAT_WS(" ",name,surname,"(",employee_id,")") as name', FALSE)->from('staff')->where('staff.id', $id)->get()->row_array();
         return $filter_get_student_name['name'];
     }
 
@@ -734,7 +734,7 @@ class Staff_model extends MY_Model
 
     public function getByEmail($email)
     {
-        $this->db->select('staff.*,languages.language,languages.id as language_id,languages.is_rtl,IFNULL(currencies.name,0) as currency_name,IFNULL(currencies.symbol,0) as symbol,IFNULL(currencies.base_price,0) as base_price ,IFNULL(currencies.id,0) as `currency`');
+        $this->db->select('staff.*,languages.language,languages.id as language_id,languages.is_rtl,IFNULL(currencies.name,0) as currency_name,IFNULL(currencies.symbol,0) as symbol,IFNULL(currencies.base_price,0) as base_price ,IFNULL(currencies.id,0) as `currency`', FALSE);
         $this->db->from('staff');
         $this->db->join('languages', 'languages.id=staff.lang_id', 'left');
         $this->db->join('currencies', 'currencies.id=staff.currency_id', 'left');
@@ -900,7 +900,7 @@ class Staff_model extends MY_Model
 
     public function get_StaffNameById($id)
     {
-        return $this->db->select("CONCAT_WS(' ',name,surname) as name,employee_id,id")->from('staff')->where('id', $id)->get()->row_array();
+        return $this->db->select("CONCAT_WS(' ',name,surname) as name,employee_id,id", FALSE)->from('staff')->where('id', $id)->get()->row_array();
     }
 
     public function staff_report($condition)
@@ -943,8 +943,8 @@ class Staff_model extends MY_Model
         if ($this->superadmin_visible == 'disabled' && $this->staffrole->id != 7) {
                 $this->db->where("staff_roles.role_id !=", 7);            
         }
-        
-        $this->db->select("CONCAT_WS(' ',staff.name,staff.surname) as name,staff.employee_id,roles.id as role_id,staff.id");
+
+        $this->db->select("CONCAT_WS(' ',staff.name,staff.surname) as name,staff.employee_id,roles.id as role_id,staff.id", FALSE);
         $this->db->from('staff');
         $this->db->join("staff_roles", "staff_roles.staff_id = staff.id", "left");
         $this->db->join("roles", "staff_roles.role_id = roles.id", "left");

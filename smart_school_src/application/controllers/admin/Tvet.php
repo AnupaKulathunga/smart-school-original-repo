@@ -825,7 +825,7 @@ class Tvet extends Admin_Controller
         $data['students'] = $this->db->get()->result_array();
 
         // Calculate statistics
-        $this->db->select('COUNT(*) as total, AVG(marks_obtained) as avg_marks, MAX(marks_obtained) as max_marks, MIN(marks_obtained) as min_marks');
+        $this->db->select('COUNT(*) as total, AVG(marks_obtained) as avg_marks, MAX(marks_obtained) as max_marks, MIN(marks_obtained) as min_marks', FALSE);
         $this->db->from('tvet_assessment_marks');
         $this->db->where('assessment_id', $assessment_id);
         $this->db->where('marks_obtained IS NOT NULL');

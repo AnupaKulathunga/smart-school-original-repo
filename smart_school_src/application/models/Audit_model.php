@@ -15,7 +15,7 @@ class Audit_model extends MY_Model
 
     public function get($limit = null, $offset = null)
     {
-        $this->db->select('logs.*, CONCAT_WS("",staff.name,staff.surname," (",staff.employee_id,")") as name')->from('logs');
+        $this->db->select('logs.*, CONCAT_WS("",staff.name,staff.surname," (",staff.employee_id,")") as name', FALSE)->from('logs');
         $this->db->join('staff', 'staff.id = logs.user_id');
         $this->db->order_by('logs.id', 'asc');
         $this->db->limit($limit, $offset);
@@ -26,7 +26,7 @@ class Audit_model extends MY_Model
     public function getAllRecord()
     {
         $this->datatables
-            ->select('logs.*, CONCAT_WS("",staff.name,staff.surname," (",staff.employee_id,")") as name')
+            ->select('logs.*, CONCAT_WS("",staff.name,staff.surname," (",staff.employee_id,")") as name', FALSE)
             ->join('staff', 'staff.id = logs.user_id')
             ->searchable('message, name, ip_address, action, platform, agent')
             ->orderable('message, name, ip_address, action, platform, agent')

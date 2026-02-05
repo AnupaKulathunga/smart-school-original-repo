@@ -136,7 +136,7 @@ class Level_model extends CI_Model
      */
     public function getLevelsWithCounts()
     {
-        $this->db->select('level.*, COUNT(DISTINCT class.id) as class_count');
+        $this->db->select('level.*, COUNT(DISTINCT class.id) as class_count', FALSE);
         $this->db->from('level');
         $this->db->join('subject_level', 'subject_level.level_id = level.id', 'left');
         $this->db->join('class', 'class.subject_level_id = subject_level.id', 'left');

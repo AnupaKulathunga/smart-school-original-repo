@@ -681,7 +681,7 @@ class Studentfeemaster_model extends MY_Model
             }
         }
 
-        $result = $this->db->select('CONCAT_WS(" ",staff.name,staff.surname) as name, staff.employee_id,staff.id')->from('staff')->join('staff_roles', 'staff.id=staff_roles.staff_id')->where('staff.is_active', '1')->get()->result_array();
+        $result = $this->db->select('CONCAT_WS(" ",staff.name,staff.surname) as name, staff.employee_id,staff.id', FALSE)->from('staff')->join('staff_roles', 'staff.id=staff_roles.staff_id')->where('staff.is_active', '1')->get()->result_array();
         foreach ($result as $key => $value) {
             $data[$value['id']] = $value['name'] . " (" . $value['employee_id'] . ")";
         }

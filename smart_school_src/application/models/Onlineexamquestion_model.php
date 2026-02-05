@@ -16,7 +16,7 @@ class Onlineexamquestion_model extends CI_Model
     public function getByExamID($exam_id, $limit, $start, $where_search)
     {
         
-        $this->db->select('questions.*,subjects.name as subject_name,subjects.code as subject_code, IFNULL(onlineexam_questions.id,0) as `onlineexam_question_id`,IFNULL(onlineexam_questions.marks,1.00) as `onlineexam_question_marks`,IFNULL(onlineexam_questions.neg_marks,"0.25") as `onlineexam_question_neg_marks`')->from('questions');
+        $this->db->select('questions.*,subjects.name as subject_name,subjects.code as subject_code, IFNULL(onlineexam_questions.id,0) as `onlineexam_question_id`,IFNULL(onlineexam_questions.marks,1.00) as `onlineexam_question_marks`,IFNULL(onlineexam_questions.neg_marks,"0.25") as `onlineexam_question_neg_marks`', FALSE)->from('questions');
 
         $this->db->join('subjects', 'subjects.id = questions.subject_id');
         $this->db->join('onlineexam_questions', '(onlineexam_questions.question_id = questions.id AND onlineexam_questions.onlineexam_id=' . $this->db->escape($exam_id) . ')', 'LEFT');
@@ -79,7 +79,7 @@ class Onlineexamquestion_model extends CI_Model
 
     public function getExamQuestions($exam_id)
     {
-        $this->db->select('questions.*,subjects.id as `subject_id`,subjects.name as subject_name,subjects.code as subject_code, IFNULL(onlineexam_questions.id,0) as `onlineexam_question_id`,IFNULL(onlineexam_questions.marks,1) as `onlineexam_question_marks`,onlineexam_questions.neg_marks')->from('questions');
+        $this->db->select('questions.*,subjects.id as `subject_id`,subjects.name as subject_name,subjects.code as subject_code, IFNULL(onlineexam_questions.id,0) as `onlineexam_question_id`,IFNULL(onlineexam_questions.marks,1) as `onlineexam_question_marks`,onlineexam_questions.neg_marks', FALSE)->from('questions');
 
         $this->db->join('subjects', 'subjects.id = questions.subject_id');
         $this->db->join('onlineexam_questions', '(onlineexam_questions.question_id = questions.id AND onlineexam_questions.onlineexam_id=' . $this->db->escape($exam_id) . ')');
@@ -91,7 +91,7 @@ class Onlineexamquestion_model extends CI_Model
 
        public function getExamQuestionSubjects($exam_id)
     {
-        $this->db->select('subjects.id as `subject_id`,subjects.name as subject_name, IFNULL(onlineexam_questions.id,0) as `onlineexam_question_id`,IFNULL(onlineexam_questions.marks,1) as `onlineexam_question_marks`')->from('questions');
+        $this->db->select('subjects.id as `subject_id`,subjects.name as subject_name, IFNULL(onlineexam_questions.id,0) as `onlineexam_question_id`,IFNULL(onlineexam_questions.marks,1) as `onlineexam_question_marks`', FALSE)->from('questions');
 
         $this->db->join('subjects', 'subjects.id = questions.subject_id');
         $this->db->join('onlineexam_questions', '(onlineexam_questions.question_id = questions.id AND onlineexam_questions.onlineexam_id=' . $this->db->escape($exam_id) . ')');
@@ -140,7 +140,7 @@ class Onlineexamquestion_model extends CI_Model
     public function getByExamNoLimit($exam_id, $question_type)
     {
 
-        $this->db->select('questions.*,subjects.name as subject_name, IFNULL(onlineexam_questions.id,0) as `onlineexam_question_id`,IFNULL(onlineexam_questions.marks,1) as `onlineexam_question_marks`')->from('questions');
+        $this->db->select('questions.*,subjects.name as subject_name, IFNULL(onlineexam_questions.id,0) as `onlineexam_question_id`,IFNULL(onlineexam_questions.marks,1) as `onlineexam_question_marks`', FALSE)->from('questions');
         $this->db->join('subjects', 'subjects.id = questions.subject_id');
         $this->db->join('onlineexam_questions', '(onlineexam_questions.question_id = questions.id AND onlineexam_questions.onlineexam_id=' . $this->db->escape($exam_id) . ')');
         $this->db->where('questions.question_type', $question_type);

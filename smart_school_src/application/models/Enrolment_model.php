@@ -260,7 +260,7 @@ class Enrolment_model extends CI_Model
             ->count_all_results('enrolment');
 
         // By enrolment type
-        $this->db->select('enrolment_type, COUNT(*) as count');
+        $this->db->select('enrolment_type, COUNT(*) as count', FALSE);
         $this->db->from('enrolment');
         $this->db->where('session_id', $session_id);
         $this->db->where('status', 'Active');
@@ -268,14 +268,14 @@ class Enrolment_model extends CI_Model
         $stats->by_type = $this->db->get()->result();
 
         // By status
-        $this->db->select('status, COUNT(*) as count');
+        $this->db->select('status, COUNT(*) as count', FALSE);
         $this->db->from('enrolment');
         $this->db->where('session_id', $session_id);
         $this->db->group_by('status');
         $stats->by_status = $this->db->get()->result();
 
         // Unique students enrolled
-        $stats->unique_students = $this->db->select('DISTINCT student_id')
+        $stats->unique_students = $this->db->select('DISTINCT student_id', FALSE)
             ->from('enrolment')
             ->where('session_id', $session_id)
             ->where('status', 'Active')

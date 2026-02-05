@@ -349,7 +349,7 @@ class Academic_class_model extends CI_Model
      */
     public function getAvailableCohorts($programme_id, $level_id, $session_id)
     {
-        return $this->db->select('DISTINCT(c.cohort_name) as cohort_name')
+        return $this->db->select('DISTINCT(c.cohort_name) as cohort_name', FALSE)
             ->from($this->table . ' c')
             ->join('academic_subject_level sl', 'sl.id = c.subject_level_id')
             ->join('academic_subject s', 's.id = sl.subject_id')

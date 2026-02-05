@@ -63,7 +63,7 @@ class Userlog_model extends CI_Model
     public function getAllRecord()
     {
         $this->datatables
-            ->select($this->table . '.*,class_sections.id as `class_section_id`,IFNULL(classes.class, "") as `class_name`,IFNULL(sections.section, "") as `section_name`')
+            ->select($this->table . '.*,class_sections.id as `class_section_id`,IFNULL(classes.class, "") as `class_name`,IFNULL(sections.section, "") as `section_name`', FALSE)
             ->searchable('user,role,ipaddress,classes.class,sections.section')
             ->join('class_sections', 'class_sections.id = ' . $this->table . '.class_section_id', 'left')
             ->join('classes', 'classes.id = class_sections.class_id', 'left')
@@ -77,7 +77,7 @@ class Userlog_model extends CI_Model
     public function getAllRecordByRole($role)
     {
         $this->datatables
-            ->select($this->table . '.*,class_sections.id as `class_section_id`,IFNULL(classes.class, "") as `class_name`,IFNULL(sections.section, "") as `section_name`')
+            ->select($this->table . '.*,class_sections.id as `class_section_id`,IFNULL(classes.class, "") as `class_name`,IFNULL(sections.section, "") as `section_name`', FALSE)
             ->searchable('user,role,ipaddress,classes.class,sections.section,login_datetime')
             ->join('class_sections', 'class_sections.id = ' . $this->table . '.class_section_id', 'left')
             ->join('classes', 'classes.id = class_sections.class_id', 'left')

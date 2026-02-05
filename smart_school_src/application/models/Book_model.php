@@ -38,7 +38,7 @@ class Book_model extends MY_Model
     public function getbooklist()
     {
         $this->datatables
-            ->select('books.*,IFNULL(total_issue, "0") as `total_issue` ')
+            ->select('books.*,IFNULL(total_issue, "0") as `total_issue` ', FALSE)
             ->searchable('book_title,description,book_no,isbn_no,publish,author,subject,rack_no,qty," ",perunitcost,postdate," "')
             ->orderable('book_title,description,book_no,isbn_no,publish,author,subject,rack_no,qty," ",perunitcost,postdate," "')
             ->join(" (SELECT COUNT(*) as `total_issue`, book_id from book_issues  where is_returned= 0  GROUP by book_id) as `book_count`", "books.id=book_count.book_id", "left")

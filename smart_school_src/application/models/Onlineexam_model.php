@@ -52,7 +52,7 @@ class Onlineexam_model extends MY_model
         if ($this->sch_setting_detail->class_teacher == 'yes' && $this->userdata['role_id']=='2') {
             $exam_ides=$this->get_myexam($this->userdata['role_id']);           
         }
-        $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ')->from('onlineexam');
+        $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ', FALSE)->from('onlineexam');
 		
         if(!empty($exam_ides['onlineexam_id'])){
             $this->db->group_start();
@@ -93,7 +93,7 @@ class Onlineexam_model extends MY_model
         $today_date=date('Y-m-d H:i:s');
         
         $this->datatables
-            ->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions left JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques`')
+            ->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions left JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques`', FALSE)
             ->searchable('onlineexam.exam,onlineexam.attempt,exam_from,exam_to,duration,onlineexam.description')
              ->orderable('onlineexam.exam," ",total_ques,attempt,exam_from,exam_to,duration," "," " ,onlineexam.description')
              ->where('onlineexam.session_id',$this->current_session)
@@ -163,7 +163,7 @@ class Onlineexam_model extends MY_model
        
         $today_date=date('Y-m-d H:i:s');
         $this->datatables
-            ->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques`')
+            ->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques`', FALSE)
             ->searchable('" ",onlineexam.exam," "," ",attempt,exam_from,exam_to,duration,onlineexam.description," "," "," "')
             ->orderable('" ",onlineexam.exam," ",total_ques,attempt,exam_from,exam_to,duration," "," "," ",onlineexam.description ')
             ->sort('" ",onlineexam.exam," ",total_ques,attempt,exam_from,exam_to,duration," "," "," " ','desc')
@@ -385,7 +385,7 @@ class Onlineexam_model extends MY_model
         $this->datatables->where("onlineexam_students.student_session_id",$student_session_id);
         $this->datatables->where("onlineexam.is_active",1);
         $this->datatables
-            ->select('onlineexam.*,onlineexam_students.id as `onlineexam_student_id`,(select count(*) from onlineexam_attempts WHERE onlineexam_attempts.onlineexam_student_id = onlineexam_students.id) as counter')
+            ->select('onlineexam.*,onlineexam_students.id as `onlineexam_student_id`,(select count(*) from onlineexam_attempts WHERE onlineexam_attempts.onlineexam_student_id = onlineexam_students.id) as counter', FALSE)
             ->join("onlineexam_students","onlineexam_students.onlineexam_id=onlineexam.id","left")
             ->searchable('onlineexam.exam,onlineexam.attempt,exam_from,exam_to,duration')
              ->orderable('onlineexam.exam," ",exam_from,exam_to,duration,attempt," "," " ')
@@ -400,7 +400,7 @@ class Onlineexam_model extends MY_model
         $today_date=date('Y-m-d H:i:s');
         $this->datatables->where("onlineexam_students.student_session_id",$student_session_id);
         $this->datatables
-            ->select('onlineexam.*,onlineexam_students.id as `onlineexam_student_id`,(select count(*) from onlineexam_attempts WHERE onlineexam_attempts.onlineexam_student_id = onlineexam_students.id) as counter')
+            ->select('onlineexam.*,onlineexam_students.id as `onlineexam_student_id`,(select count(*) from onlineexam_attempts WHERE onlineexam_attempts.onlineexam_student_id = onlineexam_students.id) as counter', FALSE)
             ->join("onlineexam_students","onlineexam_students.onlineexam_id=onlineexam.id","left")
             ->searchable('onlineexam.exam,onlineexam.attempt,exam_from,exam_to,duration," "," ", " "," "')
             ->orderable('onlineexam.exam," "," ",attempt,exam_from,exam_to,duration," "," " ')
@@ -523,7 +523,7 @@ class Onlineexam_model extends MY_model
     {
         $exam_ides=array();
         
-        $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ')->from('onlineexam');
+        $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ', FALSE)->from('onlineexam');
 
             if(!empty($exam_ides)){
                 $this->db->group_start();
@@ -556,7 +556,7 @@ class Onlineexam_model extends MY_model
     public function printstudentexamdetails($id = null, $publish = null)
     {
         $exam_ides=array();        
-        $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ')->from('onlineexam');
+        $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ', FALSE)->from('onlineexam');
 
         if(!empty($exam_ides)){
             $this->db->group_start();

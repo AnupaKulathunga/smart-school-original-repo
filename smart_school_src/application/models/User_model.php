@@ -119,7 +119,7 @@ class User_model extends MY_Model
     {
         $resultdata   = $this->setting_model->getSetting();
         $parent_login = json_decode($resultdata->parent_login);
-        $this->db->select('users.*,languages.language,students.admission_no,students.admission_no ,students.guardian_name, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.image,students.father_pic,students.mother_pic,students.guardian_pic,students.guardian_relation, students.mobileno, students.email ,students.state , students.city , students.pincode , students.religion, students.dob ,students.current_address, students.permanent_address ,students.gender, students.guardian_phone, students.guardian_email,students.guardian_is,languages.is_rtl,IFNULL(currencies.short_name,0) as currency_name,IFNULL(currencies.symbol,0) as symbol,IFNULL(currencies.base_price,0) as base_price,IFNULL(currencies.id,0) as `currency`');
+        $this->db->select('users.*,languages.language,students.admission_no,students.admission_no ,students.guardian_name, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.image,students.father_pic,students.mother_pic,students.guardian_pic,students.guardian_relation, students.mobileno, students.email ,students.state , students.city , students.pincode , students.religion, students.dob ,students.current_address, students.permanent_address ,students.gender, students.guardian_phone, students.guardian_email,students.guardian_is,languages.is_rtl,IFNULL(currencies.short_name,0) as currency_name,IFNULL(currencies.symbol,0) as symbol,IFNULL(currencies.base_price,0) as base_price,IFNULL(currencies.id,0) as `currency`', FALSE);
         $this->db->from('users');
         $this->db->join('students', 'students.parent_id = users.id');
         $this->db->join('languages', 'users.lang_id = languages.id', 'left');
@@ -144,7 +144,7 @@ class User_model extends MY_Model
     }
     
     public function read_user_information($users_id) {
-        $this->db->select('users.*,languages.language,students.firstname, students.middlename,students.image,students.lastname,students.guardian_name,students.gender,students.admission_no,students.email,IFNULL(currencies.short_name,0) as currency_name,IFNULL(currencies.symbol,0) as symbol,IFNULL(currencies.base_price,0) as base_price,IFNULL(currencies.id,0) as `currency`');
+        $this->db->select('users.*,languages.language,students.firstname, students.middlename,students.image,students.lastname,students.guardian_name,students.gender,students.admission_no,students.email,IFNULL(currencies.short_name,0) as currency_name,IFNULL(currencies.symbol,0) as symbol,IFNULL(currencies.base_price,0) as base_price,IFNULL(currencies.id,0) as `currency`', FALSE);
         $this->db->from('users');
         $this->db->join('students', 'students.id = users.user_id');
         $this->db->join('languages', 'languages.id = users.lang_id', 'left');

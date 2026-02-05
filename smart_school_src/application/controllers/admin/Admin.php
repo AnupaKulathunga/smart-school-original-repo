@@ -443,7 +443,7 @@ class Admin extends Admin_Controller
         }
 
         // TVET: Count unique students (head count) enrolled in current session
-        $this->db->select('DISTINCT enrolment.student_id');
+        $this->db->select('DISTINCT enrolment.student_id', FALSE);
         $this->db->from('enrolment');
         $this->db->join('students', 'students.id = enrolment.student_id');
         $this->db->where('enrolment.session_id', $this->current_session);

@@ -142,7 +142,7 @@ class Subjectlevel_model extends CI_Model
      */
     public function getWithClassCounts($session_id = null)
     {
-        $this->db->select('subject_level.*, subjects.name as subject_name, subjects.code as subject_code, level.name as level_name, level.code as level_code, COUNT(class.id) as class_count');
+        $this->db->select('subject_level.*, subjects.name as subject_name, subjects.code as subject_code, level.name as level_name, level.code as level_code, COUNT(class.id) as class_count', FALSE);
         $this->db->from('subject_level');
         $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
         $this->db->join('level', 'subject_level.level_id = level.id');

@@ -79,7 +79,7 @@ class Addons_model extends MY_Model
 
     public function getlimitwithsearch($limit = null, $start = null, $where_condition = array())
     {
-        $query        = $this->db->select("addons.*, (SELECT version FROM addon_versions WHERE version_order = (SELECT MAX(version_order) FROM addon_versions WHERE version_order > (SELECT version_order FROM addon_versions WHERE version = addons.current_version AND addon_id = addons.id) AND addon_id = addons.id) AND addon_id = addons.id) as update_version");
+        $query        = $this->db->select("addons.*, (SELECT version FROM addon_versions WHERE version_order = (SELECT MAX(version_order) FROM addon_versions WHERE version_order > (SELECT version_order FROM addon_versions WHERE version = addons.current_version AND addon_id = addons.id) AND addon_id = addons.id) AND addon_id = addons.id) as update_version", FALSE);
         if (!empty($where_condition)) {
             $query->group_start(); // Open bracket
             $query->like('name', $where_condition['search']);

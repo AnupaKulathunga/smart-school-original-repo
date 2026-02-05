@@ -125,7 +125,7 @@ class Messages_model extends MY_Model
 
     public function get_staff_name($id)
     {
-        $filter_get_student_name = $this->db->select('CONCAT_WS(" ",name,surname,"(",employee_id,")") as name')->from('staff')->where('staff.id', $id)->get()->row_array();
+        $filter_get_student_name = $this->db->select('CONCAT_WS(" ",name,surname,"(",employee_id,")") as name', FALSE)->from('staff')->where('staff.id', $id)->get()->row_array();
         return $this->lang->line('collect') . " " . $this->lang->line('by') . " : " . $filter_get_student_name['name'];
     }
 

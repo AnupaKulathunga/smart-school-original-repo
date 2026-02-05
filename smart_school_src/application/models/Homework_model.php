@@ -63,7 +63,7 @@ class Homework_model extends MY_model
         }
 
         if (!empty($id)) {
-            $this->db->select("`homework`.*,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments");
+            $this->db->select("`homework`.*,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments", FALSE);
             $this->db->join("classes", "classes.id = homework.class_id");
             $this->db->join("sections", "sections.id = homework.section_id");
             $this->db->join("subject_group_subjects", "subject_group_subjects.id = homework.subject_group_subject_id");
@@ -76,7 +76,7 @@ class Homework_model extends MY_model
             return $query->row_array();
         } else {
 
-            $this->db->select("`homework`.*,classes.class,sections.section,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments");
+            $this->db->select("`homework`.*,classes.class,sections.section,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments", FALSE);
             $this->db->join("classes", "classes.id = homework.class_id");
             $this->db->join("sections", "sections.id = homework.section_id");
             $this->db->join("subject_group_subjects", "subject_group_subjects.id = homework.subject_group_subject_id");
@@ -124,7 +124,7 @@ class Homework_model extends MY_model
         }
 
         // TVET: Use class table instead of classes/sections
-        $this->db->select("`homework`.*,class.class_code,class.cohort_name,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subjects.code as subject_code,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments");
+        $this->db->select("`homework`.*,class.class_code,class.cohort_name,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subjects.code as subject_code,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments", FALSE);
         $this->db->join("class", "class.id = homework.class_id");
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = homework.subject_group_subject_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
@@ -147,7 +147,7 @@ class Homework_model extends MY_model
         }
 
         // TVET: Use class table instead of classes/sections
-        $this->datatables->select('`homework`.*,class.class_code,class.cohort_name,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subjects.code as subject_code,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id as staff_employee_id,staff_roles.role_id')
+        $this->datatables->select('`homework`.*,class.class_code,class.cohort_name,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subjects.code as subject_code,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id as staff_employee_id,staff_roles.role_id', FALSE)
             ->searchable('class.class_code,class.cohort_name,subject_groups.name,subjects.name,homework_date,submit_date,evaluation_date,staff.name')
             ->join("class", "class.id = homework.class_id")
             ->join("subject_group_subjects", "subject_group_subjects.id = homework.subject_group_subject_id")
@@ -175,7 +175,7 @@ class Homework_model extends MY_model
         }
 
         // TVET: Use class table instead of classes/sections
-        $this->datatables->select('`homework`.*,class.class_code,class.cohort_name,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subjects.code as subject_code,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id as staff_employee_id,staff_roles.role_id')
+        $this->datatables->select('`homework`.*,class.class_code,class.cohort_name,subject_group_subjects.subject_id,subject_group_subjects.id as `subject_group_subject_id`,subjects.name as subject_name,subjects.code as subject_code,subject_groups.id as subject_groups_id,subject_groups.name,(select count(*) as total from submit_assignment where submit_assignment.homework_id=homework.id) as assignments,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id as staff_employee_id,staff_roles.role_id', FALSE)
             ->searchable('class.class_code,class.cohort_name,subject_groups.name,subjects.name,homework_date,submit_date,evaluation_date,staff.name')
             ->join("class", "class.id = homework.class_id")
             ->join("subject_group_subjects", "subject_group_subjects.id = homework.subject_group_subject_id")

@@ -40,13 +40,22 @@ $selected_class_id = isset($selected_class_id) ? $selected_class_id : '';
         <?php if (!empty($classlist)): ?>
             <?php foreach ($classlist as $class): ?>
                 <?php
-                $selected = ($selected_class_id && $class->id == $selected_class_id) ? 'selected' : '';
+                // Handle both array and object format for backward compatibility
+                $class_id = is_array($class) ? $class['id'] : $class->id;
+                $selected = ($selected_class_id && $class_id == $selected_class_id) ? 'selected' : '';
 
-                // Display format: "Subject - Level (Cohort)"
-                // Example: "Mathematics N4 - N4 (Morning Intake)"
-                $display_text = $class->subject_name . ' - ' . $class->level_name . ' (' . $class->cohort_name . ')';
+                // Use the pre-formatted "class" field if available (array format)
+                // Otherwise build display text from individual fields (object format)
+                if (is_array($class) && isset($class['class'])) {
+                    $display_text = $class['class'];
+                } else {
+                    $subject_name = is_array($class) ? $class['subject_name'] : $class->subject_name;
+                    $level_name = is_array($class) ? $class['level_name'] : $class->level_name;
+                    $cohort_name = is_array($class) ? $class['cohort_name'] : $class->cohort_name;
+                    $display_text = $subject_name . ' - ' . $level_name . ' (' . $cohort_name . ')';
+                }
                 ?>
-                <option value="<?php echo $class->id; ?>" <?php echo $selected; ?>>
+                <option value="<?php echo $class_id; ?>" <?php echo $selected; ?>>
                     <?php echo $display_text; ?>
                 </option>
             <?php endforeach; ?>

@@ -122,7 +122,7 @@ class Academic_programme_model extends CI_Model
             ->count_all_results('academic_subject');
 
         // Count classes
-        $stats->classes = $this->db->select('COUNT(DISTINCT c.id) as count')
+        $stats->classes = $this->db->select('COUNT(DISTINCT c.id) as count', FALSE)
             ->from('academic_class c')
             ->join('academic_subject_level sl', 'sl.id = c.subject_level_id')
             ->join('academic_subject s', 's.id = sl.subject_id')
@@ -131,7 +131,7 @@ class Academic_programme_model extends CI_Model
             ->get()->row()->count;
 
         // Count enrolled students
-        $stats->students = $this->db->select('COUNT(DISTINCT e.student_id) as count')
+        $stats->students = $this->db->select('COUNT(DISTINCT e.student_id) as count', FALSE)
             ->from('academic_class_enrolment e')
             ->join('academic_class c', 'c.id = e.class_id')
             ->join('academic_subject_level sl', 'sl.id = c.subject_level_id')

@@ -21,7 +21,7 @@ class Content_model extends MY_Model
      */
     public function get($id = null)
     {
-        $this->db->select('contents.*,classes.class,sections.section,(select GROUP_CONCAT(role) FROM content_for WHERE content_id=contents.id) as role,class_sections.id as `aa`')->from('contents');
+        $this->db->select('contents.*,classes.class,sections.section,(select GROUP_CONCAT(role) FROM content_for WHERE content_id=contents.id) as role,class_sections.id as `aa`', FALSE)->from('contents');
         $this->db->join('class_sections', 'contents.cls_sec_id = class_sections.id', 'left outer');
         $this->db->join('classes', 'class_sections.class_id = classes.id', 'left outer');
         $this->db->join('sections', 'class_sections.section_id = sections.id', 'left outer');

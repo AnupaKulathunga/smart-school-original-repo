@@ -290,7 +290,7 @@ class Subjectgroup_model extends MY_Model {
     }
 
     public function getSubjectgroupbyTeacherid($staff_id) {
-        return $this->db->select('GROUP_CONCAT(subject_group_id) as subject_group_ids')->from('subject_timetable')->where('staff_id', $staff_id)->group_by('staff_id')->get()->result_array();
+        return $this->db->select('GROUP_CONCAT(subject_group_id) as subject_group_ids', FALSE)->from('subject_timetable')->where('staff_id', $staff_id)->group_by('staff_id')->get()->result_array();
     }
 
 

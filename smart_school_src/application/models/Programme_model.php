@@ -105,7 +105,7 @@ class Programme_model extends CI_Model
      */
     public function getProgrammesWithCounts()
     {
-        $this->db->select('programme.*, COUNT(qualification.id) as qualification_count');
+        $this->db->select('programme.*, COUNT(qualification.id) as qualification_count', FALSE);
         $this->db->from('programme');
         $this->db->join('qualification', 'qualification.programme_id = programme.id', 'left');
         $this->db->where('programme.is_active', 1);

@@ -116,7 +116,7 @@ class Qualification_model extends CI_Model
      */
     public function getQualificationsWithCounts($programme_id = null)
     {
-        $this->db->select('qualification.*, programme.name as programme_name, COUNT(subjects.id) as subject_count');
+        $this->db->select('qualification.*, programme.name as programme_name, COUNT(subjects.id) as subject_count', FALSE);
         $this->db->from('qualification');
         $this->db->join('programme', 'qualification.programme_id = programme.id');
         $this->db->join('subjects', 'subjects.qualification_id = qualification.id', 'left');

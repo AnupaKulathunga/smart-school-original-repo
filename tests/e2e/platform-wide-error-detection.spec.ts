@@ -20,6 +20,31 @@ test.describe('Platform-Wide Database Error Detection', () => {
   });
 
   // ===================================================================
+  // DASHBOARD (Critical - First page users see)
+  // ===================================================================
+
+  test.describe('Dashboard', () => {
+
+    test('Admin Dashboard should load without database errors', async ({ page }) => {
+      // Dashboard is loaded by loginAsAdmin, but let's be explicit
+      await page.goto('/admin/admin/dashboard');
+      await page.waitForLoadState('networkidle');
+
+      const bodyText = await page.textContent('body');
+
+      // Check for database errors (especially SQL syntax errors from DISTINCT queries)
+      expect(bodyText).not.toContain('A Database Error Occurred');
+      expect(bodyText).not.toContain('Error Number: 1064');
+      expect(bodyText).not.toContain('SQL syntax');
+      expect(bodyText).not.toContain('SELECT `DISTINCT`');
+
+      // Verify dashboard loaded correctly
+      expect(bodyText).toContain('Dashboard');
+    });
+
+  });
+
+  // ===================================================================
   // ATTENDANCE MODULE (Priority 1)
   // ===================================================================
 

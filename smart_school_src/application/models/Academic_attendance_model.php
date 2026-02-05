@@ -195,7 +195,7 @@ class Academic_attendance_model extends CI_Model
      */
     public function getMarkedDates($class_id)
     {
-        return $this->db->select('DISTINCT(date) as date')
+        return $this->db->select('DISTINCT(date) as date', FALSE)
             ->where('class_id', $class_id)
             ->order_by('attendance_date', 'DESC')
             ->get($this->table)->result();

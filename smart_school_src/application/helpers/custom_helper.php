@@ -43,7 +43,7 @@ function get_currency_list()
 {
 
     $CI = &get_instance();
-    $CI->db->select('currencies.*,IFNULL(sch_settings.currency, 0) as `currency_id`')->from('currencies');
+    $CI->db->select('currencies.*,IFNULL(sch_settings.currency, 0) as `currency_id`', FALSE)->from('currencies');
     $CI->db->join('sch_settings', 'currencies.id=sch_settings.currency', 'left');
     $CI->db->where('currencies.is_active', 1);
     $CI->db->order_by('id');

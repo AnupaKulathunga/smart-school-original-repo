@@ -57,7 +57,13 @@ class Classmodel_model extends CI_Model
     public function getClassesBySession($session_id, $filters = array())
     {
         // FIXED: Explicit column selection to avoid id column conflict between class and subject_level tables
+        // TVET: "class" field is formatted as "Subject - Level (Cohort)" for display in dropdowns
         $this->db->select('class.id as id,
+            CONCAT(subjects.name, " - ", level.name,
+                   IF(class.cohort_name IS NOT NULL AND class.cohort_name != "",
+                      CONCAT(" (", class.cohort_name, ")"),
+                      "")
+            ) as class,
             class.class_code, class.subject_level_id, class.cohort_name,
             class.academic_year, class.session_id, class.intake_period, class.delivery_mode,
             class.primary_lecturer_id, class.venue, class.status, class.is_active,
@@ -67,7 +73,7 @@ class Classmodel_model extends CI_Model
             level.name as level_name, level.code as level_code, level.level_type, level.sequence,
             staff.name as lecturer_name, staff.id as lecturer_id,
             sessions.session as session_name,
-            (SELECT COUNT(*) FROM enrolment WHERE enrolment.class_id = class.id AND enrolment.status = "Active") as student_count');
+            (SELECT COUNT(*) FROM enrolment WHERE enrolment.class_id = class.id AND enrolment.status = "Active") as student_count', FALSE);
         $this->db->from('class');
         $this->db->join('subject_level', 'class.subject_level_id = subject_level.id');
         $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
@@ -106,7 +112,7 @@ class Classmodel_model extends CI_Model
         $this->db->order_by('level.sequence', 'ASC');
         $this->db->order_by('class.cohort_name', 'ASC');
 
-        return $this->db->get()->result();
+        return $this->db->get()->result_array();
     }
 
     /**
@@ -288,7 +294,7 @@ class Classmodel_model extends CI_Model
             ->count_all_results('class');
 
         // Classes by status
-        $this->db->select('status, COUNT(*) as count');
+        $this->db->select('status, COUNT(*) as count', FALSE);
         $this->db->from('class');
         $this->db->where('session_id', $session_id);
         $this->db->where('is_active', 1);
@@ -297,7 +303,7 @@ class Classmodel_model extends CI_Model
         $stats->by_status = $status_counts;
 
         // Total enrolments
-        $stats->total_enrolments = $this->db->select('COUNT(*) as count')
+        $stats->total_enrolments = $this->db->select('COUNT(*) as count', FALSE)
             ->from('enrolment')
             ->join('class', 'enrolment.class_id = class.id')
             ->where('class.session_id', $session_id)

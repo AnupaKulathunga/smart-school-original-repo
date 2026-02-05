@@ -20,7 +20,7 @@ class Examgroup_model extends MY_Model
      */
     public function get($id = null)
     {
-        $this->db->select('exam_groups.*,(select count(*) from exam_group_class_batch_exams WHERE exam_group_class_batch_exams.exam_group_id=exam_groups.id) as `counter`')->from('exam_groups');
+        $this->db->select('exam_groups.*,(select count(*) from exam_group_class_batch_exams WHERE exam_group_class_batch_exams.exam_group_id=exam_groups.id) as `counter`', FALSE)->from('exam_groups');
         if ($id != null) {
             $this->db->where('id', $id);
         } else {
@@ -158,7 +158,7 @@ class Examgroup_model extends MY_Model
 
     public function getExamByExamGroup($id, $is_active = false)
     {
-        $this->db->select('exam_group_class_batch_exams.*,sessions.session,(select COUNT(*) from exam_group_class_batch_exam_subjects WHERE exam_group_class_batch_exam_subjects.exam_group_class_batch_exams_id = exam_group_class_batch_exams.id) as `total_subjects`')->from('exam_group_class_batch_exams');
+        $this->db->select('exam_group_class_batch_exams.*,sessions.session,(select COUNT(*) from exam_group_class_batch_exam_subjects WHERE exam_group_class_batch_exam_subjects.exam_group_class_batch_exams_id = exam_group_class_batch_exams.id) as `total_subjects`', FALSE)->from('exam_group_class_batch_exams');
         $this->db->join('sessions', 'sessions.id = exam_group_class_batch_exams.session_id');
         if ($is_active) {
             $this->db->where('exam_group_class_batch_exams.is_active', $is_active);
@@ -212,7 +212,7 @@ class Examgroup_model extends MY_Model
 
     public function getExamByExamGroupConnection($id = null)
     {
-        $this->db->select('exam_group_class_batch_exams.*,IFNULL(exam_group_exam_connections.id,0) as `exam_group_exam_connection_id`,IFNULL(exam_group_exam_connections.exam_weightage,"0.00") as exam_weightage,(select COUNT(*) from exam_group_class_batch_exam_subjects WHERE exam_group_class_batch_exam_subjects.exam_group_class_batch_exams_id = exam_group_class_batch_exams.id) as `total_subjects`')->from('exam_group_class_batch_exams');
+        $this->db->select('exam_group_class_batch_exams.*,IFNULL(exam_group_exam_connections.id,0) as `exam_group_exam_connection_id`,IFNULL(exam_group_exam_connections.exam_weightage,"0.00") as exam_weightage,(select COUNT(*) from exam_group_class_batch_exam_subjects WHERE exam_group_class_batch_exam_subjects.exam_group_class_batch_exams_id = exam_group_class_batch_exams.id) as `total_subjects`', FALSE)->from('exam_group_class_batch_exams');
         $this->db->join('exam_group_exam_connections', 'exam_group_exam_connections.exam_group_id = exam_group_class_batch_exams.exam_group_id and exam_group_exam_connections.exam_group_class_batch_exams_id = exam_group_class_batch_exams.id', 'left');
         $this->db->where('exam_group_class_batch_exams.exam_group_id', $id);
         $this->db->order_by('exam_group_class_batch_exams.id', 'asc');
