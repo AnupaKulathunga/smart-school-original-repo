@@ -1,5 +1,6 @@
-admission_no,class_code,enrolment_date,status,notes
-STU001,MATH-N4-A-2026,2026-01-15,Enrolled,First semester enrolment
-STU002,MATH-N4-A-2026,2026-01-15,Enrolled,First semester enrolment
-STU003,ENG-N4-A-2026,2026-01-15,Enrolled,Transfer student
-STU001,ENG-N4-A-2026,2026-01-15,Enrolled,Combined with Mathematics
+admission_no,firstname,lastname,id_number,dob,gender,mobileno,email,subject_code,level_code,cohort_name,academic_year,qualification_name,campus_name,enrolment_date,status,notes
+202401,John,Doe,9512151234567,1995-12-15,Male,0821234567,john@example.com,MATH,N4,A,2026,National Certificate: Engineering,Goodwood Campus,2026-01-15,Active,
+202401,John,Doe,9512151234567,1995-12-15,Male,0821234567,john@example.com,ENG,N4,A,2026,National Certificate: Engineering,Goodwood Campus,2026-01-15,Active,
+202402,Jane,Smith,0102281234567,2001-02-28,Female,0827654321,jane@example.com,MATH,N4,B,2026,National Certificate: Engineering,Goodwood Campus,2026-01-15,Active,
+202403,Peter,Jones,8807053456789,1988-07-05,Male,0829876543,peter@example.com,BUSM,N3,A,2026,National Certificate: Business Management,Goodwood Campus,2026-01-15,Active,
+202404,Sarah,Williams,9402142345678,1994-02-14,Female,0821112233,sarah@example.com,ENG,N5,A,2026,,Goodwood Campus,2026-01-15,Dropped,Withdrew on 2026-02-01

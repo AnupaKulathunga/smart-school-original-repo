@@ -312,4 +312,63 @@ class Classmodel_model extends CI_Model
 
         return $stats;
     }
+
+    /**
+     * Get class by subject, level, cohort, and year
+     * Used for bulk enrollment import to find classes
+     *
+     * @param string $subject_code Subject code (e.g., MATH, ENG)
+     * @param string $level_code Level code (e.g., N4, N3C)
+     * @param string $cohort_name Cohort name (e.g., A, B)
+     * @param int $academic_year Academic year (e.g., 2026)
+     * @param int $session_id Session ID
+     * @return object|null Class object or null
+     */
+    public function getClassBySubjectLevel($subject_code, $level_code, $cohort_name, $academic_year, $session_id)
+    {
+        // Find subject by code
+        $subject = $this->db->select('id')
+            ->from('subjects')
+            ->where('code', $subject_code)
+            ->where('is_active', 1)
+            ->get()->row();
+
+        if (!$subject) {
+            return null;
+        }
+
+        // Find level by code
+        $level = $this->db->select('id')
+            ->from('level')
+            ->where('code', $level_code)
+            ->where('is_active', 1)
+            ->get()->row();
+
+        if (!$level) {
+            return null;
+        }
+
+        // Find subject_level combination
+        $subject_level = $this->db->select('id')
+            ->from('subject_level')
+            ->where('subject_id', $subject->id)
+            ->where('level_id', $level->id)
+            ->where('is_active', 1)
+            ->get()->row();
+
+        if (!$subject_level) {
+            return null;
+        }
+
+        // Find class with matching subject_level, cohort, year, session
+        $this->db->select('class.*');
+        $this->db->from('class');
+        $this->db->where('class.subject_level_id', $subject_level->id);
+        $this->db->where('class.cohort_name', $cohort_name);
+        $this->db->where('class.academic_year', $academic_year);
+        $this->db->where('class.session_id', $session_id);
+        $this->db->where('class.is_active', 1);
+
+        return $this->db->get()->row();
+    }
 }

@@ -114,4 +114,38 @@ class Programme_model extends CI_Model
         $query = $this->db->get();
         return $query->result();
     }
+
+    /**
+     * Get programme by name (case-insensitive partial match)
+     * Used for bulk enrollment import to find programmes
+     *
+     * @param string $name Programme/qualification name
+     * @return object|null Programme object or null
+     */
+    public function getProgrammeByName($name)
+    {
+        if (empty($name)) {
+            return null;
+        }
+
+        // Try exact match first
+        $this->db->select('*');
+        $this->db->from('programme');
+        $this->db->where('name', $name);
+        $this->db->where('is_active', 1);
+        $result = $this->db->get()->row();
+
+        if ($result) {
+            return $result;
+        }
+
+        // Try partial match (LIKE)
+        $this->db->select('*');
+        $this->db->from('programme');
+        $this->db->like('name', $name);
+        $this->db->where('is_active', 1);
+        $this->db->limit(1);
+
+        return $this->db->get()->row();
+    }
 }

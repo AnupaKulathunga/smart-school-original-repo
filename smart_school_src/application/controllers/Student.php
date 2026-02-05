@@ -2718,4 +2718,315 @@ class Student extends Admin_Controller
         $content = $mpdf->Output(random_string() . '.pdf', 'I');
         return $content;
     }
+
+    /**
+     * Import TVET enrollments from CSV
+     * Comprehensive import: students, programmes, and enrollments
+     */
+    public function importEnrolments()
+    {
+        if (!$this->rbac->hasPrivilege('import_student', 'can_view')) {
+            access_denied();
+        }
+
+        $data['title'] = 'Import TVET Enrollments';
+        $session_id = $this->setting_model->getCurrentSession();
+
+        $this->form_validation->set_rules('file', 'CSV File', 'callback_handle_csv_upload');
+
+        if ($this->form_validation->run() == false) {
+            // Show form
+            $this->load->view('layout/header', $data);
+            $this->load->view('student/import_enrolments', $data);
+            $this->load->view('layout/footer', $data);
+        } else {
+            // Process CSV
+            $this->processEnrolmentCSV($session_id);
+            redirect('student/importEnrolments');
+        }
+    }
+
+    /**
+     * Download sample CSV for TVET enrollments
+     */
+    public function exportformatEnrolments()
+    {
+        $this->load->helper('download');
+        $filepath = "./backend/import/tvet_enrolments_sample.csv";
+
+        if (!file_exists($filepath)) {
+            $this->session->set_flashdata('error_message', 'Sample file not found');
+            redirect('student/importEnrolments');
+            return;
+        }
+
+        $data = file_get_contents($filepath);
+        $name = 'tvet_enrolments_sample.csv';
+        force_download($name, $data);
+    }
+
+    /**
+     * Process enrollment CSV file
+     * @param int $session_id Current session ID
+     */
+    private function processEnrolmentCSV($session_id)
+    {
+        $file = $_FILES['file']['tmp_name'];
+        $this->load->library('CSVReader');
+        $csv_data = $this->csvreader->parse_file($file);
+
+        $stats = [
+            'total' => 0,
+            'success' => 0,
+            'errors' => 0,
+            'students_created' => 0,
+            'students_updated' => 0,
+            'enrollments_created' => 0,
+            'programmes_linked' => 0,
+            'messages' => []
+        ];
+
+        // Expected 17 columns:
+        // admission_no, firstname, lastname, id_number, dob, gender, mobileno, email,
+        // subject_code, level_code, cohort_name, academic_year,
+        // qualification_name, campus_name, enrolment_date, status, notes
+
+        // Skip header row (index 0)
+        for ($i = 1; $i <= count($csv_data); $i++) {
+            if (!isset($csv_data[$i]) || count($csv_data[$i]) < 17) {
+                $stats['errors']++;
+                $stats['messages'][] = "Row $i: Invalid CSV format (expected 17 columns, got " . (isset($csv_data[$i]) ? count($csv_data[$i]) : 0) . ")";
+                continue;
+            }
+
+            $row = [
+                'admission_no' => $this->encoding_lib->toUTF8($csv_data[$i][0]),
+                'firstname' => $this->encoding_lib->toUTF8($csv_data[$i][1]),
+                'lastname' => $this->encoding_lib->toUTF8($csv_data[$i][2]),
+                'id_number' => trim($csv_data[$i][3]) ?: null,
+                'dob' => trim($csv_data[$i][4]) ?: null,
+                'gender' => trim($csv_data[$i][5]) ?: null,
+                'mobileno' => trim($csv_data[$i][6]) ?: null,
+                'email' => trim($csv_data[$i][7]) ?: null,
+                'subject_code' => $this->encoding_lib->toUTF8($csv_data[$i][8]),
+                'level_code' => $this->encoding_lib->toUTF8($csv_data[$i][9]),
+                'cohort_name' => $this->encoding_lib->toUTF8($csv_data[$i][10]) ?: 'A',
+                'academic_year' => intval($csv_data[$i][11]) ?: date('Y'),
+                'qualification_name' => $this->encoding_lib->toUTF8($csv_data[$i][12]) ?: null,
+                'campus_name' => $this->encoding_lib->toUTF8($csv_data[$i][13]) ?: null,
+                'enrolment_date' => trim($csv_data[$i][14]) ?: date('Y-m-d'),
+                'status' => trim($csv_data[$i][15]) ?: 'Active',
+                'notes' => $this->encoding_lib->toUTF8($csv_data[$i][16]) ?: ''
+            ];
+
+            $stats['total']++;
+            $result = $this->processEnrolmentRow($row, $session_id, $i, $stats);
+
+            if ($result['success']) {
+                $stats['success']++;
+                if ($result['student_created']) $stats['students_created']++;
+                if ($result['student_updated']) $stats['students_updated']++;
+                if ($result['enrollment_created']) $stats['enrollments_created']++;
+                if ($result['programme_linked']) $stats['programmes_linked']++;
+            } else {
+                $stats['errors']++;
+                $stats['messages'][] = "Row $i: " . $result['message'];
+            }
+        }
+
+        $this->setImportFlashMessage($stats);
+    }
+
+    /**
+     * Process individual enrollment row
+     * @param array $data Row data
+     * @param int $session_id Session ID
+     * @param int $row_num Row number (for error messages)
+     * @param array &$stats Statistics array
+     * @return array Result with success, message, and flags
+     */
+    private function processEnrolmentRow($data, $session_id, $row_num, &$stats)
+    {
+        $result = [
+            'success' => false,
+            'message' => '',
+            'student_created' => false,
+            'student_updated' => false,
+            'enrollment_created' => false,
+            'programme_linked' => false
+        ];
+
+        // STEP 1: Find or Create Student
+        $student = $this->student_model->getStudentByAdmission($data['admission_no']);
+
+        if (!$student) {
+            // Create new student
+            $student_data = [
+                'admission_no' => $data['admission_no'],
+                'firstname' => $data['firstname'],
+                'lastname' => $data['lastname'],
+                'mobileno' => $data['mobileno'],
+                'email' => $data['email'],
+                'gender' => $data['gender'] ?: 'Male',
+                'is_active' => 'yes',
+                'admission_date' => date('Y-m-d')
+            ];
+
+            // Optional fields
+            if ($data['id_number']) {
+                $student_data['identification_number'] = $data['id_number'];
+            }
+            if ($data['dob']) {
+                $student_data['dob'] = $data['dob'];
+            }
+
+            $student_id = $this->student_model->add($student_data);
+            if (!$student_id) {
+                $result['message'] = "Failed to create student: {$data['admission_no']}";
+                return $result;
+            }
+
+            $student = $this->student_model->get($student_id);
+            $result['student_created'] = true;
+
+        } else {
+            // Optionally update existing student fields (phone, email)
+            $update_data = [];
+            if ($data['mobileno'] && empty($student['mobileno'])) {
+                $update_data['mobileno'] = $data['mobileno'];
+            }
+            if ($data['email'] && empty($student['email'])) {
+                $update_data['email'] = $data['email'];
+            }
+            if (!empty($update_data)) {
+                $this->student_model->update($student['id'], $update_data);
+                $result['student_updated'] = true;
+            }
+        }
+
+        // STEP 2: Link to Programme (if qualification_name provided)
+        if (!empty($data['qualification_name'])) {
+            $programme = $this->programme_model->getProgrammeByName($data['qualification_name']);
+
+            if ($programme) {
+                // Check if student already linked to this programme in this session
+                $existing_link = $this->db->where('student_id', $student['id'])
+                    ->where('programme_id', $programme->id)
+                    ->where('session_id', $session_id)
+                    ->get('student_programme')->row();
+
+                if (!$existing_link) {
+                    // Link student to programme
+                    $prog_data = [
+                        'student_id' => $student['id'],
+                        'programme_id' => $programme->id,
+                        'session_id' => $session_id,
+                        'status' => 'Active',
+                        'enrolment_date' => $data['enrolment_date']
+                    ];
+                    $this->db->insert('student_programme', $prog_data);
+                    $result['programme_linked'] = true;
+                }
+            }
+            // If programme not found, skip (don't fail the import)
+        }
+
+        // STEP 3: Find Class by subject_code + level_code + cohort + year
+        $class = $this->classmodel_model->getClassBySubjectLevel(
+            $data['subject_code'],
+            $data['level_code'],
+            $data['cohort_name'],
+            $data['academic_year'],
+            $session_id
+        );
+
+        if (!$class) {
+            $result['message'] = "Class not found: {$data['subject_code']}-{$data['level_code']}-{$data['cohort_name']}-{$data['academic_year']}";
+            return $result;
+        }
+
+        // STEP 4: Validate enrolment_date and status
+        $enrolment_date = date('Y-m-d', strtotime($data['enrolment_date']));
+
+        $valid_statuses = ['Active', 'Completed', 'Dropped', 'Suspended', 'Transferred', 'Withdrawn'];
+        $status = in_array($data['status'], $valid_statuses) ? $data['status'] : 'Active';
+
+        // STEP 5: Check for duplicate enrollment
+        $existing_enrollment = $this->db->where('student_id', $student['id'])
+            ->where('class_id', $class->id)
+            ->where('session_id', $session_id)
+            ->get('enrolment')->row();
+
+        if ($existing_enrollment) {
+            $result['message'] = "Student already enrolled in this class (enrollment ID: {$existing_enrollment->id})";
+            return $result;
+        }
+
+        // STEP 6: Create Enrollment
+        $enrolment_data = [
+            'student_id' => $student['id'],
+            'class_id' => $class->id,
+            'session_id' => $session_id,
+            'enrolment_date' => $enrolment_date,
+            'enrolment_type' => 'Core',
+            'status' => $status,
+            'notes' => $data['notes'],
+            'is_active' => 1
+        ];
+
+        if ($this->db->insert('enrolment', $enrolment_data)) {
+            $result['success'] = true;
+            $result['enrollment_created'] = true;
+            $result['message'] = 'Enrollment created successfully';
+        } else {
+            $result['message'] = 'Failed to create enrollment';
+        }
+
+        return $result;
+    }
+
+    /**
+     * Set flash message for import results
+     * @param array $stats Statistics array
+     */
+    private function setImportFlashMessage($stats)
+    {
+        if ($stats['success'] > 0) {
+            $message = "Import completed successfully!<br>";
+            $message .= "Total: {$stats['total']} | Success: {$stats['success']} | Errors: {$stats['errors']}<br>";
+            $message .= "Students Created: {$stats['students_created']} | Students Updated: {$stats['students_updated']}<br>";
+            $message .= "Enrollments Created: {$stats['enrollments_created']} | Programmes Linked: {$stats['programmes_linked']}";
+
+            if (!empty($stats['messages'])) {
+                $message .= "<br><br><strong>Errors:</strong><br>";
+                // Show first 10 errors
+                $error_count = min(10, count($stats['messages']));
+                for ($i = 0; $i < $error_count; $i++) {
+                    $message .= htmlspecialchars($stats['messages'][$i]) . "<br>";
+                }
+                if (count($stats['messages']) > 10) {
+                    $message .= "... and " . (count($stats['messages']) - 10) . " more errors";
+                }
+            }
+
+            $this->session->set_flashdata('success_message', $message);
+        } else {
+            $message = "Import failed!<br>";
+            $message .= "Total: {$stats['total']} | Success: {$stats['success']} | Errors: {$stats['errors']}<br>";
+
+            if (!empty($stats['messages'])) {
+                $message .= "<br><strong>Errors:</strong><br>";
+                // Show first 10 errors
+                $error_count = min(10, count($stats['messages']));
+                for ($i = 0; $i < $error_count; $i++) {
+                    $message .= htmlspecialchars($stats['messages'][$i]) . "<br>";
+                }
+                if (count($stats['messages']) > 10) {
+                    $message .= "... and " . (count($stats['messages']) - 10) . " more errors";
+                }
+            }
+
+            $this->session->set_flashdata('error_message', $message);
+        }
+    }
 }
