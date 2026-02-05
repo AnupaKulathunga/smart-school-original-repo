@@ -324,13 +324,23 @@ class Student extends Admin_Controller
         $this->load->view('layout/footer', $data);
     }
 
+    /**
+     * Download TVET enrollment sample CSV (17 columns)
+     * OLD: 41-column import_student_sample_file.csv (replaced)
+     */
     public function exportformat()
     {
         $this->load->helper('download');
-        $filepath = "./backend/import/import_student_sample_file.csv";
-        $data     = file_get_contents($filepath);
-        $name     = 'import_student_sample_file.csv';
+        $filepath = "./backend/import/tvet_enrolments_sample.csv";
 
+        if (!file_exists($filepath)) {
+            $this->session->set_flashdata('error_message', 'Sample file not found');
+            redirect('student/import');
+            return;
+        }
+
+        $data = file_get_contents($filepath);
+        $name = 'tvet_enrolments_sample.csv';
         force_download($name, $data);
     }
 
@@ -1127,216 +1137,34 @@ class Student extends Admin_Controller
         $msg = $this->mailsmsconf->mailsms('student_login_credential', $parent_login_detail);
     }
 
+    /**
+     * TVET Import (17 columns) - REPLACED OLD 41-COLUMN IMPORT
+     * Import students + enrollments with admin settings support
+     * Respects: adm_auto_insert, adm_prefix, adm_no_digit, adm_start_from, adm_update_status
+     */
     public function import()
     {
         if (!$this->rbac->hasPrivilege('import_student', 'can_view')) {
             access_denied();
         }
-        $data['title']      = $this->lang->line('import_student');
-        $data['title_list'] = $this->lang->line('recently_added_student');
-        // TVET: Use classmodel_model->getClassesBySession()
-        $session            = $this->setting_model->getCurrentSession();
-        $class              = $this->classmodel_model->getClassesBySession($session);
-        $data['classlist']  = $class;
-        $userdata           = $this->customlib->getUserData();
 
-        $category = $this->category_model->get();
+        $data['title'] = 'Import TVET Enrollments';
+        $session_id = $this->setting_model->getCurrentSession();
 
-        $fields = array('admission_no', 'roll_no', 'firstname', 'middlename', 'lastname', 'gender', 'dob', 'category_id', 'religion', 'cast', 'mobileno', 'email', 'admission_date', 'blood_group', 'school_house_id', 'height', 'weight', 'measurement_date', 'father_name', 'father_phone', 'father_occupation', 'mother_name', 'mother_phone', 'mother_occupation', 'guardian_is', 'guardian_name', 'guardian_relation', 'guardian_email', 'guardian_phone', 'guardian_occupation', 'guardian_address', 'current_address', 'permanent_address', 'bank_account_no', 'bank_name', 'ifsc_code', 'adhar_no', 'samagra_id', 'rte', 'previous_school', 'note');
+        $this->form_validation->set_rules('file', 'CSV File', 'callback_handle_csv_upload');
 
-        $data["fields"]       = $fields;
-        $data['categorylist'] = $category;
-        $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        // TVET: section_id validation removed
-        $this->form_validation->set_rules('file', $this->lang->line('image'), 'callback_handle_csv_upload');
         if ($this->form_validation->run() == false) {
+            // Show form
             $this->load->view('layout/header', $data);
             $this->load->view('student/import', $data);
             $this->load->view('layout/footer', $data);
         } else {
-
-            $student_categorize = 'class';
-            if ($student_categorize == 'class') {
-                $section = 0;
-            } else if ($student_categorize == 'section') {
-
-                // TVET: section removed
-            }
-            $class_id   = $this->input->post('class_id');
-            // TVET: section_id removed
-
-            $session = $this->setting_model->getCurrentSession();
-            if (isset($_FILES["file"]) && !empty($_FILES['file']['name'])) {
-                $ext = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
-                if ($ext == 'csv') {
-                    $file = $_FILES['file']['tmp_name'];
-                    $this->load->library('CSVReader');
-                    $result = $this->csvreader->parse_file($file);
-
-                    if (!empty($result)) {
-                        $rowcount = 0;
-                        for ($i = 1; $i <= count($result); $i++) {
-
-                            $student_data[$i] = array();
-                            $n                = 0;
-                            foreach ($result[$i] as $key => $value) {
-
-                                $student_data[$i][$fields[$n]] = $this->encoding_lib->toUTF8($result[$i][$key]);
-
-                                $student_data[$i]['is_active'] = 'yes';
-
-                                if (date('Y-m-d', strtotime($result[$i]['date_of_birth'])) === $result[$i]['date_of_birth']) {
-                                    $student_data[$i]['dob'] = date('Y-m-d', strtotime($result[$i]['date_of_birth']));
-                                } else {
-                                    $student_data[$i]['dob'] = null;
-                                }
-
-                                if (date('Y-m-d', strtotime($result[$i]['measurement_date'])) === $result[$i]['measurement_date']) {
-                                    $student_data[$i]['measurement_date'] = date('Y-m-d', strtotime($result[$i]['measurement_date']));
-                                } else {
-                                    $student_data[$i]['measurement_date'] = '';
-                                }
-
-                                if (date('Y-m-d', strtotime($result[$i]['admission_date'])) === $result[$i]['admission_date']) {
-                                    $student_data[$i]['admission_date'] = date('Y-m-d', strtotime($result[$i]['admission_date']));
-                                } else {
-                                    $student_data[$i]['admission_date'] = null;
-                                }
-                                $n++;
-                            }
-
-                            $roll_no                           = $student_data[$i]["roll_no"];
-                            $adm_no                            = $student_data[$i]["admission_no"];
-                            $mobile_no                         = $student_data[$i]["mobileno"];
-                            $email                             = $student_data[$i]["email"];
-                            $guardian_phone                    = $student_data[$i]["guardian_phone"];
-                            $guardian_email                    = $student_data[$i]["guardian_email"];
-                            $data_setting                      = array();
-                            $data_setting['id']                = $this->sch_setting_detail->id;
-                            $data_setting['adm_auto_insert']   = $this->sch_setting_detail->adm_auto_insert;
-                            $data_setting['adm_update_status'] = $this->sch_setting_detail->adm_update_status;
-                            //-------------------------
-
-                            if ($this->sch_setting_detail->adm_auto_insert) {
-                                if ($this->sch_setting_detail->adm_update_status) {
-                                    $last_student                     = $this->student_model->lastRecord();
-                                    $last_admission_digit             = str_replace($this->sch_setting_detail->adm_prefix, "", $last_student->admission_no);
-                                    $admission_no                     = $this->sch_setting_detail->adm_prefix . sprintf("%0" . $this->sch_setting_detail->adm_no_digit . "d", $last_admission_digit + 1);
-                                    $student_data[$i]["admission_no"] = $admission_no;
-                                } else {
-                                    $admission_no                     = $this->sch_setting_detail->adm_prefix . $this->sch_setting_detail->adm_start_from;
-                                    $student_data[$i]["admission_no"] = $admission_no;
-                                }
-
-                                $admission_no_exists = $this->student_model->check_adm_exists($admission_no);
-                                if ($admission_no_exists) {
-                                    $student_exists = $this->student_model->getStudentByAdmission($admission_no);
-                                    $insert_id      = $student_exists['id'];
-                                    $is_update_import = true;
-                                } else {
-                                    $insert_id      = $this->student_model->add($student_data[$i], $data_setting);
-                                    $is_update_import = false;
-                                }
-                            } else {
-                                $admission_no = $adm_no;
-                                if ($this->form_validation->is_unique($adm_no, 'students.admission_no')) {
-                                    $insert_id      = $this->student_model->add($student_data[$i], $data_setting);
-                                    $is_update_import = false;
-                                } else {
-                                    // Modified to allow enrollment for existing students via CSV
-                                    $student_exists = $this->student_model->getStudentByAdmission($adm_no);
-                                    if(!empty($student_exists)){
-                                        $insert_id = $student_exists['id'];
-                                        $is_update_import = true;
-                                    }else{
-                                        $insert_id = "";
-                                        $is_update_import = false;
-                                    }
-                                }
-                            }
-
-                            //-------------------------
-                            if (!empty($insert_id)) {
-                                $data_new = array(
-                                    'student_id' => $insert_id,
-                                    'class_id'   => $class_id,
-                                    // TVET: section_id removed
-                                    'session_id' => $session,
-                                );
-
-                                $this->student_model->add_student_session($data_new);
-                                
-                                if (!$is_update_import) {
-                                    $user_password = $this->role->get_random_password($chars_min = 6, $chars_max = 6, $use_upper_case = false, $include_numbers = true, $include_special_chars = false);
-                                    $sibling_id    = $this->input->post('sibling_id');
-
-                                    $data_student_login = array(
-                                        'username' => $this->student_login_prefix . $insert_id,
-                                        'password' => $user_password,
-                                        'user_id'  => $insert_id,
-                                        'role'     => 'student',
-                                    );
-
-                                    $this->user_model->add($data_student_login);
-                                    $parent_password = $this->role->get_random_password($chars_min = 6, $chars_max = 6, $use_upper_case = false, $include_numbers = true, $include_special_chars = false);
-
-                                    $temp              = $insert_id;
-                                    $data_parent_login = array(
-                                        'username' => $this->parent_login_prefix . $insert_id,
-                                        'password' => $parent_password,
-                                        'user_id'  => $insert_id,
-                                        'role'     => 'parent',
-                                        'childs'   => $temp,
-                                    );
-
-                                    $ins_id         = $this->user_model->add($data_parent_login);
-                                    $update_student = array(
-                                        'id'        => $insert_id,
-                                        'parent_id' => $ins_id,
-                                    );
-
-                                    $this->student_model->add($update_student);
-                                    $sender_details = array('student_id' => $insert_id, 'contact_no' => $guardian_phone, 'email' => $guardian_email);
-                                    $this->mailsmsconf->mailsms('student_admission', $sender_details);
-
-                                    $student_login_detail = array('id' => $insert_id, 'credential_for' => 'student', 'username' => $this->student_login_prefix . $insert_id, 'password' => $user_password, 'contact_no' => $mobile_no, 'email' => $email, 'admission_no' => $admission_no);
-                                    $this->mailsmsconf->mailsms('student_login_credential', $student_login_detail);
-
-                                    $parent_login_detail = array('id' => $insert_id, 'credential_for' => 'parent', 'username' => $this->parent_login_prefix . $insert_id, 'password' => $parent_password, 'contact_no' => $guardian_phone, 'email' => $guardian_email, 'admission_no' => $admission_no);
-
-                                    $this->mailsmsconf->mailsms('student_login_credential', $parent_login_detail);
-                                    
-                                     //generate student id card
-                                    $student_details = $this->student_model->get($insert_id);
-                                    $scan_type = $this->sch_setting_detail->scan_code_type;
-                                    $this->customlib->generatebarcode($student_details['admission_no'], $student_details['id'], $scan_type);
-                                    //generate student id card
-                                }
-
-                                $data['csvData'] = $result;
-                                $this->session->set_flashdata('msg', '<div class="alert alert-success text-center">' . $this->lang->line('students_imported_successfully') . '</div>');
-
-                                $rowcount++;
-                                $this->session->set_flashdata('msg', '<div class="alert alert-success text-center">' . $this->lang->line('total') . ' ' . count($result) . $this->lang->line('records_found_in_csv_file_total') . $rowcount . ' ' . $this->lang->line('records_imported_successfully') . '</div>');
-
-                            } else {
-
-                                $this->session->set_flashdata('msg', '<div class="alert alert-danger text-center">' . $this->lang->line('record_already_exist') . '</div>');
-                            }
-                        }
-                    } else {
-
-                        $this->session->set_flashdata('msg', '<div class="alert alert-danger text-center">' . $this->lang->line('no_record_found') . '</div>');
-                    }
-                } else {
-
-                    $this->session->set_flashdata('msg', '<div class="alert alert-danger text-center">' . $this->lang->line('please_upload_csv_file_only') . '</div>');
-                }
-            }
-
+            // Process CSV
+            $this->processEnrolmentCSV($session_id);
             redirect('student/import');
         }
     }
+
 
     public function handle_csv_upload()
     {
@@ -2856,13 +2684,41 @@ class Student extends Admin_Controller
             'programme_linked' => false
         ];
 
-        // STEP 1: Find or Create Student
-        $student = $this->student_model->getStudentByAdmission($data['admission_no']);
+        // STEP 1: Determine Admission Number (respecting admin settings)
+        $admission_no = '';
+
+        if ($this->sch_setting_detail->adm_auto_insert) {
+            // AUTO-GENERATE admission number (ignore CSV value)
+            if ($this->sch_setting_detail->adm_update_status) {
+                // Increment from last student
+                $last_student = $this->student_model->lastRecord();
+                if ($last_student) {
+                    $last_digit = str_replace($this->sch_setting_detail->adm_prefix, "", $last_student->admission_no);
+                    $admission_no = $this->sch_setting_detail->adm_prefix . sprintf("%0" . $this->sch_setting_detail->adm_no_digit . "d", intval($last_digit) + 1);
+                } else {
+                    // No students yet, use start_from
+                    $admission_no = $this->sch_setting_detail->adm_prefix . sprintf("%0" . $this->sch_setting_detail->adm_no_digit . "d", intval($this->sch_setting_detail->adm_start_from));
+                }
+            } else {
+                // Use start_from setting
+                $admission_no = $this->sch_setting_detail->adm_prefix . sprintf("%0" . $this->sch_setting_detail->adm_no_digit . "d", intval($this->sch_setting_detail->adm_start_from));
+            }
+        } else {
+            // USE admission number from CSV (required)
+            $admission_no = $data['admission_no'];
+            if (empty($admission_no)) {
+                $result['message'] = "admission_no required when auto-insert is disabled";
+                return $result;
+            }
+        }
+
+        // STEP 2: Find or Create Student
+        $student = $this->student_model->getStudentByAdmission($admission_no);
 
         if (!$student) {
             // Create new student
             $student_data = [
-                'admission_no' => $data['admission_no'],
+                'admission_no' => $admission_no,
                 'firstname' => $data['firstname'],
                 'lastname' => $data['lastname'],
                 'mobileno' => $data['mobileno'],
@@ -2882,7 +2738,7 @@ class Student extends Admin_Controller
 
             $student_id = $this->student_model->add($student_data);
             if (!$student_id) {
-                $result['message'] = "Failed to create student: {$data['admission_no']}";
+                $result['message'] = "Failed to create student: {$admission_no}";
                 return $result;
             }
 
@@ -2904,7 +2760,7 @@ class Student extends Admin_Controller
             }
         }
 
-        // STEP 2: Link to Programme (if qualification_name provided)
+        // STEP 3: Link to Programme (if qualification_name provided)
         if (!empty($data['qualification_name'])) {
             $programme = $this->programme_model->getProgrammeByName($data['qualification_name']);
 
@@ -2931,7 +2787,7 @@ class Student extends Admin_Controller
             // If programme not found, skip (don't fail the import)
         }
 
-        // STEP 3: Find Class by subject_code + level_code + cohort + year
+        // STEP 4: Find Class by subject_code + level_code + cohort + year
         $class = $this->classmodel_model->getClassBySubjectLevel(
             $data['subject_code'],
             $data['level_code'],
@@ -2945,13 +2801,13 @@ class Student extends Admin_Controller
             return $result;
         }
 
-        // STEP 4: Validate enrolment_date and status
+        // STEP 5: Validate enrolment_date and status
         $enrolment_date = date('Y-m-d', strtotime($data['enrolment_date']));
 
         $valid_statuses = ['Active', 'Completed', 'Dropped', 'Suspended', 'Transferred', 'Withdrawn'];
         $status = in_array($data['status'], $valid_statuses) ? $data['status'] : 'Active';
 
-        // STEP 5: Check for duplicate enrollment
+        // STEP 6: Check for duplicate enrollment
         $existing_enrollment = $this->db->where('student_id', $student['id'])
             ->where('class_id', $class->id)
             ->where('session_id', $session_id)
@@ -2962,7 +2818,7 @@ class Student extends Admin_Controller
             return $result;
         }
 
-        // STEP 6: Create Enrollment
+        // STEP 7: Create Enrollment
         $enrolment_data = [
             'student_id' => $student['id'],
             'class_id' => $class->id,
