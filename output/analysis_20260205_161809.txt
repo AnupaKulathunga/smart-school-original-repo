@@ -1,0 +1,183 @@
+================================================================================
+TVET EXCEL ANALYSIS REPORT
+Generated: 2026-02-05 16:18:08
+================================================================================
+
+Total Rows: 1,973
+Valid Rows: 1,058
+Orphaned Rows (no student data): 895
+
+Unique Students: 1,001
+
+Unique Subjects: 53
+  BDR, BSCO, BSS, BUAD, CELE, CFINS, CMACC, COM, CPRAC, DTT, EBMAN, ENGD, ENGS, ENGSC, ETNIC, ETT, FACC, FMEC, FMT, INACC, INDEL, INDIN, INDL, INFPR, ININS, ITAX, ITT, LREL, LSYS, MACOM, MADM, MATH, MCOM, MD, MKMAN, MKRE, MTNIC, OPRAC, PADM, PFI, PLAW, PM, PMAN, PREL, PTRA, QUAS, SMAN, SOM, SUMAN, TCOM, TD, TOP, TS
+
+Unique Levels: 5
+  N2, N3, N4, N5, N6
+
+Unique Subject-Level Combinations: 109
+  - BDR-N2
+  - BSCO-N4
+  - BSCO-N5
+  - BSCO-N6
+  - BSS-N4
+  - BSS-N5
+  - BSS-N6
+  - BUAD-N4
+  - BUAD-N5
+  - BUAD-N6
+  - CELE-N4
+  - CELE-N5
+  - CELE-N6
+  - CFINS-N4
+  - CFINS-N5
+  - CFINS-N6
+  - CMACC-N5
+  - CMACC-N6
+  - COM-N5
+  - COM-N6
+  - CPRAC-N4
+  - CPRAC-N5
+  - DTT-N2
+  - EBMAN-N4
+  - EBMAN-N5
+  - EBMAN-N6
+  - ENGD-N2
+  - ENGD-N3
+  - ENGS-N2
+  - ENGS-N3
+  - ENGSC-N4
+  - ETNIC-N4
+  - ETNIC-N5
+  - ETNIC-N6
+  - ETT-N2
+  - FACC-N4
+  - FACC-N5
+  - FACC-N6
+  - FMEC-N5
+  - FMEC-N6
+  - FMT-N2
+  - INACC-N4
+  - INDEL-N4
+  - INDEL-N5
+  - INDEL-N6
+  - INDIN-N5
+  - INDIN-N6
+  - INDL-N2
+  - INFPR-N4
+  - INFPR-N5
+  - INFPR-N6
+  - ININS-N4
+  - ITAX-N6
+  - ITT-N2
+  - LREL-N5
+  - LREL-N6
+  - LSYS-N2
+  - LSYS-N4
+  - LSYS-N5
+  - LSYS-N6
+  - MACOM-N6
+  - MADM-N5
+  - MADM-N6
+  - MATH-N2
+  - MATH-N3
+  - MATH-N4
+  - MATH-N5
+  - MATH-N6
+  - MCOM-N4
+  - MD-N4
+  - MKMAN-N4
+  - MKMAN-N5
+  - MKMAN-N6
+  - MKRE-N6
+  - MTNIC-N4
+  - MTNIC-N5
+  - MTNIC-N6
+  - OPRAC-N4
+  - OPRAC-N5
+  - OPRAC-N6
+  - PADM-N4
+  - PADM-N5
+  - PADM-N6
+  - PFI-N5
+  - PFI-N6
+  - PLAW-N6
+  - PM-N5
+  - PM-N6
+  - PMAN-N4
+  - PMAN-N5
+  - PMAN-N6
+  - PREL-N5
+  - PREL-N6
+  - PTRA-N5
+  - PTRA-N6
+  - QUAS-N4
+  - QUAS-N5
+  - QUAS-N6
+  - SMAN-N5
+  - SMAN-N6
+  - SOM-N5
+  - SOM-N6
+  - SUMAN-N4
+  - SUMAN-N5
+  - SUMAN-N6
+  - TCOM-N5
+  - TD-N5
+  - TOP-N5
+  - TS-N5
+
+Unique Qualifications: 37
+  - ENGINEERING SKILLS: N2 (1 enrollments)
+  - ENGINEERING SKILLS: N3 (1 enrollments)
+  - NC: N4: BUILDING STUDIES (1 enrollments)
+  - NC: N4: BUSINESS MANAGEMENT (1 enrollments)
+  - NC: N4: ELECTRICAL (HEAVY CURRENT) (1 enrollments)
+  - NC: N4: ELECTRICAL (LIGHT CURRENT) (1 enrollments)
+  - NC: N4: FINANCIAL MANAGEMENT (1 enrollments)
+  - NC: N4: HUMAN RESOURCE MANAGEMENT (1 enrollments)
+  - NC: N4: MANAGEMENT ASSISTANT (1 enrollments)
+  - NC: N4: MARKETING MANAGEMENT (1 enrollments)
+  - NC: N4: MECHANICAL (MECHANO) (1 enrollments)
+  - NC: N4: PUBLIC MANAGEMENT (1 enrollments)
+  - NC: N5: BUILDING STUDIES (1 enrollments)
+  - NC: N5: BUSINESS MANAGEMENT (1 enrollments)
+  - NC: N5: ELECTRICAL (HEAVY CURRENT) (1 enrollments)
+  - NC: N5: ELECTRICAL (LIGHT CURRENT) (1 enrollments)
+  - NC: N5: FINANCIAL MANAGEMENT (1 enrollments)
+  - NC: N5: HUMAN RESOURCE MANAGEMENT (1 enrollments)
+  - NC: N5: LEGAL SECRETARY (1 enrollments)
+  - NC: N5: MANAGEMENT ASSISTANT (1 enrollments)
+  - NC: N5: MARKETING MANAGEMENT (1 enrollments)
+  - NC: N5: MECHANICAL (MECHANO) (1 enrollments)
+  - NC: N5: MEDICAL SECRETARY (1 enrollments)
+  - NC: N5: PUBLIC MANAGEMENT (1 enrollments)
+  - NC: N5: TOURISM (1 enrollments)
+  - NC: N6: BUILDING STUDIES (1 enrollments)
+  - NC: N6: BUSINESS MANAGEMENT (1 enrollments)
+  - NC: N6: ELECTRICAL (HEAVY CURRENT) (1 enrollments)
+  - NC: N6: ELECTRICAL (LIGHT CURRENT) (1 enrollments)
+  - NC: N6: FINANCIAL MANAGEMENT (1 enrollments)
+  - NC: N6: HUMAN RESOURCE MANAGEMENT (1 enrollments)
+  - NC: N6: LEGAL SECRETARY (1 enrollments)
+  - NC: N6: MANAGEMENT ASSISTANT (1 enrollments)
+  - NC: N6: MARKETING MANAGEMENT (1 enrollments)
+  - NC: N6: MECHANICAL (MECHANO) (1 enrollments)
+  - NC: N6: MEDICAL SECRETARY (1 enrollments)
+  - NC: N6: PUBLIC MANAGEMENT (1 enrollments)
+  - Empty/NULL (1936 enrollments)
+
+Campus Distribution:
+  - GOODWOOD CAMPUS (1 rows)
+
+Status Distribution:
+  - Active (no CANCEL_DATE): 1,967 rows
+  - Dropped (has CANCEL_DATE): 6 rows
+
+================================================================================
+PREREQUISITES REQUIRED BEFORE IMPORT:
+================================================================================
+✅ Create 53 subjects in system
+✅ Create 5 levels in system
+✅ Create 109 subject-level combinations
+✅ Create 37 programmes
+✅ Create ~109 classes (subject+level+cohort+year)

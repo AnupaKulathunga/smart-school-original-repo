@@ -223,11 +223,12 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                     <div class="box-header with-border">
                         <h3 class="box-title"><i class="fa fa-upload"></i> Upload CSV File</h3>
                     </div>
-                    <form role="form" id="import_form" method="post" enctype="multipart/form-data" action="<?php echo site_url('student/importEnrolments') ?>">
+                    <form role="form" id="import_form" method="post" enctype="multipart/form-data" action="<?php echo site_url('student/import') ?>">
                         <div class="box-body">
                             <div class="form-group">
                                 <label for="file">Select CSV File <span class="text-red">*</span></label>
                                 <input type="file" name="file" id="file" class="form-control" accept=".csv" required>
+                                <span id="file-name" class="text-info" style="display:none; margin-top: 5px;"></span>
                                 <span class="text-danger"><?php echo form_error('file'); ?></span>
                                 <p class="help-block">
                                     <i class="fa fa-info-circle"></i> Only CSV files are accepted. Maximum file size: 5MB
@@ -269,3 +270,17 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
     font-size: 11px;
 }
 </style>
+
+<script>
+// Show selected filename
+document.getElementById('file').addEventListener('change', function(e) {
+    var fileName = e.target.files[0] ? e.target.files[0].name : '';
+    var fileNameSpan = document.getElementById('file-name');
+    if (fileName) {
+        fileNameSpan.innerHTML = '<i class="fa fa-file-text-o"></i> Selected: <strong>' + fileName + '</strong>';
+        fileNameSpan.style.display = 'block';
+    } else {
+        fileNameSpan.style.display = 'none';
+    }
+});
+</script>

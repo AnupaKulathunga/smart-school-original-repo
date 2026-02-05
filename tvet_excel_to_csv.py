@@ -275,8 +275,24 @@ class TVETExcelConverter:
                 return ''
             return str(val).strip()
 
+        # Clean admission number (remove .0 from floats)
+        def clean_admission_no(val):
+            if pd.isna(val):
+                return ''
+            # Convert to string and remove .0 if it's a float
+            str_val = str(val).strip()
+            if '.' in str_val:
+                # Try to convert to int to remove decimal
+                try:
+                    float_val = float(str_val)
+                    if float_val.is_integer():
+                        return str(int(float_val))
+                except:
+                    pass
+            return str_val
+
         return {
-            'admission_no': clean_str(row.get('STUDENT_NUMBER')),
+            'admission_no': clean_admission_no(row.get('STUDENT_NUMBER')),
             'firstname': clean_str(row.get('FIRST_NAMES')),
             'lastname': clean_str(row.get('SURNAME')),
             'id_number': id_number or '',
