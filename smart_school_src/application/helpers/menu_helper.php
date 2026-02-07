@@ -139,12 +139,13 @@ if (!function_exists('main_menu_array')) {
                 'visitorspurpose' => array('index','edit'),
             ),
             
-            'student_information' => array(                
-                'student'         => array('search','create','import','disablestudentslist','multiclass','bulkdelete','view','edit'),       
-                'onlinestudent'   => array('index','edit'),               
-                'category'        => array('index','edit'),               
-                'schoolhouse'     => array('index','edit'),               
-                'disable_reason'  => array('index','edit'),                              
+            'student_information' => array(
+                'student'         => array('search','create','import','disablestudentslist','multiclass','bulkdelete','view','edit'),
+                'onlinestudent'   => array('index','edit'),
+                'category'        => array('index','edit'),
+                'schoolhouse'     => array('index','edit'),
+                'disable_reason'  => array('index','edit'),
+                'disabilitytype'  => array('index','create','edit','students'),
             ),
             
             'fees_collection' => array(                             
