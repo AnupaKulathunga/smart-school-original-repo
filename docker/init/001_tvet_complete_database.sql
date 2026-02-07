@@ -1385,6 +1385,26 @@ CREATE TABLE IF NOT EXISTS `fee_groups_feetype` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `fees_reminder`
+--
+
+CREATE TABLE IF NOT EXISTS `fees_reminder` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `reminder_type` varchar(10) DEFAULT NULL,
+  `day` int DEFAULT NULL,
+  `is_active` int DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+INSERT IGNORE INTO `fees_reminder` (`id`, `reminder_type`, `day`, `is_active`) VALUES
+(1, 'before', 2, 0),
+(2, 'before', 5, 0),
+(3, 'after', 2, 0),
+(4, 'after', 5, 0);
+
+--
 -- Table structure for table `fee_session_groups`
 --
 
