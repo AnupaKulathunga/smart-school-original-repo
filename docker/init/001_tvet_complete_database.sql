@@ -1729,6 +1729,24 @@ CREATE TABLE IF NOT EXISTS `general_calls` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `grades`
+--
+
+CREATE TABLE IF NOT EXISTS `grades` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `exam_type` varchar(250) DEFAULT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `point` float(10,1) DEFAULT NULL,
+  `mark_from` float(10,2) DEFAULT NULL,
+  `mark_upto` float(10,2) DEFAULT NULL,
+  `description` text,
+  `is_active` varchar(255) DEFAULT 'no',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
 -- Table structure for table `holiday_type`
 --
 
