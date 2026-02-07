@@ -2151,12 +2151,24 @@ CREATE TABLE IF NOT EXISTS `notification_setting` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE IF NOT EXISTS `offline_fees_payments` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `student_fees_deposite_id` int DEFAULT NULL,
-  `date` date DEFAULT NULL,
-  `amount` decimal(15,2) DEFAULT NULL,
-  `payment_mode` varchar(100) DEFAULT NULL,
-  `note` text,
+  `invoice_id` varchar(50) DEFAULT NULL,
+  `student_session_id` int DEFAULT NULL,
+  `student_fees_master_id` int DEFAULT NULL,
+  `fee_groups_feetype_id` int DEFAULT NULL,
+  `student_transport_fee_id` int DEFAULT NULL,
+  `payment_date` date DEFAULT NULL,
+  `bank_from` varchar(200) DEFAULT NULL,
+  `bank_account_transferred` varchar(200) DEFAULT NULL,
+  `reference` varchar(200) DEFAULT NULL,
+  `amount` float(10,2) DEFAULT NULL,
+  `submit_date` datetime DEFAULT NULL,
+  `approve_date` datetime DEFAULT NULL,
+  `attachment` text,
+  `reply` text,
+  `approved_by` int DEFAULT NULL,
+  `is_active` varchar(1) DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
