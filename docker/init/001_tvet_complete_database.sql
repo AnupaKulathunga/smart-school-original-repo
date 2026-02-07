@@ -688,6 +688,25 @@ CREATE TABLE IF NOT EXISTS `complaint_type` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `dispatch_receive`
+--
+
+CREATE TABLE IF NOT EXISTS `dispatch_receive` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `reference_no` varchar(50) NOT NULL,
+  `to_title` varchar(100) NOT NULL,
+  `type` varchar(10) NOT NULL,
+  `address` varchar(500) NOT NULL,
+  `note` varchar(500) NOT NULL,
+  `from_title` varchar(200) NOT NULL,
+  `date` date DEFAULT NULL,
+  `image` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
 -- Table structure for table `conference_cohorts`
 --
 
@@ -2480,20 +2499,36 @@ CREATE TABLE IF NOT EXISTS `room_types` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `pickup_point`
+--
+
+CREATE TABLE IF NOT EXISTS `pickup_point` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `latitude` varchar(100) DEFAULT NULL,
+  `longitude` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
 -- Table structure for table `route_pickup_point`
 --
 
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE IF NOT EXISTS `route_pickup_point` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `route_id` int DEFAULT NULL,
-  `pickup_point` varchar(100) DEFAULT NULL,
+  `session_id` int DEFAULT NULL,
+  `transport_route_id` int NOT NULL,
+  `pickup_point_id` int NOT NULL,
+  `fees` float(10,2) DEFAULT '0.00',
+  `destination_distance` float(10,1) DEFAULT '0.0',
   `pickup_time` time DEFAULT NULL,
-  `fees` decimal(15,2) DEFAULT '0.00',
+  `order_number` float NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `routes`
@@ -3771,10 +3806,12 @@ CREATE TABLE IF NOT EXISTS `transport_feemaster` (
 CREATE TABLE IF NOT EXISTS `transport_route` (
   `id` int NOT NULL AUTO_INCREMENT,
   `route_title` varchar(200) NOT NULL,
+  `no_of_vehicle` int DEFAULT NULL,
   `fare` decimal(10,2) DEFAULT '0.00',
   `note` text,
   `is_active` varchar(10) DEFAULT 'yes',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -4014,6 +4051,19 @@ CREATE TABLE IF NOT EXISTS `vehicles` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `vehicle_routes`
+--
+
+CREATE TABLE IF NOT EXISTS `vehicle_routes` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `route_id` int DEFAULT NULL,
+  `vehicle_id` int DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Table structure for table `video_tutorial`
