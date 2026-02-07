@@ -2162,6 +2162,140 @@ CREATE TABLE IF NOT EXISTS `offline_fees_payments` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `online_admissions`
+--
+
+CREATE TABLE IF NOT EXISTS `online_admissions` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `admission_no` varchar(100) DEFAULT NULL,
+  `roll_no` varchar(100) DEFAULT NULL,
+  `reference_no` varchar(50) NOT NULL DEFAULT '',
+  `admission_date` date DEFAULT NULL,
+  `firstname` varchar(100) DEFAULT NULL,
+  `middlename` varchar(255) NOT NULL DEFAULT '',
+  `lastname` varchar(100) DEFAULT NULL,
+  `rte` varchar(20) NOT NULL DEFAULT 'No',
+  `image` varchar(255) DEFAULT NULL,
+  `mobileno` varchar(100) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `state` varchar(100) DEFAULT NULL,
+  `city` varchar(100) DEFAULT NULL,
+  `pincode` varchar(100) DEFAULT NULL,
+  `religion` varchar(100) DEFAULT NULL,
+  `cast` varchar(50) NOT NULL DEFAULT '',
+  `dob` date DEFAULT NULL,
+  `gender` varchar(100) DEFAULT NULL,
+  `current_address` text,
+  `permanent_address` text,
+  `category_id` int DEFAULT NULL,
+  `class_section_id` int DEFAULT NULL,
+  `class_id` int DEFAULT NULL,
+  `route_id` int NOT NULL DEFAULT 0,
+  `school_house_id` int DEFAULT NULL,
+  `blood_group` varchar(200) NOT NULL DEFAULT '',
+  `vehroute_id` int NOT NULL DEFAULT 0,
+  `hostel_room_id` int DEFAULT NULL,
+  `adhar_no` varchar(100) DEFAULT NULL,
+  `samagra_id` varchar(100) DEFAULT NULL,
+  `bank_account_no` varchar(100) DEFAULT NULL,
+  `bank_name` varchar(100) DEFAULT NULL,
+  `ifsc_code` varchar(100) DEFAULT NULL,
+  `guardian_is` varchar(100) NOT NULL DEFAULT '',
+  `father_name` varchar(100) DEFAULT NULL,
+  `father_phone` varchar(100) DEFAULT NULL,
+  `father_occupation` varchar(100) DEFAULT NULL,
+  `mother_name` varchar(100) DEFAULT NULL,
+  `mother_phone` varchar(100) DEFAULT NULL,
+  `mother_occupation` varchar(100) DEFAULT NULL,
+  `guardian_name` varchar(100) DEFAULT NULL,
+  `guardian_relation` varchar(100) DEFAULT NULL,
+  `guardian_phone` varchar(100) DEFAULT NULL,
+  `guardian_occupation` varchar(150) NOT NULL DEFAULT '',
+  `guardian_address` text,
+  `guardian_email` varchar(100) NOT NULL DEFAULT '',
+  `father_pic` varchar(255) NOT NULL DEFAULT '',
+  `mother_pic` varchar(255) NOT NULL DEFAULT '',
+  `guardian_pic` varchar(255) NOT NULL DEFAULT '',
+  `is_enroll` int DEFAULT 0,
+  `previous_school` text,
+  `height` varchar(100) NOT NULL DEFAULT '',
+  `weight` varchar(100) NOT NULL DEFAULT '',
+  `note` text NOT NULL,
+  `form_status` int NOT NULL DEFAULT 0,
+  `paid_status` int NOT NULL DEFAULT 0,
+  `measurement_date` date DEFAULT NULL,
+  `app_key` text,
+  `document` text,
+  `submit_date` date DEFAULT NULL,
+  `disable_at` date DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Table structure for table `online_admission_custom_field_value`
+--
+
+CREATE TABLE IF NOT EXISTS `online_admission_custom_field_value` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `belong_table_id` int DEFAULT NULL,
+  `custom_field_id` int DEFAULT NULL,
+  `field_value` longtext NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Table structure for table `online_admission_fields`
+--
+
+CREATE TABLE IF NOT EXISTS `online_admission_fields` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(250) DEFAULT NULL,
+  `status` int DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+INSERT IGNORE INTO `online_admission_fields` (`id`, `name`, `status`) VALUES
+(1,'middlename',0),(2,'lastname',1),(3,'category',0),(4,'religion',0),
+(5,'cast',0),(6,'mobile_no',1),(7,'admission_date',0),(8,'student_photo',0),
+(9,'is_student_house',0),(10,'is_blood_group',0),(11,'student_height',0),
+(12,'student_weight',0),(13,'father_name',0),(14,'father_phone',0),
+(15,'father_occupation',0),(16,'father_pic',0),(17,'mother_name',0),
+(18,'mother_phone',0),(19,'mother_occupation',0),(20,'mother_pic',0),
+(21,'guardian_name',1),(22,'guardian_phone',1),(23,'if_guardian_is',1),
+(24,'guardian_relation',1),(25,'guardian_email',1),(26,'guardian_occupation',1),
+(27,'guardian_address',1),(28,'bank_account_no',0),(29,'bank_name',0),
+(30,'ifsc_code',0),(31,'national_identification_no',0),(32,'local_identification_no',0),
+(33,'rte',0),(34,'previous_school_details',0),(35,'guardian_photo',1),
+(36,'student_note',0),(37,'measurement_date',0),(38,'student_email',1),
+(39,'current_address',0),(40,'permanent_address',0),(41,'upload_documents',1);
+
+--
+-- Table structure for table `online_admission_payment`
+--
+
+CREATE TABLE IF NOT EXISTS `online_admission_payment` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `online_admission_id` int NOT NULL,
+  `paid_amount` float(10,2) NOT NULL,
+  `payment_mode` varchar(50) NOT NULL DEFAULT '',
+  `payment_type` varchar(100) NOT NULL DEFAULT '',
+  `transaction_id` varchar(100) NOT NULL DEFAULT '',
+  `note` varchar(100) NOT NULL DEFAULT '',
+  `date` datetime NOT NULL,
+  `processing_charge_type` varchar(255) DEFAULT NULL,
+  `processing_charge_value` float(10,2) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
 -- Table structure for table `onlineexam`
 --
 
