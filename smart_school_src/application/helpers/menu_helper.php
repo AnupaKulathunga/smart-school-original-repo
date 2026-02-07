@@ -187,9 +187,9 @@ if (!function_exists('main_menu_array')) {
                                   
             ), 
             
-            'online_examinations' => array(                                 
-                'onlineexam'    => array('index','evalution','assign'),                  
-                'question'      => array('index','read'),                  
+            'online_examinations' => array(
+                'onlineexam'    => array('index','evalution','assign','moderation','moderation_review','moderation_action','moderation_comment','teacher_feedback'),
+                'question'      => array('index','read'),
             ), 
             
             'lesson_plan' => array(                                 

@@ -66,10 +66,9 @@ class Question_model extends MY_model
         $userdata = $this->customlib->getUserData();
         $role_id  = $userdata["role_id"];
 
-        $this->db->select('questions.*,subjects.name,subjects.code,classes.class as `class_name`,sections.section as `section_name`')->from('questions');
+        $this->db->select('questions.*,subjects.name,subjects.code,ac.class_code as `class_name`')->from('questions');
         $this->db->join('subjects', 'subjects.id = questions.subject_id');
-        $this->db->join('classes', 'classes.id = questions.class_id', 'left');
-        $this->db->join('sections', 'sections.id = questions.section_id', 'left');
+        $this->db->join('academic_class ac', 'ac.id = questions.class_id', 'left');
 
         if ($id != null) {
             $this->db->where('questions.id', $id);
@@ -87,10 +86,9 @@ class Question_model extends MY_model
 
     public function getall($limit = null, $offset = null)
     {
-        $this->db->select('questions.*,subjects.name,classes.class as `class_name`,sections.section as `section_name`')->from('questions');
+        $this->db->select('questions.*,subjects.name,ac.class_code as `class_name`')->from('questions');
         $this->db->join('subjects', 'subjects.id = questions.subject_id');
-        $this->db->join('classes', 'classes.id = questions.class_id', 'left');
-        $this->db->join('sections', 'sections.id = questions.section_id', 'left');
+        $this->db->join('academic_class ac', 'ac.id = questions.class_id', 'left');
         $this->db->limit($limit, $offset);
         $this->db->order_by('questions.id');
         $query = $this->db->get();
@@ -139,9 +137,7 @@ class Question_model extends MY_model
             $this->datatables->where('questions.class_id', $class_id);
         }
 
-        if(!empty($section_id)){
-            $this->datatables->where('questions.section_id', $section_id);
-        }
+        // TVET: section_id removed (class-level questions)
 
         if(!empty($subject)){
             $this->datatables->where('questions.subject_id', $subject);
@@ -159,14 +155,13 @@ class Question_model extends MY_model
             $this->datatables->where('questions.staff_id', $created_by);
         }
 
-        $this->datatables->select('questions.*,subjects.name,subjects.code,classes.class as class_name,sections.section as section_name,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id,staff_roles.role_id as created_role');
+        $this->datatables->select('questions.*,subjects.name,subjects.code,ac.class_code as class_name,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id,staff_roles.role_id as created_role');
         $this->datatables->join('subjects', 'subjects.id = questions.subject_id');
-        $this->datatables->join('classes', 'classes.id = questions.class_id', 'left');
-        $this->datatables->join('sections', 'sections.id = questions.section_id', 'left');
+        $this->datatables->join('academic_class ac', 'ac.id = questions.class_id', 'left');
         $this->datatables->join('staff', 'staff.id = questions.staff_id', 'left');
         $this->datatables->join('staff_roles', 'staff_roles.staff_id = staff.id', 'left');
-        $this->datatables->searchable('questions.id,subjects.name,questions.question_type,questions.level,questions.question,classes.class,questions.staff_id');
-        $this->datatables->orderable('questions.id,subjects.name,questions.question_type,questions.level,questions.question,classes.class,questions.staff_id');
+        $this->datatables->searchable('questions.id,subjects.name,questions.question_type,questions.level,questions.question,ac.class_code,questions.staff_id');
+        $this->datatables->orderable('questions.id,subjects.name,questions.question_type,questions.level,questions.question,ac.class_code,questions.staff_id');
         $this->datatables->from('questions');
         $this->datatables->sort('questions.id','desc');
         return $this->datatables->generate('json');

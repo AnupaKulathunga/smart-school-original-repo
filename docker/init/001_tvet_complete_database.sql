@@ -42,6 +42,96 @@ SET FOREIGN_KEY_CHECKS = 0;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `addon_versions`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `addon_versions` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `addon_id` int DEFAULT NULL,
+  `version` varchar(50) DEFAULT NULL,
+  `version_order` varchar(50) DEFAULT NULL,
+  `folder_path` varchar(500) DEFAULT NULL,
+  `sort_description` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `addon_id` (`addon_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `addons`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `addons` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) DEFAULT NULL,
+  `description` text,
+  `product_id` varchar(100) DEFAULT NULL,
+  `directory` varchar(200) DEFAULT NULL,
+  `config_name` varchar(200) DEFAULT NULL,
+  `current_version` varchar(50) DEFAULT NULL,
+  `product_order` int DEFAULT '0',
+  `installation_by` int DEFAULT NULL,
+  `uninstall_version` varchar(50) DEFAULT NULL,
+  `unistall_by` int DEFAULT NULL,
+  `addon_ver` varchar(50) DEFAULT NULL,
+  `addon_prod` varchar(100) DEFAULT NULL,
+  `last_update` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `alumni_events`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `alumni_events` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(200) DEFAULT NULL,
+  `event_for` varchar(50) DEFAULT NULL,
+  `session_id` int DEFAULT NULL,
+  `class_id` int DEFAULT NULL,
+  `section` text,
+  `from_date` datetime DEFAULT NULL,
+  `to_date` datetime DEFAULT NULL,
+  `note` text,
+  `event_notification_message` text,
+  `photo` varchar(200) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `alumni_students`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `alumni_students` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `student_id` int DEFAULT NULL,
+  `current_email` varchar(100) DEFAULT NULL,
+  `current_phone` varchar(20) DEFAULT NULL,
+  `occupation` varchar(200) DEFAULT NULL,
+  `address` text,
+  `photo` varchar(200) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `academic_assessment`
 --
 
@@ -2029,6 +2119,7 @@ CREATE TABLE IF NOT EXISTS `lesson` (
   `session_id` int NOT NULL,
   `subject_group_subject_id` int NOT NULL,
   `subject_group_class_sections_id` int NOT NULL,
+  `academic_class_id` int DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -2346,6 +2437,34 @@ CREATE TABLE IF NOT EXISTS `online_admission_payment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
+-- Table structure for table `payment_settings`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `payment_settings` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `payment_type` varchar(50) DEFAULT NULL,
+  `api_username` varchar(255) DEFAULT NULL,
+  `api_password` varchar(255) DEFAULT NULL,
+  `api_signature` varchar(255) DEFAULT NULL,
+  `api_secret_key` varchar(255) DEFAULT NULL,
+  `api_publishable_key` varchar(255) DEFAULT NULL,
+  `api_email` varchar(255) DEFAULT NULL,
+  `salt` varchar(255) DEFAULT NULL,
+  `paypal_demo` varchar(20) DEFAULT NULL,
+  `paytm_website` varchar(100) DEFAULT NULL,
+  `paytm_industrytype` varchar(100) DEFAULT NULL,
+  `is_active` varchar(10) DEFAULT 'no',
+  `charge_type` varchar(50) DEFAULT NULL,
+  `charge_value` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `payment_type` (`payment_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `onlineexam`
 --
 
@@ -2366,6 +2485,7 @@ CREATE TABLE IF NOT EXISTS `onlineexam` (
   `is_neg_marking` int DEFAULT '0',
   `is_random_question` int DEFAULT '0',
   `publish_result` int DEFAULT '0',
+  `moderation_status` varchar(30) DEFAULT 'pending_moderation',
   `session_id` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -2579,6 +2699,7 @@ CREATE TABLE IF NOT EXISTS `questions` (
   `id` int NOT NULL AUTO_INCREMENT,
   `staff_id` int DEFAULT NULL,
   `subject_id` int DEFAULT NULL,
+  `class_id` int DEFAULT NULL,
   `question_type` varchar(50) DEFAULT 'single',
   `level` varchar(50) DEFAULT 'medium',
   `question` text,
@@ -2985,13 +3106,36 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE IF NOT EXISTS `share_contents` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `content_id` int DEFAULT NULL,
-  `class_section_id` int DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `description` text,
+  `send_to` varchar(50) DEFAULT NULL,
   `share_date` date DEFAULT NULL,
+  `valid_upto` date DEFAULT NULL,
+  `created_by` int DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `created_by` (`created_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `share_content_for`
+--
+
+CREATE TABLE IF NOT EXISTS `share_content_for` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `share_content_id` int DEFAULT NULL,
+  `group_id` varchar(50) DEFAULT NULL,
+  `staff_id` int DEFAULT NULL,
+  `student_id` int DEFAULT NULL,
+  `user_parent_id` int DEFAULT NULL,
+  `class_section_id` int DEFAULT NULL,
+  `class_id` int DEFAULT NULL,
+  `cohort_id` int DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `share_content_id` (`share_content_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Table structure for table `share_upload_contents`
@@ -3002,10 +3146,11 @@ CREATE TABLE IF NOT EXISTS `share_contents` (
 CREATE TABLE IF NOT EXISTS `share_upload_contents` (
   `id` int NOT NULL AUTO_INCREMENT,
   `upload_content_id` int DEFAULT NULL,
-  `class_section_id` int DEFAULT NULL,
-  `share_date` date DEFAULT NULL,
+  `share_content_id` int DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `upload_content_id` (`upload_content_id`),
+  KEY `share_content_id` (`share_content_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -3265,6 +3410,39 @@ CREATE TABLE IF NOT EXISTS `staff_documents` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `id_card`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `id_card` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(200) DEFAULT NULL,
+  `school_name` varchar(200) DEFAULT NULL,
+  `school_address` text,
+  `header_color` varchar(50) DEFAULT NULL,
+  `enable_admission_no` tinyint(1) DEFAULT '0',
+  `enable_student_name` tinyint(1) DEFAULT '0',
+  `enable_class` tinyint(1) DEFAULT '0',
+  `enable_fathers_name` tinyint(1) DEFAULT '0',
+  `enable_mothers_name` tinyint(1) DEFAULT '0',
+  `enable_address` tinyint(1) DEFAULT '0',
+  `enable_phone` tinyint(1) DEFAULT '0',
+  `enable_dob` tinyint(1) DEFAULT '0',
+  `enable_blood_group` tinyint(1) DEFAULT '0',
+  `enable_vertical_card` tinyint(1) DEFAULT '0',
+  `enable_student_barcode` tinyint(1) DEFAULT '0',
+  `enable_student_rollno` tinyint(1) DEFAULT '0',
+  `enable_student_house_name` tinyint(1) DEFAULT '0',
+  `background` varchar(200) DEFAULT NULL,
+  `logo` varchar(200) DEFAULT NULL,
+  `sign_image` varchar(200) DEFAULT NULL,
+  `status` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `staff_id_card`
 --
 
@@ -3364,6 +3542,24 @@ CREATE TABLE IF NOT EXISTS `staff_roles` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `staff_rating`
+--
+
+CREATE TABLE IF NOT EXISTS `staff_rating` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `staff_id` int DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  `rate` int DEFAULT NULL,
+  `comment` text,
+  `status` varchar(20) DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `staff_id` (`staff_id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Table structure for table `student_applied_discounts`
@@ -3751,6 +3947,7 @@ CREATE TABLE IF NOT EXISTS `subject_group_subjects` (
   `id` int NOT NULL AUTO_INCREMENT,
   `subject_group_id` int DEFAULT NULL,
   `subject_id` int DEFAULT NULL,
+  `session_id` int DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -3801,14 +3998,17 @@ CREATE TABLE IF NOT EXISTS `subject_syllabus` (
 CREATE TABLE IF NOT EXISTS `subject_timetable` (
   `id` int NOT NULL AUTO_INCREMENT,
   `subject_group_id` int DEFAULT NULL,
+  `subject_group_subject_id` int DEFAULT NULL,
   `subject_id` int DEFAULT NULL,
   `day` varchar(20) DEFAULT NULL,
   `class_id` int DEFAULT NULL,
   `section_id` int DEFAULT NULL,
   `time_from` varchar(20) DEFAULT NULL,
   `time_to` varchar(20) DEFAULT NULL,
+  `start_time` varchar(20) DEFAULT NULL,
   `room_no` varchar(50) DEFAULT NULL,
   `staff_id` int DEFAULT NULL,
+  `session_id` int DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -3957,6 +4157,7 @@ CREATE TABLE IF NOT EXISTS `topic` (
   `name` varchar(200) DEFAULT NULL,
   `status` int DEFAULT '0',
   `complete_date` date DEFAULT NULL,
+  `session_id` int DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -4165,15 +4366,25 @@ CREATE TABLE IF NOT EXISTS `tvet_student_enrolment` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE IF NOT EXISTS `upload_contents` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `content_title` varchar(200) NOT NULL,
-  `content_type` varchar(100) DEFAULT NULL,
-  `file_name` varchar(200) DEFAULT NULL,
+  `content_type_id` int DEFAULT NULL,
+  `subject_id` int DEFAULT NULL,
+  `real_name` varchar(255) DEFAULT NULL,
+  `img_name` varchar(255) DEFAULT NULL,
+  `vid_url` text,
+  `vid_title` varchar(255) DEFAULT NULL,
+  `mime_type` varchar(100) DEFAULT NULL,
   `file_type` varchar(100) DEFAULT NULL,
   `file_size` varchar(50) DEFAULT NULL,
-  `upload_date` date DEFAULT NULL,
+  `thumb_name` varchar(255) DEFAULT NULL,
+  `thumb_path` varchar(255) DEFAULT NULL,
+  `dir_path` varchar(255) DEFAULT NULL,
+  `upload_by` int DEFAULT NULL,
   `is_active` varchar(10) DEFAULT 'yes',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `content_type_id` (`content_type_id`),
+  KEY `upload_by` (`upload_by`),
+  KEY `subject_id` (`subject_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -4363,6 +4574,45 @@ CREATE TABLE IF NOT EXISTS `zoom_settings` (
 
 -- Dump completed on 2026-02-07  6:33:41
 
+--
+-- Table structure for table `level` (simpler level table used by subject_level)
+--
+
+CREATE TABLE IF NOT EXISTS `level` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `code` varchar(20) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `level_type` enum('NATED','NCV','Other') DEFAULT 'NATED',
+  `nqf_level` int DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Table structure for table `subject_level` (maps subjects to levels)
+--
+
+CREATE TABLE IF NOT EXISTS `subject_level` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `subject_id` int NOT NULL,
+  `level_id` int NOT NULL,
+  `syllabus_code` varchar(50) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `subject_id` (`subject_id`),
+  KEY `level_id` (`level_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- View `class` (alias for academic_class used by Enrolment/Subjectlevel models)
+--
+
+CREATE OR REPLACE VIEW `class` AS SELECT * FROM `academic_class`;
+
 -- ============================================================================
 -- SEED DATA (Essential data for system operation)
 -- ============================================================================
@@ -4379,7 +4629,7 @@ INSERT INTO `sch_settings` (`id`, `base_url`, `folder_path`, `name`, `biometric`
 INSERT INTO `attendence_type` (`id`, `type`, `key_value`, `long_lang_name`, `long_name_style`, `is_active`, `for_qr_attendance`, `for_schedule`, `created_at`, `updated_at`) VALUES (1,'Present','P',NULL,NULL,'yes',1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(2,'Absent','A',NULL,NULL,'yes',1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(3,'Late','L',NULL,NULL,'yes',1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(4,'Excused','E',NULL,NULL,'yes',1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32');
 INSERT INTO `staff_attendance_type` (`id`, `type`, `key_value`, `is_active`, `for_qr_attendance`, `long_lang_name`, `long_name_style`, `for_schedule`, `created_at`, `updated_at`) VALUES (1,'Present','P','yes',1,NULL,NULL,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(2,'Absent','A','yes',1,NULL,NULL,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(3,'Late','L','yes',1,NULL,NULL,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(4,'On Leave','LV','yes',1,NULL,NULL,0,'2026-02-07 06:22:32','2026-02-07 06:22:32');
 INSERT INTO `migrations` (`version`) VALUES (23);
-INSERT INTO `front_cms_settings` (`id`, `theme`, `is_active_rtl`, `is_active_front_cms`, `is_active_sidebar`, `logo`, `contact_us_email`, `complain_form_email`, `sidebar_options`, `whatsapp_url`, `fb_url`, `twitter_url`, `youtube_url`, `google_plus`, `instagram_url`, `pinterest_url`, `linkedin_url`, `google_analytics`, `footer_text`, `cookie_consent`, `fav_icon`, `created_at`, `updated_at`) VALUES (1,'default',0,1,0,NULL,NULL,NULL,'','','','','','','','','',NULL,NULL,'',NULL,'2026-02-07 06:22:29','2026-02-07 06:22:29');
+INSERT INTO `front_cms_settings` (`id`, `theme`, `is_active_rtl`, `is_active_front_cms`, `is_active_sidebar`, `logo`, `contact_us_email`, `complain_form_email`, `sidebar_options`, `whatsapp_url`, `fb_url`, `twitter_url`, `youtube_url`, `google_plus`, `instagram_url`, `pinterest_url`, `linkedin_url`, `google_analytics`, `footer_text`, `cookie_consent`, `fav_icon`, `created_at`, `updated_at`) VALUES (1,'default',0,1,0,NULL,NULL,NULL,'[]','','','','','','','','',NULL,NULL,'',NULL,'2026-02-07 06:22:29','2026-02-07 06:22:29');
 INSERT INTO `front_cms_menus` (`id`, `menu`, `slug`, `description`, `open_new_tab`, `ext_url`, `ext_url_link`, `publish`, `content_type`, `is_active`, `created_at`, `updated_at`) VALUES (1,'Main Menu','main-menu','Main menu',0,'','',0,'default','no','2026-02-07 06:22:29','2026-02-07 06:22:29'),(2,'Bottom Menu','bottom-menu','Bottom Menu',0,'','',0,'default','no','2026-02-07 06:22:29','2026-02-07 06:22:29');
 INSERT INTO `front_cms_menu_items` (`id`, `menu_id`, `menu`, `page_id`, `parent_id`, `ext_url`, `open_new_tab`, `ext_url_link`, `slug`, `weight`, `publish`, `description`, `is_active`, `created_at`, `updated_at`) VALUES (1,1,'Home',1,0,NULL,0,NULL,'home',1,0,NULL,'no','2026-02-07 06:22:29','2026-02-07 06:22:29'),(2,1,'Contact Us',4,0,NULL,0,NULL,'contact-us',4,0,NULL,'no','2026-02-07 06:22:29','2026-02-07 06:22:29'),(3,1,'Complain',2,0,NULL,0,NULL,'complain',3,0,NULL,'no','2026-02-07 06:22:29','2026-02-07 06:22:29'),(4,1,'Online Admission',0,0,NULL,0,NULL,'admission',2,0,NULL,'no','2026-02-07 06:22:29','2026-02-07 06:22:29');
 INSERT INTO `front_cms_pages` (`id`, `page_type`, `is_homepage`, `title`, `url`, `type`, `slug`, `meta_title`, `meta_description`, `meta_keyword`, `feature_image`, `description`, `publish_date`, `publish`, `sidebar`, `is_active`, `created_at`, `updated_at`) VALUES (1,'default',1,'Home','page/home','page','home',NULL,NULL,NULL,'','<p>Welcome to TVET College</p>',NULL,1,0,'no','2026-02-07 06:22:29','2026-02-07 06:22:29'),(2,'default',0,'Complain','page/complain','page','complain',NULL,NULL,NULL,'','<p>[form-builder:complain]</p>',NULL,1,0,'no','2026-02-07 06:22:29','2026-02-07 06:22:29'),(3,'default',0,'404 page','page/404-page','page','404-page',NULL,NULL,NULL,'','<p>404 page not found</p>',NULL,0,0,'no','2026-02-07 06:22:29','2026-02-07 06:22:29'),(4,'default',0,'Contact us','page/contact-us','page','contact-us',NULL,NULL,NULL,'','<p>Contact Us</p>',NULL,1,0,'no','2026-02-07 06:22:29','2026-02-07 06:22:29');

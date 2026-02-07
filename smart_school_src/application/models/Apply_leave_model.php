@@ -39,9 +39,9 @@ class apply_leave_model extends MY_Model
                 ->join('students', 'students.id = e.student_id', 'inner')
                 ->join('staff', 'staff.id = student_applyleave.approve_by', 'left')
                 ->join('academic_class ac', 'ac.id = e.class_id', 'left')
-                ->join('subject_level', 'ac.subject_level_id = subject_level.id', 'left')
-                ->join('subjects', 'subject_level.subject_id = subjects.id', 'left')
-                ->join('level', 'subject_level.level_id = level.id', 'left');
+                ->join('academic_subject_level', 'ac.subject_level_id = academic_subject_level.id', 'left')
+                ->join('academic_subject as subjects', 'academic_subject_level.subject_id = subjects.id', 'left')
+                ->join('academic_level as level', 'academic_subject_level.level_id = level.id', 'left');
 
             $this->db->where('student_applyleave.id', $id);
             $this->db->where('students.is_active', 'yes');
@@ -67,9 +67,9 @@ class apply_leave_model extends MY_Model
             ->join('staff', 'staff.id = student_applyleave.approve_by', 'left')
             ->join('staff_roles', 'staff_roles.staff_id = staff.id', 'left')
             ->join('academic_class ac', 'ac.id = e.class_id')
-            ->join('subject_level', 'ac.subject_level_id = subject_level.id')
-            ->join('subjects', 'subject_level.subject_id = subjects.id')
-            ->join('level', 'subject_level.level_id = level.id');
+            ->join('academic_subject_level', 'ac.subject_level_id = academic_subject_level.id')
+            ->join('academic_subject as subjects', 'academic_subject_level.subject_id = subjects.id')
+            ->join('academic_level as level', 'academic_subject_level.level_id = level.id');
         $this->db->where('students.is_active', 'yes');
         $this->db->where('e.status', 'Active');
 
@@ -144,9 +144,9 @@ class apply_leave_model extends MY_Model
             ->join('staff', 'staff.id = student_applyleave.approve_by', 'left')
             ->join('staff_roles', 'staff_roles.staff_id = staff.id', 'left')
             ->join('academic_class ac', 'ac.id = e.class_id')
-            ->join('subject_level', 'ac.subject_level_id = subject_level.id')
-            ->join('subjects', 'subject_level.subject_id = subjects.id')
-            ->join('level', 'subject_level.level_id = level.id');
+            ->join('academic_subject_level', 'ac.subject_level_id = academic_subject_level.id')
+            ->join('academic_subject as subjects', 'academic_subject_level.subject_id = subjects.id')
+            ->join('academic_level as level', 'academic_subject_level.level_id = level.id');
 
         $this->db->where('students.is_active', 'yes');
         $this->db->where('e.status', 'Active');
@@ -191,9 +191,9 @@ class apply_leave_model extends MY_Model
             ->join('students', 'students.id = e.student_id', 'inner')
             ->join('staff', 'staff.id = student_applyleave.approve_by', 'left')
             ->join('academic_class ac', 'ac.id = e.class_id')
-            ->join('subject_level', 'ac.subject_level_id = subject_level.id')
-            ->join('subjects', 'subject_level.subject_id = subjects.id')
-            ->join('level', 'subject_level.level_id = level.id');
+            ->join('academic_subject_level', 'ac.subject_level_id = academic_subject_level.id')
+            ->join('academic_subject as subjects', 'academic_subject_level.subject_id = subjects.id')
+            ->join('academic_level as level', 'academic_subject_level.level_id = level.id');
         $this->db->where('ac.session_id', $this->current_session);
         $this->db->where('e.id', $student_session_id);
         $this->db->where('students.is_active', 'yes');
@@ -362,9 +362,9 @@ class apply_leave_model extends MY_Model
             ->join('staff', 'staff.id = student_applyleave.approve_by', 'left')
             ->join('staff_roles', 'staff_roles.staff_id = staff.id', 'left')
             ->join('academic_class ac', 'ac.id = e.class_id')
-            ->join('subject_level', 'ac.subject_level_id = subject_level.id')
-            ->join('subjects', 'subject_level.subject_id = subjects.id')
-            ->join('level', 'subject_level.level_id = level.id');
+            ->join('academic_subject_level', 'ac.subject_level_id = academic_subject_level.id')
+            ->join('academic_subject as subjects', 'academic_subject_level.subject_id = subjects.id')
+            ->join('academic_level as level', 'academic_subject_level.level_id = level.id');
         $this->db->where('students.is_active', 'yes');
         $this->db->where('e.status', 'Active');
 
