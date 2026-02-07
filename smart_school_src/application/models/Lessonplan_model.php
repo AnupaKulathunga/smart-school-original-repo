@@ -16,28 +16,30 @@ class Lessonplan_model extends MY_model
         $this->start_month          = $this->setting_model->getStartMonth();
     }
 
+    // TVET: Copy lessons between classes - updated to use academic_class_id
     public function add_copy_lesson($data_to_be_insert)
     {
-     
-     
+
+
         $this->db->trans_start(); # Starting Transaction
         $this->db->trans_strict(false); # See Note 01. If you wish can remove as well
         //=======================Code Start===========================
-       
+
         foreach ($data_to_be_insert as $lesson_key => $lesson_value) {
-       
+
           $lesson_array=[];
           $lesson_array['subject_group_subject_id']=$lesson_value['subject_group_subject_id'];
           $lesson_array['name']=$lesson_value['name'];
-          $lesson_array['subject_group_class_sections_id']=$lesson_value['subject_group_class_sections_id'];
+          // TVET: Changed from subject_group_class_sections_id to academic_class_id
+          $lesson_array['academic_class_id']=$lesson_value['academic_class_id'];
           $lesson_array['session_id']=$lesson_value['session_id'];
-         
+
             $this->db->insert('lesson', $lesson_array);
             $insert_id = $this->db->insert_id();
             foreach ($lesson_value['topics'] as $topic_key => $topic_value) {
                 $data_to_be_insert[$lesson_key]['topics'][$topic_key]['lesson_id']=$insert_id;
             }
-            $this->db->insert_batch('topic',$data_to_be_insert[$lesson_key]['topics']); 
+            $this->db->insert_batch('topic',$data_to_be_insert[$lesson_key]['topics']);
         }
 
         //======================Code End==============================
@@ -53,7 +55,8 @@ class Lessonplan_model extends MY_model
             return $insert_id;
         }
     }
-    
+
+    // TVET: Add or update lesson - column names updated to academic_class_id
     public function add_lesson($data)
     {
         $this->db->trans_start(); # Starting Transaction
@@ -90,9 +93,10 @@ class Lessonplan_model extends MY_model
         }
     }
 
-    public function getlessonBysubjectid($sub_id, $getlessonBysubjectid)
+    // TVET: Get lessons by subject and class - updated to use academic_class_id
+    public function getlessonBysubjectid($sub_id, $academic_class_id)
     {
-        return $this->db->select('*')->from('lesson')->where('subject_group_subject_id', $sub_id)->where('subject_group_class_sections_id', $getlessonBysubjectid)->get()->result_array();
+        return $this->db->select('*')->from('lesson')->where('subject_group_subject_id', $sub_id)->where('academic_class_id', $academic_class_id)->get()->result_array();
     }
 
     public function getlessonBylessonid($lesson_id)
@@ -100,9 +104,10 @@ class Lessonplan_model extends MY_model
         return $this->db->select('*')->from('lesson')->where('id', $lesson_id)->get()->result_array();
     }
 
-    public function getlessonBysubjectidedit($sub_id, $subject_group_class_sections_id)
+    // TVET: Get lessons for editing - updated to use academic_class_id
+    public function getlessonBysubjectidedit($sub_id, $academic_class_id)
     {
-        return $this->db->select('*')->from('lesson')->where('subject_group_subject_id', $sub_id)->where('subject_group_class_sections_id', $subject_group_class_sections_id)->get()->result_array();
+        return $this->db->select('*')->from('lesson')->where('subject_group_subject_id', $sub_id)->where('academic_class_id', $academic_class_id)->get()->result_array();
     }
 
     public function get_subjectNameBySubjectGroupSubjectId($subject_group_subject_id)
@@ -158,26 +163,60 @@ class Lessonplan_model extends MY_model
         return $this->db->select('*')->from('topic')->where('lesson_id', $lessonid)->where('session_id', $session)->get()->result_array();
     }
 
+    // TVET: Get topic by ID with TVET academic structure joins
     public function gettopicByID($id)
     {
-        $this->db->select('topic.*,subject_groups.name as sgname,subjects.name as subname,sections.section as sname,sections.id as sectionid,subject_groups.id as subjectgroupsid,subjects.id as subjectid,class_sections.id as csectionid,classes.class as cname,classes.id as classid,lesson.name as lessonname,lesson.subject_group_class_sections_id,lesson.subject_group_subject_id')->from('topic');    
-  
+        $this->db->select('topic.*,
+                          subject_groups.name as sgname,
+                          subjects.name as subname,
+                          subject_groups.id as subjectgroupsid,
+                          subjects.id as subjectid,
+                          lesson.name as lessonname,
+                          lesson.academic_class_id,
+                          lesson.subject_group_subject_id,
+                          ac.id as class_id,
+                          ac.class_code,
+                          ac.cohort_name,
+                          CONCAT(asubj.code, "-", alvl.code) as subject_code_full,
+                          asubj.name as class_subject_name,
+                          alvl.name as level_name', FALSE);
+
+        $this->db->from('topic');
         $this->db->join("lesson", "lesson.id = topic.lesson_id");
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id");
         $this->db->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
-        $this->db->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner');
-        $this->db->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id");
-        $this->db->join("sections", "sections.id = class_sections.section_id");
-        $this->db->join("classes", "classes.id = class_sections.class_id");
+
+        // TVET: Join academic_class instead of subject_group_class_sections
+        $this->db->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner');
+        $this->db->join("academic_subject_level asl", "asl.id = ac.subject_level_id", 'left');
+        $this->db->join("academic_subject asubj", "asubj.id = asl.subject_id", 'left');
+        $this->db->join("academic_level alvl", "alvl.id = asl.level_id", 'left');
+
         $this->db->where('topic.id', $id);
-        $query = $this->db->get();   
-        return $query->row();       
+        $query = $this->db->get();
+        return $query->row();
     }
 
+    // TVET: Get topics with TVET academic structure joins
     public function gettopic($session, $id = null)
     {
-        $this->db->select('topic.*,subject_groups.name as sgname,subjects.name as subname,sections.section as sname,sections.id as sectionid,subject_groups.id as subjectgroupsid,subjects.id as subjectid,class_sections.id as csectionid,classes.class as cname,classes.id as classid,lesson.name as lessonname,lesson.subject_group_class_sections_id,lesson.subject_group_subject_id')->from('topic');
+        $this->db->select('topic.*,
+                          subject_groups.name as sgname,
+                          subjects.name as subname,
+                          subject_groups.id as subjectgroupsid,
+                          subjects.id as subjectid,
+                          lesson.name as lessonname,
+                          lesson.academic_class_id,
+                          lesson.subject_group_subject_id,
+                          ac.id as class_id,
+                          ac.class_code,
+                          ac.cohort_name,
+                          CONCAT(asubj.code, "-", alvl.code) as subject_code_full,
+                          asubj.name as class_subject_name,
+                          alvl.name as level_name', FALSE);
+
+        $this->db->from('topic');
 
         if ($id != null) {
             $this->db->where('topic.lesson_id', $id);
@@ -187,10 +226,13 @@ class Lessonplan_model extends MY_model
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id");
         $this->db->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
-        $this->db->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner');
-        $this->db->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id");
-        $this->db->join("sections", "sections.id = class_sections.section_id");
-        $this->db->join("classes", "classes.id = class_sections.class_id");
+
+        // TVET: Join academic_class instead of subject_group_class_sections
+        $this->db->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner');
+        $this->db->join("academic_subject_level asl", "asl.id = ac.subject_level_id", 'left');
+        $this->db->join("academic_subject asubj", "asubj.id = asl.subject_id", 'left');
+        $this->db->join("academic_level alvl", "alvl.id = asl.level_id", 'left');
+
         $this->db->group_by("lesson.subject_group_subject_id");
         $this->db->group_by("topic.lesson_id");
 
@@ -282,12 +324,28 @@ class Lessonplan_model extends MY_model
         }
     }
 
+    // TVET: Get lessons with TVET academic structure joins
+    // $id parameter is now academic_class_id
     public function get($session, $id = null, $subject_group_subject_id = null)
     {
-        $this->db->select('lesson.*,subject_groups.name as sgname,subjects.name as subname,subjects.code as subjects_code,sections.section as sname,sections.id as sectionid,subject_groups.id as subjectgroupsid,subjects.id as subjectid,class_sections.id as csectionid,classes.class as cname,classes.id as classid')->from('lesson');
+        $this->db->select('lesson.*,
+                          subject_groups.name as sgname,
+                          subjects.name as subname,
+                          subjects.code as subjects_code,
+                          subject_groups.id as subjectgroupsid,
+                          subjects.id as subjectid,
+                          ac.id as class_id,
+                          ac.class_code,
+                          ac.cohort_name,
+                          CONCAT(asubj.code, "-", alvl.code) as subject_code_full,
+                          asubj.name as class_subject_name,
+                          alvl.name as level_name', FALSE);
 
+        $this->db->from('lesson');
+
+        // TVET: Filter by academic_class_id instead of subject_group_class_sections_id
         if ($id != null) {
-            $this->db->where('lesson.subject_group_class_sections_id', $id);
+            $this->db->where('lesson.academic_class_id', $id);
         }
         if ($subject_group_subject_id != null) {
             $this->db->where('subject_group_subjects.id', $subject_group_subject_id);
@@ -297,12 +355,16 @@ class Lessonplan_model extends MY_model
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id");
         $this->db->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
-        $this->db->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner');
-        $this->db->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id");
-        $this->db->join("sections", "sections.id = class_sections.section_id");
-        $this->db->join("classes", "classes.id = class_sections.class_id");
+
+        // TVET: Join academic_class instead of subject_group_class_sections
+        $this->db->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner');
+        $this->db->join("academic_subject_level asl", "asl.id = ac.subject_level_id", 'left');
+        $this->db->join("academic_subject asubj", "asubj.id = asl.subject_id", 'left');
+        $this->db->join("academic_level alvl", "alvl.id = asl.level_id", 'left');
+
         $this->db->group_by("lesson.subject_group_subject_id");
-        $this->db->group_by("lesson.subject_group_class_sections_id");
+        $this->db->group_by("lesson.academic_class_id");
+
         $query = $this->db->get();
         if ($id != null) {
             return $query->row_array();
@@ -339,9 +401,10 @@ class Lessonplan_model extends MY_model
         return $query->row_array();
     }
 
-    public function getlesson($subject_group_subjectid, $subject_group_class_sections_id, $session)
+    // TVET: Get lesson by subject and class - updated to use academic_class_id
+    public function getlesson($subject_group_subjectid, $academic_class_id, $session)
     {
-        return $this->db->select('*')->from('lesson')->where('lesson.subject_group_subject_id', $subject_group_subjectid)->where("session_id", $session)->where('subject_group_class_sections_id', $subject_group_class_sections_id)->get()->result_array();
+        return $this->db->select('*')->from('lesson')->where('lesson.subject_group_subject_id', $subject_group_subjectid)->where("session_id", $session)->where('academic_class_id', $academic_class_id)->get()->result_array();
     }
 
     public function deletelesson($id, $session)
@@ -349,14 +412,16 @@ class Lessonplan_model extends MY_model
         $this->db->where("id", $id)->where("session_id", $session)->delete('lesson');
     }
 
+    // TVET: Delete lessons in bulk - updated to use academic_class_id
     public function deletelessonbulk($id, $session, $subject_group_subject_id)
     {
-        $this->db->where("subject_group_class_sections_id", $id)->where("subject_group_subject_id", $subject_group_subject_id)->where("session_id", $session)->delete('lesson');
+        $this->db->where("academic_class_id", $id)->where("subject_group_subject_id", $subject_group_subject_id)->where("session_id", $session)->delete('lesson');
     }
 
-    public function get_subjectstatus($id, $subject_group_class_section_id)
+    // TVET: Get subject status - updated to use academic_class_id
+    public function get_subjectstatus($id, $academic_class_id)
     {
-        $sql = "SELECT COUNT(CASE WHEN topic.status = 0 then 1 ELSE NULL END) as 'incomplete', COUNT(CASE WHEN topic.status = 1 then 1 ELSE NULL END) as 'complete',count('*') as total FROM `lesson` inner join topic on lesson.id=topic.lesson_id WHERE lesson.subject_group_class_section_id=" . $this->db->escape($subject_group_class_section_id) . "and lesson.subject_group_subject_id=" . $this->db->escape($id);
+        $sql = "SELECT COUNT(CASE WHEN topic.status = 0 then 1 ELSE NULL END) as 'incomplete', COUNT(CASE WHEN topic.status = 1 then 1 ELSE NULL END) as 'complete',count('*') as total FROM `lesson` inner join topic on lesson.id=topic.lesson_id WHERE lesson.academic_class_id=" . $this->db->escape($academic_class_id) . "and lesson.subject_group_subject_id=" . $this->db->escape($id);
         $query = $this->db->query($sql);
         return $query->result();
     }
@@ -377,12 +442,13 @@ class Lessonplan_model extends MY_model
         return $query->result_array();
     }
 
-    // TVET: Updated to work without section_id - CLASS already includes cohort
+    // TVET: Check if staff is class teacher - updated for TVET academic structure
+    // Uses academic_class primary lecturer and additional lecturers instead of subject_timetable
     public function ifclassteacher($class_id, $staff_id, $subject_group_id, $subject_group_subject_id)
     {
-        // Check if staff is the primary lecturer for this class
-        $class_lecturer = $this->db->select('*')
-            ->from('class')
+        // TVET: Check if staff is the primary lecturer for this academic class
+        $class_lecturer = $this->db->select('*', FALSE)
+            ->from('academic_class')
             ->where('id', $class_id)
             ->where('primary_lecturer_id', $staff_id)
             ->get()->num_rows();
@@ -391,11 +457,11 @@ class Lessonplan_model extends MY_model
             return 1;
         }
 
-        // Check if staff is assigned as additional lecturer for this class
-        $additional_lecturer = $this->db->select('*')
-            ->from('class_lecturer')
+        // TVET: Check if staff is assigned as additional lecturer for this academic class
+        $additional_lecturer = $this->db->select('*', FALSE)
+            ->from('academic_class_lecturer')
             ->where('class_id', $class_id)
-            ->where('lecturer_id', $staff_id)
+            ->where('staff_id', $staff_id)
             ->get()->num_rows();
 
         if ($additional_lecturer > 0) {
@@ -403,11 +469,9 @@ class Lessonplan_model extends MY_model
         }
 
         // Legacy check: Check subject_timetable (for backward compatibility during transition)
-        // Note: This uses class_sections table which will be removed in Phase 6
-        $subject_teacher = $this->db->select('st.*')
+        // Note: This will be removed in later phases once fully migrated to TVET
+        $subject_teacher = $this->db->select('st.*', FALSE)
             ->from('subject_timetable st')
-            ->join('class_sections cs', 'st.class_id = cs.class_id AND st.section_id = cs.section_id')
-            ->where('cs.class_id', $class_id)
             ->where('st.staff_id', $staff_id)
             ->where('st.subject_group_id', $subject_group_id)
             ->where('st.subject_group_subject_id', $subject_group_subject_id)
@@ -420,67 +484,105 @@ class Lessonplan_model extends MY_model
         return 0;
     }
 
+    // TVET: Get topic list with DataTables - updated to use TVET academic structure
     public function gettopiclist($session)
     {
         $class_section_array = $this->customlib->get_myClassSection();
         $this->datatables
-            ->select('topic.*,subject_groups.name as sgname,subjects.name as subname,subjects.code as subjects_code,sections.section as sname,sections.id as sectionid,subject_groups.id as subjectgroupsid,subjects.id as subjectid,class_sections.id as csectionid,classes.class as cname,classes.id as classid,lesson.name as lessonname,lesson.subject_group_class_sections_id,lesson.subject_group_subject_id')           
-            ->searchable('classes.class,sections.section,subjects.name,subject_groups.name,lesson.name,topic.name')
-            ->orderable('classes.class,sections.section,subjects.name,subject_groups.name,lesson.name,topic.name')           
+            ->select('topic.*,
+                     subject_groups.name as sgname,
+                     subjects.name as subname,
+                     subjects.code as subjects_code,
+                     subject_groups.id as subjectgroupsid,
+                     subjects.id as subjectid,
+                     lesson.name as lessonname,
+                     lesson.academic_class_id,
+                     lesson.subject_group_subject_id,
+                     ac.id as class_id,
+                     ac.class_code,
+                     ac.cohort_name,
+                     CONCAT(asubj.code, "-", alvl.code) as subject_code_full,
+                     asubj.name as class_subject_name,
+                     alvl.name as level_name', FALSE)
+            ->searchable('ac.class_code,subjects.name,subject_groups.name,lesson.name,topic.name')
+            ->orderable('ac.class_code,subjects.name,subject_groups.name,lesson.name,topic.name')
             ->join("lesson", "lesson.id = topic.lesson_id")
             ->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id")
             ->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id")
             ->join("subjects", "subjects.id = subject_group_subjects.subject_id")
-            ->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner')
-            ->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id")
-            ->join("sections", "sections.id = class_sections.section_id")
-            ->join("classes", "classes.id = class_sections.class_id")
+            // TVET: Join academic_class instead of subject_group_class_sections
+            ->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner')
+            ->join("academic_subject_level asl", "asl.id = ac.subject_level_id", 'left')
+            ->join("academic_subject asubj", "asubj.id = asl.subject_id", 'left')
+            ->join("academic_level alvl", "alvl.id = asl.level_id", 'left')
             ->where('topic.session_id', $session);
+
+        // TVET: Filter by academic classes accessible to this user
         if (!empty($class_section_array)) {
             $this->datatables->group_start();
             foreach ($class_section_array as $class_sectionkey => $class_sectionvalue) {
-                $query_string = "";
+                // TVET: Filter by academic_class_id directly
+                // In TVET, get_myClassSection should return academic class IDs
                 foreach ($class_sectionvalue as $class_sectionvaluekey => $class_sectionvaluevalue) {
-                    $query_string = "( class_sections.class_id=" . $class_sectionkey . " and class_sections.section_id=" . $class_sectionvaluevalue . " )";
+                    $query_string = "( ac.id=" . intval($class_sectionvaluevalue) . " )";
                     $this->datatables->or_where($query_string);
                 }
             }
             $this->datatables->group_end();
         }
+
         $this->datatables->group_by("lesson.subject_group_subject_id");
         $this->datatables->group_by("topic.lesson_id");
         $this->datatables->from('topic');
         return $this->datatables->generate('json');
 
     }
+
+    // TVET: Get lesson list with DataTables - updated to use TVET academic structure
     public function getlessonlist($session, $id = null)
     {
         $class_section_array = $this->customlib->get_myClassSection();
         $this->datatables
-            ->select('lesson.*,subject_groups.name as sgname,subjects.name as subname,subjects.code as subjects_code,sections.section as sname,sections.id as sectionid,subject_groups.id as subjectgroupsid,subjects.id as subjectid,class_sections.id as csectionid,classes.class as cname,classes.id as classid')
-            ->searchable('classes.class,sections.section,subject_groups.name,subjects.name,lesson.name')
-            ->orderable('classes.class,sections.section,subject_groups.name,subjects.name,lesson.name')
+            ->select('lesson.*,
+                     subject_groups.name as sgname,
+                     subjects.name as subname,
+                     subjects.code as subjects_code,
+                     subject_groups.id as subjectgroupsid,
+                     subjects.id as subjectid,
+                     ac.id as class_id,
+                     ac.class_code,
+                     ac.cohort_name,
+                     CONCAT(asubj.code, "-", alvl.code) as subject_code_full,
+                     asubj.name as class_subject_name,
+                     alvl.name as level_name', FALSE)
+            ->searchable('ac.class_code,subject_groups.name,subjects.name,lesson.name')
+            ->orderable('ac.class_code,subject_groups.name,subjects.name,lesson.name')
             ->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id")
             ->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id")
             ->join("subjects", "subjects.id = subject_group_subjects.subject_id")
-            ->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner')
-            ->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id")
-            ->join("sections", "sections.id = class_sections.section_id")
-            ->join("classes", "classes.id = class_sections.class_id")
+            // TVET: Join academic_class instead of subject_group_class_sections
+            ->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner')
+            ->join("academic_subject_level asl", "asl.id = ac.subject_level_id", 'left')
+            ->join("academic_subject asubj", "asubj.id = asl.subject_id", 'left')
+            ->join("academic_level alvl", "alvl.id = asl.level_id", 'left')
             ->where('lesson.session_id', $session);
+
+        // TVET: Filter by academic classes accessible to this user
         if (!empty($class_section_array)) {
             $this->datatables->group_start();
             foreach ($class_section_array as $class_sectionkey => $class_sectionvalue) {
-                $query_string = "";
+                // TVET: Filter by academic_class_id directly
+                // In TVET, get_myClassSection should return academic class IDs
                 foreach ($class_sectionvalue as $class_sectionvaluekey => $class_sectionvaluevalue) {
-                    $query_string = "( class_sections.class_id=" . $class_sectionkey . " and class_sections.section_id=" . $class_sectionvaluevalue . " )";
+                    $query_string = "( ac.id=" . intval($class_sectionvaluevalue) . " )";
                     $this->datatables->or_where($query_string);
                 }
             }
             $this->datatables->group_end();
         }
+
         $this->datatables->group_by("lesson.subject_group_subject_id");
-        $this->datatables->group_by("lesson.subject_group_class_sections_id");
+        $this->datatables->group_by("lesson.academic_class_id");
         $this->datatables->from('lesson');
         return $this->datatables->generate('json');
     }

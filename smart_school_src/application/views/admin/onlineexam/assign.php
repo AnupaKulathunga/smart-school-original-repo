@@ -79,19 +79,20 @@ if (empty($resultlist)) {
                                                                 <tr>
                                                                     <td>
                                                                         <?php
-if ($student['onlineexam_student_session_id'] != 0) {
+// TVET: Use onlineexam_enrolment_id and enrolment_id instead of legacy fields
+if ($student['onlineexam_enrolment_id'] != 0) {
                 $sel = "checked='checked'";
             } else {
                 $sel = "";
             }
             ?>
-                                                                        <input type="hidden" name="all_students[]" value="<?php echo $student['onlineexam_student_session_id']; ?>">
-                                                                        <input class="checkbox" type="checkbox" name="students_id[]"  value="<?php echo $student['student_session_id']; ?>" <?php echo $sel; ?>/>
+                                                                        <input type="hidden" name="all_students[]" value="<?php echo $student['onlineexam_enrolment_id']; ?>">
+                                                                        <input class="checkbox" type="checkbox" name="students_id[]"  value="<?php echo $student['enrolment_id']; ?>" <?php echo $sel; ?>/>
                                                                     </td>
                                                                     <td><?php echo $student['admission_no']; ?></td>
 
                                                                     <td><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?></td>
-                                                                    <td><?php echo $student['class'] . " (" . $student['section'] . ")"; ?></td><?php if ($sch_setting->father_name) {?>
+                                                                    <td><?php echo $student['class_code'] . " (" . $student['cohort_name'] . ")"; ?></td><?php if ($sch_setting->father_name) {?>
                                                                     <td><?php echo $student['father_name']; ?></td>
                                                                 <?php }if ($sch_setting->category) {?>
                                                                     <td><?php echo $student['category']; ?></td>

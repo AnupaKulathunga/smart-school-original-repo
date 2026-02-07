@@ -114,7 +114,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                                 <a href="<?php echo base_url(); ?>student/view/<?php echo $student['id']; ?>"><?php echo $this->customlib->getFullName($student['firstname'],$student['middlename'],$student['lastname'],$sch_setting->middlename,$sch_setting->lastname); ?>
                                                                 </a>
                                                             </td>
-                                                            <td><?php echo $student['class'] . "(" . $student['section'] . ")" ?></td>
+                                                            <td><?php echo $student['class'] ?></td>
                                                             <?php if ($sch_setting->father_name) { ?>
                                                                 <td><?php echo $student['father_name']; ?></td>
                                                             <?php } ?>

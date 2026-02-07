@@ -116,7 +116,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                                 <?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $show_middlename, $show_lastname); ?>
                                                             </a>
                                                         </td>
-                                                        <td><?php echo $student['class'] . "(" . $student['section'] . ")" ?></td>
+                                                        <td><?php echo $student['class']; ?></td>
                                                         <?php if (isset($sch_setting) && !empty($sch_setting->father_name)) { ?>
                                                             <td><?php echo $student['father_name']; ?></td>
                                                         <?php } ?>
@@ -176,7 +176,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                         <div class="row">
                                                             <div class="col-xs-6 col-md-6">
                                                                 <address>
-                                                                    <strong><b><?php echo $this->lang->line('class'); ?>: </b><?php echo $student['class'] . "(" . $student['section'] . ")" ?></strong><br>
+                                                                    <strong><b><?php echo $this->lang->line('class'); ?>: </b><?php echo $student['class']; ?></strong><br>
                                                                     <b><?php echo $this->lang->line('admission_no'); ?>: </b><?php echo $student['admission_no'] ?><br/>
                                                                     <b><?php echo $this->lang->line('date_of_birth'); ?>: </b>
                                                                     <?php

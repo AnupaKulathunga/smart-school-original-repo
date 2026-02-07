@@ -20,9 +20,8 @@
                             <h3 class="box-title"><?php echo $this->lang->line('edit_assign_class_teacher') ?></h3>
 
                         </div>
-                        <form id="form1" action="<?php echo base_url('admin/teacher/update_class_teacher/' . $class_id . "/" . $section_id); ?>"  method="post" accept-charset="utf-8">
+                        <form id="form1" action="<?php echo base_url('admin/teacher/update_class_teacher/' . $class_id); ?>"  method="post" accept-charset="utf-8">
                             <input type="hidden" name="prev_class_id" value="<?php echo $class_id; ?>">
-                            <input type="hidden" name="prev_section_id" value="<?php echo $section_id; ?>">
                             <div class="box-body">
 
                                 <?php 
@@ -54,16 +53,6 @@
                                     </select>
 
                                     <span class="text-danger"><?php echo form_error('class'); ?></span>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1"><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-
-                                    <select class="form-control" id="section_id" name="section" readonly>
-                                        <option value=""><?php echo $this->lang->line('select') ?></option> 
-                                    </select>
-
-                                    <span class="text-danger"><?php echo form_error('section'); ?></span>
                                 </div>
 
                                 <div class="form-group">
@@ -132,8 +121,6 @@
 
                                         <th><?php echo $this->lang->line('class'); ?>
                                         </th>
-                                        <th><?php echo $this->lang->line('section'); ?>
-                                        </th>
                                         <th><?php echo $this->lang->line('class_teacher'); ?>
                                         </th>
 
@@ -152,13 +139,6 @@
                                                 <?php echo $teacher["class"]; ?>
 
                                             </td>
-
-
-                                            <td>
-
-                                                <?php echo $teacher["section"]; ?>
-
-                                            </td>
                                             <td>
                                                 <?php foreach ($tlist[$i] as $key => $tsvalue) {
                                                     ?>
@@ -171,14 +151,14 @@
                                                 <?php
                                                 if ($this->rbac->hasPrivilege('assign_class_teacher', 'can_edit')) {
                                                     ?>
-                                                    <a href="<?php echo base_url(); ?>admin/teacher/update_class_teacher/<?php echo $teacher["class_id"]; ?>/<?php echo $teacher["section_id"]; ?>" class="btn btn-default btn-xs"  data-toggle="tooltip" title="<?php echo $this->lang->line('edit'); ?>">
+                                                    <a href="<?php echo base_url(); ?>admin/teacher/update_class_teacher/<?php echo $teacher["class_id"]; ?>" class="btn btn-default btn-xs"  data-toggle="tooltip" title="<?php echo $this->lang->line('edit'); ?>">
                                                         <i class="fa fa-pencil"></i>
                                                     </a>
                                                     <?php
                                                 }
                                                 if ($this->rbac->hasPrivilege('assign_class_teacher', 'can_delete')) {
                                                     ?>
-                                                    <a href="<?php echo base_url(); ?>admin/teacher/classteacherdelete/<?php echo $teacher["class_id"]; ?>/<?php echo $teacher["section_id"]; ?>" class="btn btn-default btn-xs"  data-toggle="tooltip" title="<?php echo $this->lang->line('delete'); ?>" onclick="return confirm('<?php echo $this->lang->line('delete_confirm') ?>');">
+                                                    <a href="<?php echo base_url(); ?>admin/teacher/classteacherdelete/<?php echo $teacher["class_id"]; ?>" class="btn btn-default btn-xs"  data-toggle="tooltip" title="<?php echo $this->lang->line('delete'); ?>" onclick="return confirm('<?php echo $this->lang->line('delete_confirm') ?>');">
                                                         <i class="fa fa-remove"></i>
                                                     </a>
                                                 <?php } ?>
@@ -214,7 +194,7 @@
 </div><!-- /.content-wrapper -->
 
 <script type="text/javascript">
-    var section_id = "<?php echo $section_id ?>";
+    // TVET: section_id no longer used
 </script>
 
 <?php

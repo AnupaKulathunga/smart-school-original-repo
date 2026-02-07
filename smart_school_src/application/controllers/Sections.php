@@ -4,6 +4,10 @@ if (!defined('BASEPATH')) {
     exit('No direct script access allowed');
 }
 
+// TVET: DEPRECATED — Sections do not exist in TVET model.
+// Each academic_class is atomic (subject+level+cohort+year).
+// Menu item hidden (is_active=0, migration 030). section_model returns empty stubs.
+// AJAX endpoints (getByClass, getClassTeacherSection) kept for backward compat.
 class Sections extends Admin_Controller
 {
 

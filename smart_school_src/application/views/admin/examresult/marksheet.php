@@ -335,7 +335,7 @@
         var exam_name = $('#exam_id').find('option:selected').text();
         var session = $('#session_id').find('option:selected').text();
         var class_name = $('#class_id').find('option:selected').text();
-        var section_name = $('#section_id').find('option:selected').text();
+        // TVET: section_name removed
         var list_selected =  $('form#printMarksheet input[name="exam_group_class_batch_exam_student_id[]"]:checked').length;
       if(list_selected > 0){
         
@@ -357,7 +357,7 @@
                    var blob = new Blob([data], {type: 'application/pdf'});
                    var link = document.createElement('a');
                    link.href = window.URL.createObjectURL(blob);
-                   link.download = exam_name +'_'+ session +'_'+ class_name +'_'+ section_name + ".pdf";
+                   link.download = exam_name +'_'+ session +'_'+ class_name + ".pdf";
                    document.body.appendChild(link);
                    link.click();
                    document.body.removeChild(link);

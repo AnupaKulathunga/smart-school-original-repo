@@ -746,7 +746,6 @@ class Customlib
 
     public function getStudentSessionUserID()
     {
-        $student_session = $this->CI->session->all_userdata();
         $session_Array   = $this->CI->session->userdata('student');
         $studentID       = $session_Array['student_id'];
         return $studentID;
@@ -756,6 +755,43 @@ class Customlib
     {
         $session_Array = $this->CI->session->userdata('current_class');
         return (object) $session_Array;
+    }
+
+    /**
+     * Get student's current enrolment for TVET
+     * Returns class_id (academic_class.id) and enrolment_id (academic_class_enrolment.id)
+     * In TVET mode, student_session_id is actually enrolment_id
+     *
+     * @return object Object with class_id, enrolment_id, session_id
+     */
+    public function getStudentCurrentEnrolment()
+    {
+        $session_Array = $this->CI->session->userdata('current_class');
+        if (!empty($session_Array)) {
+            // In TVET mode, student_session_id is used as enrolment_id
+            return (object) array(
+                'class_id'     => $session_Array['class_id'],
+                'enrolment_id' => $session_Array['student_session_id'],
+                'session_id'   => isset($session_Array['session_id']) ? $session_Array['session_id'] : null
+            );
+        }
+        return (object) array('class_id' => null, 'enrolment_id' => null, 'session_id' => null);
+    }
+
+    /**
+     * Get all enrolled classes for the current student (TVET)
+     * Students in TVET can be enrolled in multiple subject classes
+     *
+     * @return array List of enrolled classes with details
+     */
+    public function getStudentEnrolledClasses()
+    {
+        $student_id = $this->getStudentSessionUserID();
+        if (!$student_id) {
+            return array();
+        }
+        $session_id = $this->CI->setting_model->getCurrentSession();
+        return $this->CI->academic_enrolment_model->getStudentClasses($student_id, $session_id);
     }
 
     public function getUsersID()
@@ -787,9 +823,9 @@ class Customlib
 
     public function getSessionLanguage()
     {
-        $student_session = $this->CI->session->userdata('admin');
-        $language        = $student_session['language'];
-        $lang_id         = $language['lang_id'];
+        $admin_session = $this->CI->session->userdata('admin');
+        $language      = $admin_session['language'];
+        $lang_id       = $language['lang_id'];
         return $lang_id;
     }
 
@@ -821,7 +857,6 @@ class Customlib
 
     public function getStudentSessionUserName()
     {
-        $student_session = $this->CI->session->all_userdata();
         $session_Array   = $this->CI->session->userdata('student');
         $studentUsername = $session_Array['username'];
         return $studentUsername;
@@ -829,14 +864,13 @@ class Customlib
 
     public function getAdminSessionUserName()
     {
-        $student_session = $this->CI->session->userdata('admin');
-        $username        = $student_session['username'];
+        $admin_session = $this->CI->session->userdata('admin');
+        $username      = $admin_session['username'];
         return $username;
     }
 
     public function getStudentSessionGardianname()
     {
-        $student_session = $this->CI->session->all_userdata();
         $session_Array   = $this->CI->session->userdata('student');
         $studentUsername = $session_Array['guardian_name'];
         return $studentUsername;
@@ -2112,12 +2146,11 @@ class Customlib
         $userdata            = $this->getUserData();
         $class_section_array = array();
         if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            // TVET: class_model->get() already returns academic classes for this teacher
             $my_class = $this->CI->class_model->get();
             foreach ($my_class as $class_key => $class_value) {
-                $section = $this->CI->section_model->getClassBySection($class_value['id']);
-                foreach ($section as $key => $value) {
-                    $class_section_array[$class_value['id']][] = $value['section_id'];
-                }
+                // TVET: No sections — each academic_class_id is the atomic unit
+                $class_section_array[$class_value['id']][] = $class_value['id'];
             }
             return $class_section_array;
         } else {
@@ -2127,31 +2160,19 @@ class Customlib
 
     public function get_myClassSectionQuerystring($tbl)
     {
-        $userdata            = $this->getUserData();
-        $class_section_array = array();
+        $userdata = $this->getUserData();
         if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            // TVET: class_model->get() already returns academic classes for this teacher
             $my_class = $this->CI->class_model->get();
-            foreach ($my_class as $class_key => $class_value) {
-                $section = $this->CI->section_model->getClassBySection($class_value['id']);
-                foreach ($section as $key => $value) {
-                    $class_section_array[] = array('class_id' => $class_value['id'], 'section_id' => $value['section_id']);
+            if (!empty($my_class)) {
+                $class_ids = array();
+                foreach ($my_class as $class_value) {
+                    $class_ids[] = intval($class_value['id']);
                 }
-            }
-            if (!empty($class_section_array)) {
-                $last      = count($class_section_array);
-                $max_loop  = $last - 1;
-                $condition = " AND (" . $tbl . ".class_id=" . $class_section_array[0]['class_id'] . " AND " . $tbl . ".section_id=" . $class_section_array[0]['section_id'] . " )";
-                if ($last > 2) {
-                    for ($i = 1; $i <= $max_loop - 1; $i++) {
-                        $condition .= " OR (" . $tbl . ".class_id=" . $class_section_array[$i]['class_id'] . " AND " . $tbl . ".section_id=" . $class_section_array[$i]['section_id'] . " )";
-                    }
-                }
-
-                $condition .= " OR (" . $tbl . ".class_id=" . $class_section_array[$max_loop]['class_id'] . " AND " . $tbl . ".section_id=" . $class_section_array[$max_loop]['section_id'] . " )";
+                // TVET: Simple IN clause — no section_id needed
+                $condition = " AND " . $tbl . ".class_id IN (" . implode(',', $class_ids) . ")";
                 return $condition;
-
             }
-
         } else {
             return false;
         }

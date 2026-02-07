@@ -4,8 +4,9 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: false, // Run tests sequentially to avoid conflicts
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: 1,
   workers: 1, // Single worker to avoid database conflicts
+  timeout: 30000,
   reporter: [
     ['html', { outputFolder: 'results/html-report' }],
     ['json', { outputFile: 'results/test-results.json' }],

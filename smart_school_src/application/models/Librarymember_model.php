@@ -76,8 +76,9 @@ class Librarymember_model extends MY_Model
         $this->db->select('libarary_members.id as `lib_member_id`,libarary_members.library_card_no,libarary_members.member_type,students.*,sessions.session as session_year');
         $this->db->from('libarary_members');
         $this->db->join('students', 'libarary_members.member_id = students.id');
-        $this->db->join('student_session', 'student_session.student_id = students.id', 'left');
-        $this->db->join('sessions', 'sessions.id = student_session.session_id', 'left');
+        $this->db->join('academic_class_enrolment e', 'e.student_id = students.id AND e.status = "Active"', 'left');
+        $this->db->join('academic_class ac', 'ac.id = e.class_id', 'left');
+        $this->db->join('sessions', 'sessions.id = ac.session_id', 'left');
         $this->db->where('libarary_members.id', $id);
         $query  = $this->db->get();
         $result = $query->row();

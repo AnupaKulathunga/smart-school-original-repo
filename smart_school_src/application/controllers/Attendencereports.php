@@ -196,7 +196,8 @@ class Attendencereports extends Admin_Controller
                 $student_result = $res;
                 $s              = array();
                 foreach ($res as $result_k => $result_v) {
-                    $s[$result_v['student_session_id']] = $result_v;
+                    // TVET: Use enrolment_id as key instead of student_session_id
+                    $s[$result_v['enrolment_id']] = $result_v;
                 }
                 $date_result[$att_date] = $s;
             }
@@ -206,7 +207,8 @@ class Attendencereports extends Admin_Controller
 
                 $date              = $year . "-" . $month;
                 $newdate           = date('Y-m-d', strtotime($date));
-                $monthAttendance[] = $this->stuMonthAttendance($newdate, 1, $result_v['student_session_id']);
+                // TVET: Use enrolment_id instead of student_session_id
+                $monthAttendance[] = $this->stuMonthAttendance($newdate, 1, $result_v['enrolment_id']);
             }
 
             $data['monthAttendance'] = $monthAttendance;
@@ -220,23 +222,38 @@ class Attendencereports extends Admin_Controller
         }
     }
 
-    public function stuMonthAttendance($st_month, $no_of_months, $student_id)
+    /**
+     * Get monthly attendance summary for a student
+     * TVET: Now uses enrolment_id instead of student_session_id
+     *
+     * @param string $st_month Start month date
+     * @param int $no_of_months Number of months (not used)
+     * @param int $enrolment_id Enrolment ID (TVET) - was student_session_id
+     * @return array Attendance counts by type
+     */
+    public function stuMonthAttendance($st_month, $no_of_months, $enrolment_id)
     {
         $record = array();
         $r     = array();
         $month = date('m', strtotime($st_month));
         $year  = date('Y', strtotime($st_month));
         foreach ($this->config_attendance as $att_key => $att_value) {
-            $s = $this->stuattendence_model->count_attendance_obj($month, $year, $student_id, $att_value);
+            // TVET: Use count_attendance_by_enrolment instead of count_attendance_obj
+            $s = $this->stuattendence_model->count_attendance_by_enrolment($month, $year, $enrolment_id, $att_value);
 
             $attendance_key = $att_key;
             $r[$attendance_key] = $s;
         }
 
-        $record[$student_id] = $r;
+        $record[$enrolment_id] = $r;
         return $record;
     }
 
+    /**
+     * Attendance report for consistent attendees (perfect attendance)
+     * TODO TVET: The student_attendences() model method still uses legacy student_session
+     * and class_sections tables. This needs a TVET version that uses enrolment and class tables.
+     */
     public function attendancereport()
     {
         $this->session->set_userdata('top_menu', 'Reports');
@@ -342,6 +359,12 @@ class Attendencereports extends Admin_Controller
         }
     }
 
+    /**
+     * Daily attendance report showing all classes
+     * TODO TVET: The get_attendancebydate() model method still uses legacy class_sections table.
+     * This report displays class_name + section_name which may need to be adapted
+     * for TVET class structure (subject-level based classes without sections).
+     */
     public function daily_attendance_report()
     {
         $data = array();
@@ -520,6 +543,11 @@ class Attendencereports extends Admin_Controller
         return $record;
     }
 
+    /**
+     * Biometric attendance log
+     * TODO TVET: The biometric_attlog() model method uses legacy student_session table.
+     * Needs a TVET version that uses enrolment table with enrolment_id.
+     */
     public function biometric_attlog($offset = 0)
     {
         $this->session->set_userdata('top_menu', 'Reports');

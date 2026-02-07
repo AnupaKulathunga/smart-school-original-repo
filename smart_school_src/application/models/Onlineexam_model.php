@@ -2,11 +2,11 @@
 class Onlineexam_model extends MY_model
 {
     public function __construct()
-    { 
+    {
         parent::__construct();
         $this->current_session = $this->setting_model->getCurrentSession();
         $this->sch_setting_detail = $this->setting_model->getSetting();
-        $this->userdata = $this->customlib->getUserData();        
+        $this->userdata = $this->customlib->getUserData();
     }
 
     public function add($data)
@@ -27,7 +27,7 @@ class Onlineexam_model extends MY_model
             $message   = INSERT_RECORD_CONSTANT . " On  online exam id " . $id;
             $action    = "Insert";
             $record_id = $id;
-            $this->log($message, $record_id, $action);            
+            $this->log($message, $record_id, $action);
         }
 
         //======================Code End==============================
@@ -50,15 +50,15 @@ class Onlineexam_model extends MY_model
         $exam_ides=array();
 
         if ($this->sch_setting_detail->class_teacher == 'yes' && $this->userdata['role_id']=='2') {
-            $exam_ides=$this->get_myexam($this->userdata['role_id']);           
+            $exam_ides=$this->get_myexam($this->userdata['role_id']);
         }
         $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ', FALSE)->from('onlineexam');
-		
+
         if(!empty($exam_ides['onlineexam_id'])){
             $this->db->group_start();
 
             foreach ($exam_ides as $key => $value) {
-                $this->db->or_where('onlineexam.id',$value['onlineexam_id']); 
+                $this->db->or_where('onlineexam.id',$value['onlineexam_id']);
             }
 
             $this->db->group_end();
@@ -81,76 +81,62 @@ class Onlineexam_model extends MY_model
             return $query->result();
         }
     }
- 
+
     public function getexamlist()
-    {   
+    {
         $exam_ides=array();
 
         if ($this->sch_setting_detail->class_teacher == 'yes' && $this->userdata['role_id']=='2') {
-            $exam_ides=$this->get_myexam($this->userdata['role_id']);           
-        }      
-       
+            $exam_ides=$this->get_myexam($this->userdata['role_id']);
+        }
+
         $today_date=date('Y-m-d H:i:s');
-        
+
         $this->datatables
             ->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions left JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques`', FALSE)
             ->searchable('onlineexam.exam,onlineexam.attempt,exam_from,exam_to,duration,onlineexam.description')
              ->orderable('onlineexam.exam," ",total_ques,attempt,exam_from,exam_to,duration," "," " ,onlineexam.description')
              ->where('onlineexam.session_id',$this->current_session)
             ->sort('onlineexam.exam_from','desc');
-            $this->datatables->where('onlineexam.exam_to  >= ',$today_date);                
+            $this->datatables->where('onlineexam.exam_to  >= ',$today_date);
             if(!empty($exam_ides['onlineexam_id'])){
                 $this->datatables->group_start();
                 foreach ($exam_ides as $key => $value) {
-                    $this->datatables->or_where('onlineexam.id',$value['onlineexam_id']); 
+                    $this->datatables->or_where('onlineexam.id',$value['onlineexam_id']);
                 }
                 $this->datatables->group_end();
             }
-            
+
             $this->datatables->from('onlineexam');
        return $this->datatables->generate('json');
     }
 
+    // TVET: Updated to use academic_class_enrolment + academic_class instead of student_session
     public function get_myexam($role_id){
-        
+
         $exam_id=array('onlineexam_id'=>0);
         if ($role_id == 2) {
-            $my_section = array();
-            $class_section_array=array();
             if ($this->sch_setting_detail->class_teacher == 'yes') {
-                $my_class = $this->class_model->get();
-                foreach ($my_class as $class_key => $class_value) {
-                    // TVET: In TVET, there are no sections - class_id IS the section
-                    $class_obj = $this->classmodel_model->getClassById($class_value['id']);
-                    $section = $class_obj ? array($class_obj) : array();
-                    foreach ($section as $key => $value) {
-                        $class_section_array[$class_value['id']][]=$value['section_id'];
-                    }
-                } 
+                // TVET: Get lecturer's assigned classes via academic_class_lecturer/primary_lecturer
+                $my_classes = $this->classmodel_model->getClassesByStaff($this->userdata['id']);
 
-                if(!empty($class_section_array)){
-                    $this->db->group_start();
-                    foreach ($class_section_array as $class_sectionkey => $class_sectionvalue) {
-                        foreach ($class_sectionvalue as $class_sectionvaluekey => $class_sectionvaluevalue) {
-                            $this->db->or_group_start();
-                            $this->db->where('student_session.class_id',$class_sectionkey);
-                            $this->db->where('student_session.section_id',$class_sectionvaluevalue);
-                            $this->db->group_end();  
-                        }    
-                    }
-                    $this->db->group_end(); 
+                if(!empty($my_classes)){
+                    $class_ids = array_column($my_classes, 'id');
+                    $this->db->where_in('academic_class_enrolment.class_id', $class_ids);
+                    $this->db->where('academic_class_enrolment.status', 'Active');
 
-                     $exam_id1=$this->db->select('onlineexam_students.onlineexam_id')->from('student_session')->join('onlineexam_students','onlineexam_students.student_session_id=student_session.id','inner')->get()->result_array();
-                    $exam_id2=$this->db->select('onlineexam.id as onlineexam_id')->from('onlineexam')->join('onlineexam_students','onlineexam_students.onlineexam_id=onlineexam.id','left')->where('onlineexam_students.onlineexam_id is null')->get()->result_array();
+                    $exam_id1=$this->db->select('onlineexam_students.onlineexam_id', FALSE)->from('academic_class_enrolment')->join('onlineexam_students','onlineexam_students.student_session_id=academic_class_enrolment.id','inner')->get()->result_array();
+                    $exam_id2=$this->db->select('onlineexam.id as onlineexam_id', FALSE)->from('onlineexam')->join('onlineexam_students','onlineexam_students.onlineexam_id=onlineexam.id','left')->where('onlineexam_students.onlineexam_id is null')->get()->result_array();
                     $exam_id= array_merge($exam_id1, $exam_id2);
-                }              
-           
+                }
+
             }else{
-               $exam_id=$this->db->select('onlineexam_students.onlineexam_id')->from('student_session')->join('onlineexam_students','onlineexam_students.student_session_id=student_session.id','inner')->get()->result_array(); 
-            }            
+               $this->db->where('academic_class_enrolment.status', 'Active');
+               $exam_id=$this->db->select('onlineexam_students.onlineexam_id', FALSE)->from('academic_class_enrolment')->join('onlineexam_students','onlineexam_students.student_session_id=academic_class_enrolment.id','inner')->get()->result_array();
+            }
         }
-       
-        return $exam_id;        
+
+        return $exam_id;
     }
 
     public function getclosedexamlist()
@@ -158,22 +144,22 @@ class Onlineexam_model extends MY_model
         $exam_ides=array();
 
         if ($this->sch_setting_detail->class_teacher == 'yes' && $this->userdata['role_id']=='2') {
-            $exam_ides=$this->get_myexam($this->userdata['role_id']);            
-        }       
-       
+            $exam_ides=$this->get_myexam($this->userdata['role_id']);
+        }
+
         $today_date=date('Y-m-d H:i:s');
         $this->datatables
             ->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques`', FALSE)
             ->searchable('" ",onlineexam.exam," "," ",attempt,exam_from,exam_to,duration,onlineexam.description," "," "," "')
             ->orderable('" ",onlineexam.exam," ",total_ques,attempt,exam_from,exam_to,duration," "," "," ",onlineexam.description ')
             ->sort('" ",onlineexam.exam," ",total_ques,attempt,exam_from,exam_to,duration," "," "," " ','desc')
-            ->where('onlineexam.session_id',$this->current_session)            
-            ->where('onlineexam.exam_to  < ',$today_date);            
-            
+            ->where('onlineexam.session_id',$this->current_session)
+            ->where('onlineexam.exam_to  < ',$today_date);
+
             if(!empty($exam_ides['onlineexam_id'])){
                 $this->datatables->group_start();
             foreach ($exam_ides as $key => $value) {
-              $this->datatables->or_where('onlineexam.id',$value['onlineexam_id']); 
+              $this->datatables->or_where('onlineexam.id',$value['onlineexam_id']);
             }
             $this->datatables->group_end();
             }
@@ -242,68 +228,68 @@ class Onlineexam_model extends MY_model
         }
     }
 
-    public function searchOnlineExamStudents($class_id, $section_id, $onlineexam_id)
+    // TVET: Replaced student_session/classes/sections joins with academic_class_enrolment/academic_class
+    // $section_id param kept but defaulted to null (not used in TVET)
+    public function searchOnlineExamStudents($class_id, $section_id = null, $onlineexam_id)
     {
-        $this->db->select('classes.id AS `class_id`,student_session.id as student_session_id,students.id,classes.class,sections.id AS `section_id`,sections.section,students.id,students.admission_no , students.roll_no,students.admission_date,students.firstname,students.middlename,  students.lastname,students.image,  students.mobileno,students.email,students.state,students.city,students.pincode,students.religion,     students.dob ,students.current_address,students.permanent_address,IFNULL(students.category_id, 0) as `category_id`,IFNULL(categories.category, "") as `category`,students.adhar_no,students.samagra_id,students.bank_account_no,students.bank_name,students.ifsc_code, students.guardian_name , students.guardian_relation,students.guardian_phone,students.guardian_address,students.is_active ,students.created_at ,students.updated_at,students.father_name,students.rte,students.gender,IFNULL(onlineexam_students.id, 0) as onlineexam_student_id,IFNULL(onlineexam_students.student_session_id, 0) as onlineexam_student_session_id')->from('students');
-        $this->db->join('student_session', 'student_session.student_id = students.id');
-        $this->db->join('classes', 'student_session.class_id = classes.id');
-        $this->db->join('sections', 'sections.id = student_session.section_id');
+        $this->db->select('academic_class.id AS `class_id`, academic_class_enrolment.id as student_session_id, students.id, academic_class.class_code, academic_class.cohort_name, students.id, students.admission_no, students.roll_no, students.admission_date, students.firstname, students.middlename, students.lastname, students.image, students.mobileno, students.email, students.state, students.city, students.pincode, students.religion, students.dob, students.current_address, students.permanent_address, IFNULL(students.category_id, 0) as `category_id`, IFNULL(categories.category, "") as `category`, students.adhar_no, students.samagra_id, students.bank_account_no, students.bank_name, students.ifsc_code, students.guardian_name, students.guardian_relation, students.guardian_phone, students.guardian_address, students.is_active, students.created_at, students.updated_at, students.father_name, students.rte, students.gender, IFNULL(onlineexam_students.id, 0) as onlineexam_student_id, IFNULL(onlineexam_students.student_session_id, 0) as onlineexam_student_session_id', FALSE)->from('students');
+        $this->db->join('academic_class_enrolment', 'academic_class_enrolment.student_id = students.id');
+        $this->db->join('academic_class', 'academic_class_enrolment.class_id = academic_class.id');
         $this->db->join('categories', 'students.category_id = categories.id', 'left');
-        $this->db->join('onlineexam_students', 'onlineexam_students.student_session_id = student_session.id and onlineexam_students.onlineexam_id=' . $onlineexam_id, 'left');
-        $this->db->where('student_session.session_id', $this->current_session);
-        $this->db->where('student_session.class_id', $class_id);
-          $this->db->where('students.is_active', 'yes');
-        if ($section_id != "") {
-            $this->db->where('student_session.section_id', $section_id);
-        }
+        $this->db->join('onlineexam_students', 'onlineexam_students.student_session_id = academic_class_enrolment.id and onlineexam_students.onlineexam_id=' . $onlineexam_id, 'left');
+        $this->db->where('academic_class.session_id', $this->current_session);
+        $this->db->where('academic_class_enrolment.class_id', $class_id);
+        $this->db->where('academic_class_enrolment.status', 'Active');
+        $this->db->where('students.is_active', 'yes');
         $this->db->order_by('students.id');
 
         $query = $this->db->get();
         return $query->result_array();
     }
 
-    public function searchAllOnlineExamStudents($onlineexam_id, $class_id = null, $section_id = null,$is_attempted=null)
-    {   
+    // TVET: Replaced student_session/classes/sections/class_sections joins with academic_class_enrolment/academic_class
+    // $section_id param kept but defaulted to null (not used in TVET)
+    public function searchAllOnlineExamStudents($onlineexam_id, $class_id = null, $section_id = null, $is_attempted = null)
+    {
         $userdata = $this->customlib->getUserData();
-         $class_section_array=$this->customlib->get_myClassSection();
-        $this->db->select('class_sections.id as class_section_id,classes.id AS `class_id`,student_session.id as student_session_id,students.id,classes.class,sections.id AS `section_id`,sections.section,students.id,students.admission_no , students.roll_no,students.admission_date,students.firstname,students.middlename,students.lastname,students.image,   students.mobileno,students.email,students.state,students.city , students.pincode,students.religion,students.dob ,students.current_address,students.permanent_address,IFNULL(students.category_id, 0) as `category_id`,IFNULL(categories.category, "") as `category`,students.adhar_no,students.samagra_id,students.bank_account_no,students.bank_name, students.ifsc_code , students.guardian_name, students.guardian_relation,students.guardian_phone,students.guardian_address,students.is_active ,students.created_at ,students.updated_at,students.father_name,students.rte,students.gender,IFNULL(onlineexam_students.id, 0) as onlineexam_student_id,IFNULL(onlineexam_students.student_session_id, 0) as onlineexam_student_session_id,IFNULL(onlineexam_students.rank, 0) as exam_rank,onlineexam_students.is_attempted')->from('students');
-        $this->db->join('student_session', 'student_session.student_id = students.id');
-        $this->db->join('classes', 'student_session.class_id = classes.id');
-        $this->db->join('sections', 'sections.id = student_session.section_id');
-        $this->db->join('class_sections', 'class_sections.class_id = classes.id and class_sections.section_id = sections.id');
+        $this->db->select('academic_class.id as class_id, academic_class_enrolment.id as student_session_id, students.id, academic_class.class_code, academic_class.cohort_name, students.id, students.admission_no, students.roll_no, students.admission_date, students.firstname, students.middlename, students.lastname, students.image, students.mobileno, students.email, students.state, students.city, students.pincode, students.religion, students.dob, students.current_address, students.permanent_address, IFNULL(students.category_id, 0) as `category_id`, IFNULL(categories.category, "") as `category`, students.adhar_no, students.samagra_id, students.bank_account_no, students.bank_name, students.ifsc_code, students.guardian_name, students.guardian_relation, students.guardian_phone, students.guardian_address, students.is_active, students.created_at, students.updated_at, students.father_name, students.rte, students.gender, IFNULL(onlineexam_students.id, 0) as onlineexam_student_id, IFNULL(onlineexam_students.student_session_id, 0) as onlineexam_student_session_id, IFNULL(onlineexam_students.rank, 0) as exam_rank, onlineexam_students.is_attempted', FALSE)->from('students');
+        $this->db->join('academic_class_enrolment', 'academic_class_enrolment.student_id = students.id');
+        $this->db->join('academic_class', 'academic_class_enrolment.class_id = academic_class.id');
         $this->db->join('categories', 'students.category_id = categories.id', 'left');
-        $this->db->join('onlineexam_students', 'onlineexam_students.student_session_id = student_session.id and onlineexam_students.onlineexam_id=' . $onlineexam_id);
-        $this->db->where('student_session.session_id', $this->current_session);
-         $this->db->where('students.is_active', 'yes');
+        $this->db->join('onlineexam_students', 'onlineexam_students.student_session_id = academic_class_enrolment.id and onlineexam_students.onlineexam_id=' . $onlineexam_id);
+        $this->db->where('academic_class.session_id', $this->current_session);
+        $this->db->where('academic_class_enrolment.status', 'Active');
+        $this->db->where('students.is_active', 'yes');
         if ($class_id != null) {
-            $this->db->where('student_session.class_id', $class_id);
+            $this->db->where('academic_class_enrolment.class_id', $class_id);
         }
-        if ($section_id != null) {
-            $this->db->where('student_session.section_id', $section_id);
-        }
+        // TVET: section_id filtering removed - no sections in TVET
         if ($is_attempted != null) {
             $this->db->where('onlineexam_students.is_attempted', $is_attempted);
         }
-         if(!empty($class_section_array)){
-            $this->db->group_start();
-            foreach ($class_section_array as $class_sectionkey => $class_sectionvalue) {
-                        foreach ($class_sectionvalue as $class_sectionvaluekey => $class_sectionvaluevalue) {
-                           $this->db->or_group_start();
-                            $this->db->where('student_session.class_id',$class_sectionkey);
-                            $this->db->where('student_session.section_id',$class_sectionvaluevalue);
-                           $this->db->group_end();
-  
-                        }    
+
+        // TVET: For class teacher restriction, filter by lecturer's assigned classes
+        if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            $my_classes = $this->classmodel_model->getClassesByStaff($userdata["id"]);
+            if (!empty($my_classes)) {
+                $class_ids = array_column($my_classes, 'id');
+                $this->db->where_in('academic_class_enrolment.class_id', $class_ids);
+            } else {
+                // No classes assigned, return empty
+                $this->db->where('1 = 0');
             }
-            $this->db->group_end(); 
         }
 
         $this->db->order_by('onlineexam_students.rank', 'ASC');
         $this->db->order_by('onlineexam_students.is_attempted', 'DESC');
         $query = $this->db->get();
         $result= $query->result_array();
-        if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes") && (empty($class_section_array))) {
-            $result=array();
+
+        if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            $my_classes = $this->classmodel_model->getClassesByStaff($userdata["id"]);
+            if (empty($my_classes)) {
+                $result=array();
+            }
         }
         return $result;
     }
@@ -350,7 +336,7 @@ class Onlineexam_model extends MY_model
         $total_rows = $this->db->count_all_results('onlineexam_attempts');
         return $total_rows;
     }
-    
+
     public function addStudentAttemts($data)
     {
         $this->db->insert('onlineexam_attempts', $data);
@@ -412,7 +398,8 @@ class Onlineexam_model extends MY_model
 
     public function getExamQuestions($id = null, $random_type = false)
     {
-        $this->db->select('onlineexam_questions.*,questions.descriptive_word_limit,questions.subject_id,questions.question,questions.opt_a,questions.opt_b,questions.opt_c,questions.opt_d,questions.opt_e,questions.correct,questions.question_type,questions.level,questions.class_id,questions.section_id')->from('onlineexam_questions');
+        // TVET: questions.section_id kept in select as it's a column on the questions table (not class-related)
+        $this->db->select('onlineexam_questions.*,questions.descriptive_word_limit,questions.subject_id,questions.question,questions.opt_a,questions.opt_b,questions.opt_c,questions.opt_d,questions.opt_e,questions.correct,questions.question_type,questions.level,questions.class_id,questions.section_id', FALSE)->from('onlineexam_questions');
         $this->db->join('questions', 'questions.id = onlineexam_questions.question_id');
         $this->db->where('onlineexam_questions.onlineexam_id', $id);
         if ($random_type) {
@@ -423,44 +410,73 @@ class Onlineexam_model extends MY_model
         $query = $this->db->get();
         return $query->result();
     }
-    
+
+    // TVET: Updated raw SQL to use academic_class_enrolment instead of student_session
+    // and academic_class instead of classes/sections
     public function onlineexamReport($condition)
-    {   
-        $class_section_array=$this->customlib->get_myClassSectionQuerystring('student_session');
-        $query = "SELECT onlineexam.*,(select count(*) from onlineexam_students WHERE onlineexam_students.onlineexam_id = onlineexam.id) as assign,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id) as questions FROM `onlineexam` inner join onlineexam_students on onlineexam_students.onlineexam_id=onlineexam.id inner join student_session on student_session.id=onlineexam_students.student_session_id   where " . $condition .$class_section_array. " ";
+    {
+        // TVET: Get lecturer's class restriction
+        $class_restriction = '';
+        $userdata = $this->customlib->getUserData();
+        if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            $my_classes = $this->classmodel_model->getClassesByStaff($userdata["id"]);
+            if (!empty($my_classes)) {
+                $class_ids = array_column($my_classes, 'id');
+                $class_restriction = " AND academic_class_enrolment.class_id IN (" . implode(',', $class_ids) . ")";
+            } else {
+                $class_restriction = " AND 1=0";
+            }
+        }
+
+        $query = "SELECT onlineexam.*,(select count(*) from onlineexam_students WHERE onlineexam_students.onlineexam_id = onlineexam.id) as assign,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id) as questions FROM `onlineexam` inner join onlineexam_students on onlineexam_students.onlineexam_id=onlineexam.id inner join academic_class_enrolment on academic_class_enrolment.id=onlineexam_students.student_session_id where academic_class_enrolment.status='Active' and " . $condition . $class_restriction . " ";
         $this->datatables->query($query)
         ->searchable('onlineexam.exam,onlineexam.attempt,onlineexam.exam_from,onlineexam.exam_to,onlineexam.duration')
-        ->orderable('onlineexam.exam,onlineexam.attempt,onlineexam.exam_from,onlineexam.exam_to,onlineexam.duration,null,null,null') 
+        ->orderable('onlineexam.exam,onlineexam.attempt,onlineexam.exam_from,onlineexam.exam_to,onlineexam.duration,null,null,null')
         ->query_where_enable(TRUE)
         ->sort('onlineexam.id','asc') ;
         return $this->datatables->generate('json');
     }
 
+    // TVET: Updated raw SQL to use academic_class_enrolment/academic_class instead of student_session/classes/sections
     public function onlineexamatteptreport($condition)
-    {   
+    {
         $userdata = $this->customlib->getUserData();
-        $class_section_array=$this->customlib->get_myClassSectionQuerystring('student_session');
-        $query = "SELECT student_session.id,students.admission_no,students.id as sid, CONCAT_WS(' ',firstname,middlename,lastname) as name,firstname,middlename,lastname,GROUP_CONCAT(onlineexam.id,'@',onlineexam.exam,'@',onlineexam.attempt,'@',onlineexam.exam_from,'@',onlineexam.exam_to,'@',onlineexam.duration,'@',onlineexam.passing_percentage,'@',onlineexam.is_active,'@',onlineexam.publish_result) as exams,GROUP_CONCAT(onlineexam_students.onlineexam_id) as attempt,`classes`.`id` AS `class_id`, `student_session`.`id` as `student_session_id`, `students`.`id`, `classes`.`class`, `sections`.`id` AS `section_id`, `sections`.`section`, `students`.`id`, `students`.`admission_no` FROM `student_session` INNER JOIN onlineexam_students on onlineexam_students.student_session_id=student_session.id INNER JOIN students on students.id=student_session.student_id JOIN `classes` ON `student_session`.`class_id` = `classes`.`id` JOIN `sections` ON `sections`.`id` = `student_session`.`section_id` LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id` INNER JOIN onlineexam on onlineexam_students.onlineexam_id=onlineexam.id WHERE  student_session.session_id=" . $this->db->escape($this->current_session) . " and students.is_active='yes' " . $condition.$class_section_array;
+
+        // TVET: Get lecturer's class restriction
+        $class_restriction = '';
+        if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            $my_classes = $this->classmodel_model->getClassesByStaff($userdata["id"]);
+            if (!empty($my_classes)) {
+                $class_ids = array_column($my_classes, 'id');
+                $class_restriction = " AND academic_class_enrolment.class_id IN (" . implode(',', $class_ids) . ")";
+            } else {
+                $class_restriction = " AND 1=0";
+            }
+        }
+
+        $query = "SELECT academic_class_enrolment.id, students.admission_no, students.id as sid, CONCAT_WS(' ',firstname,middlename,lastname) as name, firstname, middlename, lastname, GROUP_CONCAT(onlineexam.id,'@',onlineexam.exam,'@',onlineexam.attempt,'@',onlineexam.exam_from,'@',onlineexam.exam_to,'@',onlineexam.duration,'@',onlineexam.passing_percentage,'@',onlineexam.is_active,'@',onlineexam.publish_result) as exams, GROUP_CONCAT(onlineexam_students.onlineexam_id) as attempt, academic_class.id AS `class_id`, academic_class_enrolment.id as `student_session_id`, students.id, academic_class.class_code as `class`, academic_class.cohort_name, students.id, students.admission_no FROM `academic_class_enrolment` INNER JOIN onlineexam_students on onlineexam_students.student_session_id=academic_class_enrolment.id INNER JOIN students on students.id=academic_class_enrolment.student_id JOIN academic_class ON academic_class_enrolment.class_id = academic_class.id LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id` INNER JOIN onlineexam on onlineexam_students.onlineexam_id=onlineexam.id WHERE academic_class.session_id=" . $this->db->escape($this->current_session) . " and academic_class_enrolment.status='Active' and students.is_active='yes' " . $condition . $class_restriction;
         $this->datatables->query($query)
         ->group_by("students.id",true)
-        ->searchable('students.firstname,students.lastname,students.middlename,students.admission_no,classes.class,sections.section,null,null,null')
-        ->orderable('students.firstname,students.admission_no,classes.class,sections.section,null,null,null,null,null') 
+        ->searchable('students.firstname,students.lastname,students.middlename,students.admission_no,academic_class.class_code,academic_class.cohort_name,null,null,null')
+        ->orderable('students.firstname,students.admission_no,academic_class.class_code,academic_class.cohort_name,null,null,null,null,null')
        ->query_where_enable(TRUE);
         $std_data= $this->datatables->generate('json');
-        
-        if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes") && (empty($class_section_array))) {
-            $std_data=json_decode($std_data);
-            $std_data->data=array();
-            return  json_encode($std_data);
-        }else{
-            return $std_data;
+
+        if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            $my_classes = $this->classmodel_model->getClassesByStaff($userdata["id"]);
+            if (empty($my_classes)) {
+                $std_data=json_decode($std_data);
+                $std_data->data=array();
+                return json_encode($std_data);
+            }
         }
+        return $std_data;
     }
 
+    // TVET: Updated to use academic_class_enrolment/academic_class instead of student_session/classes/sections
     public function getstudentByexam_id($id){
-        $this->db->select('students.*,classes.class,sections.section')->from('onlineexam_students')->join('student_session','student_session.id=onlineexam_students.student_session_id')->join('students','students.id=student_session.student_id');
-        $this->db->join('classes', 'student_session.class_id = classes.id');
-        $this->db->join('sections', 'sections.id = student_session.section_id');
+        $this->db->select('students.*, academic_class.class_code, academic_class.cohort_name', FALSE)->from('onlineexam_students')->join('academic_class_enrolment','academic_class_enrolment.id=onlineexam_students.student_session_id')->join('students','students.id=academic_class_enrolment.student_id');
+        $this->db->join('academic_class', 'academic_class_enrolment.class_id = academic_class.id');
         $this->db->where('onlineexam_id', $id);
         $query = $this->db->get();
         return $query->result_array();
@@ -468,14 +484,14 @@ class Onlineexam_model extends MY_model
 
     public function get_msnstatusByexam_id($id)
     {
-        return $this->db->select('onlineexam.publish_exam_notification,onlineexam.publish_result_notification')->where('onlineexam.id',$id)->get('onlineexam')->row_array();
+        return $this->db->select('onlineexam.publish_exam_notification,onlineexam.publish_result_notification', FALSE)->where('onlineexam.id',$id)->get('onlineexam')->row_array();
     }
 
     public function bulkdelete($exams)
     {
         if (!empty($exams)) {
 
-            $this->db->trans_start();            
+            $this->db->trans_start();
             $sql = "DELETE FROM onlineexam_questions where onlineexam_id in (" . implode(', ', $exams) . ") ";
             $this->db->query($sql);
 
@@ -491,7 +507,7 @@ class Onlineexam_model extends MY_model
                 $sql = "DELETE FROM onlineexam_attempts where onlineexam_student_id in (" . implode(', ', $online_attempts) . ") ";
                 $this->db->query($sql);
             }
-            
+
             $sql = "DELETE FROM onlineexam_students where onlineexam_id in (" . implode(', ', $exams) . ") ";
             $this->db->query($sql);
 
@@ -507,29 +523,301 @@ class Onlineexam_model extends MY_model
         }
     }
 
+    // TVET: Updated to use academic_class_enrolment/academic_class instead of student_session/classes/sections
     public function getstudentbystudentsessionid($student_session_id)
     {
-        $this->db->select('students.firstname,students.middlename,students.lastname,students.father_name,students.admission_no,classes.class,sections.section');
-        $this->db->from('student_session');
-        $this->db->where('student_session.id', $student_session_id);
-        $this->db->join('classes', 'classes.id=student_session.class_id');
-        $this->db->join('sections', 'sections.id=student_session.section_id');
-        $this->db->join('students', 'students.id=student_session.student_id');
+        $this->db->select('students.firstname, students.middlename, students.lastname, students.father_name, students.admission_no, academic_class.class_code, academic_class.cohort_name', FALSE);
+        $this->db->from('academic_class_enrolment');
+        $this->db->where('academic_class_enrolment.id', $student_session_id);
+        $this->db->join('academic_class', 'academic_class.id=academic_class_enrolment.class_id');
+        $this->db->join('students', 'students.id=academic_class_enrolment.student_id');
         $query = $this->db->get();
         return $query->row_array();
-    }   
+    }
+
+    // ============================================================================
+    // TVET METHODS - Use enrolment table instead of student_session
+    // ============================================================================
+
+    /**
+     * Get student by enrolment ID (TVET)
+     * Replaces getstudentbystudentsessionid() for TVET architecture
+     *
+     * @param int $enrolment_id enrolment.id
+     * @return array Student details with class info
+     */
+    public function getstudentbyenrolmentid($enrolment_id)
+    {
+        $this->db->select('students.firstname, students.middlename, students.lastname,
+                          students.father_name, students.admission_no,
+                          academic_class.class_code, academic_class.cohort_name,
+                          academic_subject.name as subject_name, academic_level.code as level_code', FALSE);
+        $this->db->from('academic_class_enrolment');
+        $this->db->where('academic_class_enrolment.id', $enrolment_id);
+        $this->db->join('academic_class', 'academic_class.id = academic_class_enrolment.class_id');
+        $this->db->join('academic_subject_level', 'academic_subject_level.id = academic_class.subject_level_id');
+        $this->db->join('academic_subject', 'academic_subject.id = academic_subject_level.subject_id');
+        $this->db->join('academic_level', 'academic_level.id = academic_subject_level.level_id');
+        $this->db->join('students', 'students.id = academic_class_enrolment.student_id');
+        return $this->db->get()->row_array();
+    }
+
+    /**
+     * Search online exam students by class (TVET)
+     * Replaces searchOnlineExamStudents() - no section_id parameter
+     *
+     * @param int $class_id academic class ID
+     * @param int $onlineexam_id Online exam ID
+     * @return array List of students with exam assignment status
+     */
+    public function searchOnlineExamStudentsTVET($class_id, $onlineexam_id)
+    {
+        $this->db->select('academic_class.id AS class_id, academic_class_enrolment.id as enrolment_id,
+                          students.id, academic_class.class_code, academic_class.cohort_name,
+                          students.id, students.admission_no, students.roll_no, students.admission_date,
+                          students.firstname, students.middlename, students.lastname,
+                          students.image, students.mobileno, students.email,
+                          students.state, students.city, students.pincode, students.religion,
+                          students.dob, students.current_address, students.permanent_address,
+                          IFNULL(students.category_id, 0) as category_id,
+                          IFNULL(categories.category, "") as category,
+                          students.adhar_no, students.samagra_id, students.bank_account_no,
+                          students.bank_name, students.ifsc_code,
+                          students.guardian_name, students.guardian_relation,
+                          students.guardian_phone, students.guardian_address,
+                          students.is_active, students.created_at, students.updated_at,
+                          students.father_name, students.rte, students.gender,
+                          IFNULL(onlineexam_students.id, 0) as onlineexam_student_id,
+                          IFNULL(onlineexam_students.student_session_id, 0) as onlineexam_enrolment_id', FALSE);
+        $this->db->from('students');
+        $this->db->join('academic_class_enrolment', 'academic_class_enrolment.student_id = students.id');
+        $this->db->join('academic_class', 'academic_class_enrolment.class_id = academic_class.id');
+        $this->db->join('categories', 'students.category_id = categories.id', 'left');
+        $this->db->join('onlineexam_students', 'onlineexam_students.student_session_id = academic_class_enrolment.id
+                        AND onlineexam_students.onlineexam_id = ' . $this->db->escape($onlineexam_id), 'left');
+        $this->db->where('academic_class.session_id', $this->current_session);
+        $this->db->where('academic_class_enrolment.class_id', $class_id);
+        $this->db->where('academic_class_enrolment.status', 'Active');
+        $this->db->where('students.is_active', 'yes');
+        $this->db->order_by('students.id');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Search all online exam students (TVET)
+     * Replaces searchAllOnlineExamStudents() - no section_id parameter
+     *
+     * @param int $onlineexam_id Online exam ID
+     * @param int $class_id Class ID (optional)
+     * @param int $is_attempted Filter by attempted status (optional)
+     * @return array List of enrolled students
+     */
+    public function searchAllOnlineExamStudentsTVET($onlineexam_id, $class_id = null, $is_attempted = null)
+    {
+        $userdata = $this->customlib->getUserData();
+
+        $this->db->select('academic_class.id as class_id, academic_class_enrolment.id as enrolment_id,
+                          students.id, academic_class.class_code, academic_class.cohort_name,
+                          students.admission_no, students.roll_no, students.admission_date,
+                          students.firstname, students.middlename, students.lastname,
+                          students.image, students.mobileno, students.email,
+                          students.state, students.city, students.pincode, students.religion,
+                          students.dob, students.current_address, students.permanent_address,
+                          IFNULL(students.category_id, 0) as category_id,
+                          IFNULL(categories.category, "") as category,
+                          students.adhar_no, students.samagra_id, students.bank_account_no,
+                          students.bank_name, students.ifsc_code,
+                          students.guardian_name, students.guardian_relation,
+                          students.guardian_phone, students.guardian_address,
+                          students.is_active, students.created_at, students.updated_at,
+                          students.father_name, students.rte, students.gender,
+                          IFNULL(onlineexam_students.id, 0) as onlineexam_student_id,
+                          IFNULL(onlineexam_students.student_session_id, 0) as onlineexam_enrolment_id,
+                          IFNULL(onlineexam_students.rank, 0) as exam_rank,
+                          onlineexam_students.is_attempted', FALSE);
+        $this->db->from('students');
+        $this->db->join('academic_class_enrolment', 'academic_class_enrolment.student_id = students.id');
+        $this->db->join('academic_class', 'academic_class_enrolment.class_id = academic_class.id');
+        $this->db->join('categories', 'students.category_id = categories.id', 'left');
+        $this->db->join('onlineexam_students', 'onlineexam_students.student_session_id = academic_class_enrolment.id
+                        AND onlineexam_students.onlineexam_id = ' . $this->db->escape($onlineexam_id));
+        $this->db->where('academic_class.session_id', $this->current_session);
+        $this->db->where('academic_class_enrolment.status', 'Active');
+        $this->db->where('students.is_active', 'yes');
+
+        if ($class_id != null) {
+            $this->db->where('academic_class_enrolment.class_id', $class_id);
+        }
+        if ($is_attempted != null) {
+            $this->db->where('onlineexam_students.is_attempted', $is_attempted);
+        }
+
+        // Filter by lecturer's classes if class_teacher restriction enabled
+        if ($userdata["role_id"] == 2 && $this->sch_setting_detail->class_teacher == 'yes') {
+            $my_classes = $this->classmodel_model->getClassesByStaff($userdata["id"]);
+            if (!empty($my_classes)) {
+                $class_ids = array_column($my_classes, 'id');
+                $this->db->where_in('academic_class_enrolment.class_id', $class_ids);
+            } else {
+                // No classes assigned, return empty
+                $this->db->where('1 = 0');
+            }
+        }
+
+        $this->db->order_by('onlineexam_students.rank', 'ASC');
+        $this->db->order_by('onlineexam_students.is_attempted', 'DESC');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Get students by exam ID (TVET)
+     * Replaces getstudentByexam_id() - uses enrolment table
+     *
+     * @param int $exam_id Online exam ID
+     * @return array List of students assigned to exam
+     */
+    public function getStudentsByExamIdTVET($exam_id)
+    {
+        $this->db->select('students.*, academic_class.class_code, academic_class.cohort_name,
+                          academic_subject.name as subject_name, academic_level.code as level_code', FALSE);
+        $this->db->from('onlineexam_students');
+        $this->db->join('academic_class_enrolment', 'academic_class_enrolment.id = onlineexam_students.student_session_id');
+        $this->db->join('students', 'students.id = academic_class_enrolment.student_id');
+        $this->db->join('academic_class', 'academic_class.id = academic_class_enrolment.class_id');
+        $this->db->join('academic_subject_level', 'academic_subject_level.id = academic_class.subject_level_id');
+        $this->db->join('academic_subject', 'academic_subject.id = academic_subject_level.subject_id');
+        $this->db->join('academic_level', 'academic_level.id = academic_subject_level.level_id');
+        $this->db->where('onlineexam_students.onlineexam_id', $exam_id);
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Get student exam by enrolment ID (TVET)
+     * Replaces getStudentexam() for student portal
+     *
+     * @param int $enrolment_id academic_class_enrolment.id
+     * @return array List of exams for the student
+     */
+    public function getStudentExamByEnrolment($enrolment_id)
+    {
+        $query = "SELECT onlineexam.*, onlineexam_students.id as onlineexam_student_id,
+                  (SELECT COUNT(*) FROM onlineexam_attempts
+                   WHERE onlineexam_attempts.onlineexam_student_id = onlineexam_students.id) as counter
+                  FROM onlineexam
+                  INNER JOIN onlineexam_students ON onlineexam_students.onlineexam_id = onlineexam.id
+                  WHERE onlineexam_students.student_session_id = " . $this->db->escape($enrolment_id) . "
+                  AND onlineexam.is_active = 1
+                  ORDER BY onlineexam.exam_from DESC";
+        return $this->db->query($query)->result();
+    }
+
+    /**
+     * Exam students ID by enrolment (TVET)
+     * Replaces examstudentsID() for student portal
+     *
+     * @param int $enrolment_id academic_class_enrolment.id
+     * @param int $onlineexam_id Online exam ID
+     * @return object Exam student record
+     */
+    public function examStudentsByEnrolment($enrolment_id, $onlineexam_id)
+    {
+        $this->db->from('onlineexam_students');
+        $this->db->where('student_session_id', $enrolment_id);
+        $this->db->where('onlineexam_id', $onlineexam_id);
+        return $this->db->get()->row();
+    }
+
+    /**
+     * Get student exam list datatable (TVET)
+     * Replaces getstudentexamlist() for student portal
+     *
+     * @param int $enrolment_id academic_class_enrolment.id
+     * @return string JSON datatable response
+     */
+    public function getStudentExamListTVET($enrolment_id)
+    {
+        $today_date = date('Y-m-d H:i:s');
+        $this->datatables->where("onlineexam_students.student_session_id", $enrolment_id);
+        $this->datatables->where("onlineexam.is_active", 1);
+        $this->datatables
+            ->select('onlineexam.*, onlineexam_students.id as onlineexam_student_id,
+                     (SELECT COUNT(*) FROM onlineexam_attempts
+                      WHERE onlineexam_attempts.onlineexam_student_id = onlineexam_students.id) as counter', FALSE)
+            ->join("onlineexam_students", "onlineexam_students.onlineexam_id = onlineexam.id", "left")
+            ->searchable('onlineexam.exam, onlineexam.attempt, exam_from, exam_to, duration')
+            ->orderable('onlineexam.exam, " ", exam_from, exam_to, duration, attempt, " ", " "')
+            ->sort('onlineexam.exam_from', 'desc')
+            ->where('onlineexam.exam_to >= ', $today_date)
+            ->from('onlineexam');
+        return $this->datatables->generate('json');
+    }
+
+    /**
+     * Get student closed exam list datatable (TVET)
+     * Replaces getstudentclosedexamlist() for student portal
+     *
+     * @param int $enrolment_id academic_class_enrolment.id
+     * @return string JSON datatable response
+     */
+    public function getStudentClosedExamListTVET($enrolment_id)
+    {
+        $today_date = date('Y-m-d H:i:s');
+        $this->datatables->where("onlineexam_students.student_session_id", $enrolment_id);
+        $this->datatables
+            ->select('onlineexam.*, onlineexam_students.id as onlineexam_student_id,
+                     (SELECT COUNT(*) FROM onlineexam_attempts
+                      WHERE onlineexam_attempts.onlineexam_student_id = onlineexam_students.id) as counter', FALSE)
+            ->join("onlineexam_students", "onlineexam_students.onlineexam_id = onlineexam.id", "left")
+            ->searchable('onlineexam.exam, onlineexam.attempt, exam_from, exam_to, duration, " ", " ", " ", " "')
+            ->orderable('onlineexam.exam, " ", " ", attempt, exam_from, exam_to, duration, " ", " "')
+            ->sort('onlineexam.exam_from', 'desc')
+            ->where('onlineexam.exam_to < ', $today_date)
+            ->from('onlineexam');
+        return $this->datatables->generate('json');
+    }
+
+    /**
+     * Add students to exam (TVET)
+     * Updates addStudents() to use enrolment_id
+     *
+     * @param array $data_insert Array of records to insert
+     * @param array $data_delete Array of enrolment IDs to delete
+     * @param int $onlineexam_id Online exam ID
+     * @return bool Success status
+     */
+    public function addStudentsTVET($data_insert, $data_delete, $onlineexam_id)
+    {
+        $this->db->trans_begin();
+        if (!empty($data_insert)) {
+            $this->db->insert_batch('onlineexam_students', $data_insert);
+        }
+        if (!empty($data_delete)) {
+            $this->db->where('onlineexam_id', $onlineexam_id);
+            $this->db->where_in('student_session_id', $data_delete);
+            $this->db->delete('onlineexam_students');
+        }
+        if ($this->db->trans_status() === false) {
+            $this->db->trans_rollback();
+            return false;
+        } else {
+            $this->db->trans_commit();
+            return true;
+        }
+    }
 
     public function getexamdetails($id = null, $publish = null)
     {
         $exam_ides=array();
-        
+
         $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ', FALSE)->from('onlineexam');
 
             if(!empty($exam_ides)){
                 $this->db->group_start();
 
                 foreach ($exam_ides as $key => $value) {
-                $this->db->or_where('onlineexam.id',$value['onlineexam_id']); 
+                $this->db->or_where('onlineexam.id',$value['onlineexam_id']);
                 }
 
                 $this->db->group_end();
@@ -552,17 +840,17 @@ class Onlineexam_model extends MY_model
             return $query->result();
         }
     }
-    
+
     public function printstudentexamdetails($id = null, $publish = null)
     {
-        $exam_ides=array();        
+        $exam_ides=array();
         $this->db->select('onlineexam.*,(select count(*) from onlineexam_questions where onlineexam_questions.onlineexam_id=onlineexam.id ) as `total_ques`, (select count(*) from onlineexam_questions INNER JOIN questions on questions.id=onlineexam_questions.question_id where onlineexam_questions.onlineexam_id=onlineexam.id and questions.question_type="descriptive" ) as `total_descriptive_ques` , ', FALSE)->from('onlineexam');
 
         if(!empty($exam_ides)){
             $this->db->group_start();
 
             foreach ($exam_ides as $key => $value) {
-                $this->db->or_where('onlineexam.id',$value['onlineexam_id']); 
+                $this->db->or_where('onlineexam.id',$value['onlineexam_id']);
             }
 
             $this->db->group_end();
@@ -584,6 +872,6 @@ class Onlineexam_model extends MY_model
         } else {
             return $query->result();
         }
-    }    
+    }
 
 }

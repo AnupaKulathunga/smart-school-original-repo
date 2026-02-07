@@ -16,7 +16,7 @@
                             <?php
                             if (!empty($timetable)) {
                             ?>
-                                <button type="submit" title="<?php echo $this->lang->line('print'); ?>" class="btn btn-primary btn-xs pull-right  print_timetable" data-class_id="<?php echo set_value('class_id'); ?>" data-section_id="<?php echo set_value('section_id'); ?>" id="load" data-loading-text="<i class='fa fa-spinner fa-spin'></i> <?php echo $this->lang->line('please_wait'); ?>"><i class="fa fa-print"></i></button>
+                                <button type="submit" title="<?php echo $this->lang->line('print'); ?>" class="btn btn-primary btn-xs pull-right  print_timetable" data-class_id="<?php echo set_value('class_id'); ?>" id="load" data-loading-text="<i class='fa fa-spinner fa-spin'></i> <?php echo $this->lang->line('please_wait'); ?>"><i class="fa fa-print"></i></button>
                                 <table class="table table-stripped">
                                     <thead>
                                         <tr>
@@ -60,7 +60,7 @@
                                                                     <b class="text text-center">-</b>
                                                                     <strong class="text-green"><?php echo $tm_kue->time_to; ?></strong>
                                                                 </div>
-                                                                <div class="relative attachment-left-space"><i class="fa fa-user"></i> <?php echo $tm_kue->name." ".$tm_kue->surname." (".$tm_kue->employee_id.")";?>
+                                                                <div class="relative attachment-left-space"><i class="fa fa-user"></i> <?php echo $tm_kue->name." ".$tm_kue->surname;?>
                                                                     </div>
                                                                 <div class="relative attachment-left-space"><i class="fa fa-building"></i><?php echo $this->lang->line('room_no'); ?>: <?php echo $tm_kue->room_no; ?>
                                                                 </div>

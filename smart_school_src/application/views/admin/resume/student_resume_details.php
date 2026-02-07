@@ -32,9 +32,6 @@
        <li class="list-group-item listnoback border0">
         <b><?php echo $this->lang->line('class'); ?></b> <a class="pull-right text-aqua"><?php echo $student['class'] . " (" . $session . ")"; ?></a>
        </li>
-       <li class="list-group-item listnoback">
-        <b><?php echo $this->lang->line('section'); ?></b> <a class="pull-right text-aqua"><?php echo $student['section']; ?></a>
-       </li>      
 	    <?php if ($this->customlib->getfieldcustomstatus('gender')) {?>
        <li class="list-group-item listnoback">
         <b><?php echo $this->lang->line('gender'); ?></b> <a class="pull-right text-aqua"><?php echo $this->lang->line(strtolower((string) $student['gender'])); ?></a>

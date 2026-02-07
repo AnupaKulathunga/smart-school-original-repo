@@ -21,7 +21,8 @@ class Video_tutorial extends Student_Controller
         $this->session->set_userdata('sub_menu', 'video_tutorial/index');
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $data['class_id']      = $student_current_class->class_id;
-        $data['section_id']    = $student_current_class->section_id;
+        // TVET: section_id not needed, but pass class_id for backward compatibility with view
+        $data['section_id']    = $student_current_class->class_id;
         $this->load->view('layout/student/header');
         $this->load->view('user/video_tutorial/index', $data);
         $this->load->view('layout/student/footer');
@@ -30,15 +31,15 @@ class Video_tutorial extends Student_Controller
     public function getPage($page)
     {
         $class_id   = $this->input->get('class_id');
-        $section_id = $this->input->get('section_id');
+        // TVET: section_id no longer needed, model uses academic_class
         $superadmin_visible =    $this->Setting_model->get();
-        
+
         $superadmin_restriction =   $superadmin_visible[0]['superadmin_restriction'];
-       
+
         $this->load->library("pagination");
         $config             = array();
         $config["base_url"] = "#";
-        $config["total_rows"]       = count($this->video_tutorial_model->getvideotutorial('', '', $class_id, $section_id));
+        $config["total_rows"]       = count($this->video_tutorial_model->getvideotutorial('', '', $class_id));
         $config["per_page"]         = 30;
         $config["uri_segment"]      = 5;
         $config["use_page_numbers"] = true;
@@ -58,8 +59,8 @@ class Video_tutorial extends Student_Controller
         $config["cur_tag_close"]    = "</a></li>";
         $config["num_tag_open"]     = "<li>";
         $config["num_tag_close"]    = "</li>";
-        $config["num_links"]        = 1;  
-        
+        $config["num_links"]        = 1;
+
 
         $this->pagination->initialize($config);
 
@@ -69,7 +70,7 @@ class Video_tutorial extends Student_Controller
 
         $start = ($page - 1) * $config["per_page"];
 
-        $result      = $this->video_tutorial_model->getvideotutorial($config["per_page"], $start, $class_id, $section_id);
+        $result      = $this->video_tutorial_model->getvideotutorial($config["per_page"], $start, $class_id);
         $img_data    = array();
         $check_empty = 0;
         if (!empty($result)) {

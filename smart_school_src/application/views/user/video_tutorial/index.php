@@ -60,12 +60,11 @@ $(document).ready(function () {
 
 function load(page) {
     var class_id = '<?php echo $class_id; ?>';
-    var section_id = '<?php echo $section_id; ?>';
     $("#no_record_found").addClass("hide");
     $.ajax({
         url: "<?php echo base_url(); ?>user/video_tutorial/getPage/" + page,
         method: "GET",
-        data: {'class_id': class_id,section_id:section_id},
+        data: {'class_id': class_id},
         dataType: "json",
         beforeSend: function () {
             $('#media_div').empty();

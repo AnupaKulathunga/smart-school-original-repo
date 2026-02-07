@@ -131,7 +131,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                     <div class="row">
                                                         <div class="col-xs-6 col-md-6">
                                                             <address>
-                                                                <strong><b><?php echo $this->lang->line('class'); ?>: </b><?php echo $student['class'] . "(" . $student['section'] . ")" ?></strong><br>
+                                                                <strong><b><?php echo $this->lang->line('class'); ?>: </b><?php echo $student['class'] ?></strong><br>
                                                                 <b><?php echo $this->lang->line('admission_no'); ?>: </b><?php echo $student['admission_no'] ?><br/>
                                                                 <b><?php echo $this->lang->line('date_of_birth'); ?>:
             <?php if ($student["dob"] != null && $student["dob"] != '0000-00-00') {echo date($this->customlib->getSchoolDateFormat(), $this->customlib->dateyyyymmddTodateformat($student['dob']));}?><br>
@@ -338,7 +338,6 @@ $(document).on('submit','.class_search_form',function(e){
 
         if(search_type == "search_full"){
             $('#class_id').prop('selectedIndex',0);
-            $('#section_id').find('option').not(':first').remove();
         }else if (search_type == "search_filter") {
 
              $('#search_text').val("");

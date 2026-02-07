@@ -45,10 +45,10 @@ class Lessonplan extends Admin_Controller
             $data['subject_group_id']       = $_POST['subject_group_id'];
             $data['subject_id']             = $_POST['subject_id'];
             $subject_details                = $this->lessonplan_model->get_subjectNameBySubjectGroupSubjectId($_POST['subject_id']);
-            // TVET: Use class_id only, no section_id
-            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_classId($_POST['class_id'], $_POST['subject_group_id']);
+            // TVET: Use academic_class_id directly (class_id is the academic_class_id)
+            $academic_class_id              = $_POST['class_id'];
             $data['subject_name']           = $subject_details['name'] . " (" . $subject_details['code'] . ")";
-            $lessonlist                     = $this->lessonplan_model->getlessonBysubjectid($_POST['subject_id'], $subject_group_class_sectionsId['id']);
+            $lessonlist                     = $this->lessonplan_model->getlessonBysubjectid($_POST['subject_id'], $academic_class_id);
 
             foreach ($lessonlist as $key => $value) {
 
@@ -103,14 +103,14 @@ class Lessonplan extends Admin_Controller
             $old_subject_group_id       = $this->input->post('old_subject_group_id');
             $old_subject_id             = $this->input->post('old_subject_id');
             $subject_details                = $this->lessonplan_model->get_subjectNameBySubjectGroupSubjectId($old_subject_id);
-            // TVET: Use class_id only, no section_id
-            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_classId($old_class_id, $old_subject_group_id, $old_session_id);
+            // TVET: Use academic_class_id directly (class_id is the academic_class_id)
+            $academic_class_id = $old_class_id;
             if ($subject_details['code'] == '') {
                 $data['subject_name'] = $subject_details['name'];
             } else {
                 $data['subject_name'] = $subject_details['name'] . " (" . $subject_details['code'] . ")";
             }
-            $lessonlist        = $this->lessonplan_model->getlessonBysubjectid($old_subject_id, $subject_group_class_sectionsId['id']);
+            $lessonlist        = $this->lessonplan_model->getlessonBysubjectid($old_subject_id, $academic_class_id);
 
             $data['no_record'] = '1';
             foreach ($lessonlist as $key => $value) {
@@ -187,14 +187,14 @@ class Lessonplan extends Admin_Controller
             $msg   = array('lesson' => $this->lang->line('lesson_name_field_is_required'));
             $array = array('status' => 'fail', 'error' => $msg, 'message' => '');
         } else {
-            // TVET: Use class_id only, no section_id
-            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_classId($_POST['class_id'], $_POST['subject_group_id']);
+            // TVET: Use academic_class_id directly (class_id is the academic_class_id)
+            $academic_class_id = $_POST['class_id'];
             foreach ($_POST['lessons'] as $key => $value) {
                 $data = array(
-                    'subject_group_subject_id'        => $_POST['subject_id'],
-                    'name'                            => $value,
-                    'subject_group_class_sections_id' => $subject_group_class_sectionsId['id'],
-                    'session_id'                      => $this->sch_current_session,
+                    'subject_group_subject_id' => $_POST['subject_id'],
+                    'name'                     => $value,
+                    'academic_class_id'        => $academic_class_id,
+                    'session_id'               => $this->sch_current_session,
                 );
 
                 $this->lessonplan_model->add_lesson($data);
@@ -243,7 +243,8 @@ class Lessonplan extends Admin_Controller
         $result = $this->lessonplan_model->get($this->sch_current_session, '');
         if (!empty($result)) {
             foreach ($result as $key => $value) {
-                $lesson = $this->lessonplan_model->getlesson($value["subject_group_subject_id"], $value["subject_group_class_sections_id"], $this->sch_current_session);
+                // TVET: Use academic_class_id instead of subject_group_class_sections_id
+                $lesson = $this->lessonplan_model->getlesson($value["subject_group_subject_id"], $value["academic_class_id"], $this->sch_current_session);
                 if ($lesson != '') {
                     $lessonname[$key] = $lesson;
                 }
@@ -255,13 +256,16 @@ class Lessonplan extends Admin_Controller
         }
 
         $editresult = $this->lessonplan_model->get($this->sch_current_session, $id, $subject_group_subject_id);
-        $editlesson = $this->lessonplan_model->getlesson($editresult["subject_group_subject_id"], $editresult["subject_group_class_sections_id"], $this->sch_current_session);
+        // TVET: Use academic_class_id instead of subject_group_class_sections_id
+        $editlesson = $this->lessonplan_model->getlesson($editresult["subject_group_subject_id"], $editresult["academic_class_id"], $this->sch_current_session);
 
         $data['editlessonname']                 = $editlesson;
-        $data['class_id']                       = $editresult['classid'];
+        // TVET: Return academic_class_id as class_id
+        $data['class_id']                       = $editresult['class_id'];
         $data['subject_group_id']               = $editresult['subjectgroupsid'];
         $data['subject_id']                     = $editresult['subjectid'];
         $data['lesson_subject_group_subjectid'] = $editresult['subject_group_subject_id'];
+        $data['academic_class_id']              = $editresult['academic_class_id'];
 
         $this->load->view('layout/header');
         $this->load->view('admin/lessonplan/editlesson', $data);
@@ -292,17 +296,18 @@ class Lessonplan extends Admin_Controller
             $subject_group_id         = $this->input->post('subject_group_id');
             $subject_group_subject_id = $this->input->post('subject_group_subject_id');
 
-            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_classId($class_id, $subject_group_id);
+            // TVET: Use academic_class_id directly (class_id is the academic_class_id)
+            $academic_class_id = $class_id;
             $data_to_be_insert = [];
 
             foreach ($topic as $lesson_key => $lesson_value) {
-                foreach ($lesson_value as $topic_key => $topic_value) {                 
+                foreach ($lesson_value as $topic_key => $topic_value) {
 
                     $topic_data   = $this->lessonplan_model->gettopicByID($topic_value);
                     $lesson_name  = ($topic_data->lessonname);
-                   
+
                     if (array_key_exists($lesson_key, $data_to_be_insert)) {
-                     
+
                         $data_to_be_insert[$lesson_key]['topics'][] = [
                             'status'     => 0,
                             'name'       => $topic_data->name,
@@ -312,10 +317,10 @@ class Lessonplan extends Admin_Controller
                         ];
                     } else {
                         $data_to_be_insert[$lesson_key] = array(
-                            'subject_group_subject_id'        => $subject_group_subject_id,
-                            'name'                            => $lesson_name,
-                            'subject_group_class_sections_id' => $subject_group_class_sectionsId['id'],
-                            'session_id'                      => $this->sch_current_session,
+                            'subject_group_subject_id' => $subject_group_subject_id,
+                            'name'                     => $lesson_name,
+                            'academic_class_id'        => $academic_class_id,
+                            'session_id'               => $this->sch_current_session,
                             'topics' => [[
                                 'status'     => 0,
                                 'name'       => $topic_data->name,
@@ -343,9 +348,10 @@ class Lessonplan extends Admin_Controller
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
 
-        $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_classId($_POST['class_id'], $_POST['subject_group_id']);
-        $all_lessons                    = $this->lessonplan_model->getlessonBysubjectid($_POST['subject_id'], $subject_group_class_sectionsId['id']);
-        $userdata                       = $this->customlib->getUserData();
+        // TVET: Use academic_class_id directly (class_id is the academic_class_id)
+        $academic_class_id = $_POST['class_id'];
+        $all_lessons       = $this->lessonplan_model->getlessonBysubjectid($_POST['subject_id'], $academic_class_id);
+        $userdata          = $this->customlib->getUserData();
 
         $role_id = $userdata["role_id"];
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
@@ -401,17 +407,18 @@ class Lessonplan extends Admin_Controller
                 }
             }
 
-            $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_classId($_POST['class_id'], $_POST['subject_group_id']);
-            $all_lessons                    = $this->lessonplan_model->getlessonBysubjectid($_POST['subject_id'], $subject_group_class_sectionsId['id']);
+            // TVET: Use academic_class_id directly (class_id is the academic_class_id)
+            $academic_class_id = $_POST['class_id'];
+            $all_lessons       = $this->lessonplan_model->getlessonBysubjectid($_POST['subject_id'], $academic_class_id);
 
             foreach ($all_lessons as $lessonkey => $lessonvalue) {
                 if (isset($_POST['lessons_' . $lessonvalue['id']])) {
                     $data = array(
-                        'subject_group_subject_id'        => $_POST['subject_id'],
-                        'name'                            => $_POST['lessons_' . $lessonvalue['id']],
-                        'subject_group_class_sections_id' => $subject_group_class_sectionsId['id'],
-                        'session_id'                      => $this->sch_current_session,
-                        'id'                              => $lessonvalue['id'],
+                        'subject_group_subject_id' => $_POST['subject_id'],
+                        'name'                     => $_POST['lessons_' . $lessonvalue['id']],
+                        'academic_class_id'        => $academic_class_id,
+                        'session_id'               => $this->sch_current_session,
+                        'id'                       => $lessonvalue['id'],
                     );
 
                     $this->lessonplan_model->add_lesson($data);
@@ -421,10 +428,10 @@ class Lessonplan extends Admin_Controller
             if (isset($_POST['lessons'])) {
                 foreach ($_POST['lessons'] as $key => $value) {
                     $data = array(
-                        'subject_group_subject_id'        => $_POST['subject_id'],
-                        'name'                            => $value,
-                        'subject_group_class_sections_id' => $subject_group_class_sectionsId['id'],
-                        'session_id'                      => $this->sch_current_session,
+                        'subject_group_subject_id' => $_POST['subject_id'],
+                        'name'                     => $value,
+                        'academic_class_id'        => $academic_class_id,
+                        'session_id'               => $this->sch_current_session,
                     );
 
                     $this->lessonplan_model->add_lesson($data);
@@ -462,8 +469,9 @@ class Lessonplan extends Admin_Controller
 
     public function getlessonBysubjectid($sub_id)
     {
-        $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_classId($_POST['class_id'], $_POST['subject_group_id']);
-        $data                           = $this->lessonplan_model->getlessonBysubjectid($sub_id, $subject_group_class_sectionsId['id']);
+        // TVET: Use academic_class_id directly (class_id is the academic_class_id)
+        $academic_class_id = $this->input->post('class_id');
+        $data              = $this->lessonplan_model->getlessonBysubjectid($sub_id, $academic_class_id);
 
         echo json_encode($data);
     }
@@ -476,8 +484,9 @@ class Lessonplan extends Admin_Controller
 
     public function getlessonBysubjectidedit($sub_id)
     {
-        $subject_group_class_sections_id = $_POST['subject_group_class_sections_id'];
-        $data                            = $this->lessonplan_model->getlessonBysubjectidedit($sub_id, $subject_group_class_sections_id);
+        // TVET: Use academic_class_id instead of subject_group_class_sections_id
+        $academic_class_id = $this->input->post('academic_class_id');
+        $data              = $this->lessonplan_model->getlessonBysubjectidedit($sub_id, $academic_class_id);
         echo json_encode($data);
     }
 
@@ -569,14 +578,15 @@ class Lessonplan extends Admin_Controller
 
         $editresult                              = $this->lessonplan_model->gettopic($this->sch_current_session, $id);
         $edittopic                               = $this->lessonplan_model->gettopicBylessonid($editresult["lesson_id"], $this->sch_current_session);
-        $data['lesson_id']                       = $editresult["lesson_id"];
-        $data['topic_lesson_id']                 = $id;
-        $data['edittopicname']                   = $edittopic;
-        $data['class_id']                        = $editresult['classid'];
-        $data['subject_group_id']                = $editresult['subjectgroupsid'];
-        $data['subject_id']                      = $editresult['subjectid'];
-        $data['lesson_subject_group_subjectid']  = $editresult['subject_group_subject_id'];
-        $data['subject_group_class_sections_id'] = $editresult['subject_group_class_sections_id'];
+        $data['lesson_id']                      = $editresult["lesson_id"];
+        $data['topic_lesson_id']                = $id;
+        $data['edittopicname']                  = $edittopic;
+        // TVET: Use class_id from academic_class
+        $data['class_id']                       = $editresult['class_id'];
+        $data['subject_group_id']               = $editresult['subjectgroupsid'];
+        $data['subject_id']                     = $editresult['subjectid'];
+        $data['lesson_subject_group_subjectid'] = $editresult['subject_group_subject_id'];
+        $data['academic_class_id']              = $editresult['academic_class_id'];
 
         $this->load->view('layout/header');
         $this->load->view('admin/lessonplan/edittopic', $data);
@@ -774,10 +784,12 @@ class Lessonplan extends Admin_Controller
                     $code = ' (' . $value->subjects_code . ')';
                 }
 
-                if (in_array($value->classid, $class_array)) {
+                // TVET: Check against class_id from academic_class
+                if (in_array($value->class_id, $class_array)) {
                     $lesson_id = $key;
                     $row       = array();
-                    $row[]     = $value->cname;
+                    // TVET: Display class_code from academic_class
+                    $row[]     = $value->class_code . ' - ' . $value->cohort_name;
                     $row[]     = $value->sname;
                     $row[]     = $value->sgname;
                     $row[]     = $value->subname . '' . $code;
@@ -815,21 +827,25 @@ class Lessonplan extends Admin_Controller
                 $topic       = "";
                 $lesson_id   = $key;
                 $lesson_name = "";
-                $lesson      = $this->lessonplan_model->getlesson($value->subject_group_subject_id, $value->subject_group_class_sections_id, $this->sch_current_session);
+                // TVET: Use academic_class_id instead of subject_group_class_sections_id
+                $lesson      = $this->lessonplan_model->getlesson($value->subject_group_subject_id, $value->academic_class_id, $this->sch_current_session);
 
                 if ($this->rbac->hasPrivilege('lesson', 'can_edit')) {
-                    $editbtn = "<a href='" . base_url() . "admin/lessonplan/editlesson/" . $value->subject_group_class_sections_id . "/" . $value->subject_group_subject_id . "'   class='btn btn-default btn-xs'  data-toggle='tooltip'  title='" . $this->lang->line('edit') . "'><i class='fa fa-pencil'></i></a>";
+                    // TVET: Use academic_class_id instead of subject_group_class_sections_id
+                    $editbtn = "<a href='" . base_url() . "admin/lessonplan/editlesson/" . $value->academic_class_id . "/" . $value->subject_group_subject_id . "'   class='btn btn-default btn-xs'  data-toggle='tooltip'  title='" . $this->lang->line('edit') . "'><i class='fa fa-pencil'></i></a>";
                 } else {
                     $editbtn = '';
                 }
 
                 if ($this->rbac->hasPrivilege('lesson', 'can_delete')) {
-                    $deletebtn = "<a onclick='deletelessonbulk(" . '"' . $value->subject_group_class_sections_id . '"' . ',' . '"' . $value->subject_group_subject_id . '"' . "  )'  class='btn btn-default btn-xs'  title='" . $this->lang->line('delete') . "' data-toggle='tooltip'><i class='fa fa-remove'></i></a>";
+                    // TVET: Use academic_class_id instead of subject_group_class_sections_id
+                    $deletebtn = "<a onclick='deletelessonbulk(" . '"' . $value->academic_class_id . '"' . ',' . '"' . $value->subject_group_subject_id . '"' . "  )'  class='btn btn-default btn-xs'  title='" . $this->lang->line('delete') . "' data-toggle='tooltip'><i class='fa fa-remove'></i></a>";
                 } else {
                     $deletebtn = '';
                 }
 
-                if (in_array($value->classid, $class_array)) {
+                // TVET: Check against class_id from academic_class
+                if (in_array($value->class_id, $class_array)) {
 
                     foreach ($lesson as $rl_value) {
                         $lesson_name .= $rl_value['name'] . '<br>';
@@ -840,8 +856,10 @@ class Lessonplan extends Admin_Controller
                         $code = ' (' . $value->subjects_code . ')';
                     }
                     $row       = array();
-                    $row[]     = $value->cname;
-                    $row[]     = $value->sname;
+                    // TVET: Display class_code and cohort_name from academic_class
+                    $row[]     = $value->class_code . ' - ' . $value->cohort_name;
+                    // TVET: Display subject code and level
+                    $row[]     = $value->subject_code_full;
                     $row[]     = $value->sgname;
                     $row[]     = $value->subname . ' ' . $code;
                     $row[]     = $lesson_name;

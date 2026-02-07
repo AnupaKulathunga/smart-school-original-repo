@@ -134,7 +134,7 @@ class Academic_enrolment_model extends CI_Model
             $ss = $this->db->where('student_id', $data['student_id'])
                 ->order_by('id', 'DESC')
                 ->limit(1)
-                ->get('student_session')->row();
+                ->get('academic_class_enrolment')->row();
             $student_session_id = $ss ? $ss->id : null;
         }
 

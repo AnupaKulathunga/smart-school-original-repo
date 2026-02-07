@@ -45,16 +45,6 @@ foreach ($classlist as $class) {
                 <span class="text-danger"><?php echo form_error('class_id'); ?></span>
             </div>
         </div>
-        <div class="col-md-3 displaynone">
-
-            <div class="form-group">
-                <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-                <select id="section_id" name="section_id" class="form-control" >
-                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                </select>
-                <span class="text-danger"><?php echo form_error('section_id'); ?></span>
-            </div>
-        </div>
 
         <div class="col-md-3">
             <div class="form-group">
@@ -583,24 +573,12 @@ echo set_value('rte', $rte) == "No" ? "checked=checked" : "";
     $(document).ready(function () {
 
         var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id', 0) ?>';
-        $(document).on('change', '#class_id', function (e) {            var class_id = $(this).val();
-        });
 
         $('.date2').datepicker({
             autoclose: true,
              format: date_format,
             todayHighlight: true
-        });                            div_data += "<option value=" + obj.id + " " + sel + ">" + obj.section + "</option>";
-                        });
-                        $('#section_id').append(div_data);
-                    },
-                    complete: function () {
-                        $('#section_id').removeClass('dropdownloading');
-                    }
-                });
-            }
-        }
+        });
     });
 
     function auto_fill_guardian_address() {

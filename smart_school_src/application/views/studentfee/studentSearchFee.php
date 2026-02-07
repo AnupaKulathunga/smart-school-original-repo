@@ -140,7 +140,7 @@ if (isset($student_remain_fees)) {
             if($balance > 0){
             ?>
                                                 <tr>
-                                                    <td><?php echo $student['class'] . "-" . $student['section']; ?></td>
+                                                    <td><?php echo $student['class']; ?></td>
                                                     <td><?php echo $student['admission_no']; ?></td>
                                                     <td><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?></td>
                                                     <td>
@@ -213,10 +213,9 @@ echo amountFormat(($amount - ($amount_deposite + $amount_discount)));
         var fcat = $("#feecategory_id option:selected").text();
         var ftype = $("#feetype_id option:selected").text();
         var cls = $("#class_id option:selected").text();
-        var sec = $("#section_id option:selected").text();
         $('.fcat').html(fcat);
         $('.ftype').html(ftype);
-        $('.cls').html(cls + '(' + sec + ')');
+        $('.cls').html(cls);
         Popup(jQuery(elem).html());
     }
 

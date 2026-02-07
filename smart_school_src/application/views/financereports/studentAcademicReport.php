@@ -112,7 +112,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                                     ?>                                            
                                                       <tr>
                                                             <td><?php echo $students->name;?></td>
-                                                            <td><?php echo $students->class." (".$students->section.")";?></td>
+                                                            <td><?php echo $students->class;?></td>
                                                             <td><?php echo $students->mobileno;?></td>
                                                             <td><?php echo $students->admission_no;?></td>
                                                             <?php if ($sch_setting->roll_no) { ?>
@@ -186,26 +186,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
     }
     $(document).ready(function () {
     });
-    function getStudentsByClassAndSection() {
-        $('#student_id').html("");
-        var class_id = $('#class_id').val();
-        var section_id = $('#section_id').val();
-        var base_url = '<?php echo base_url() ?>';
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: base_url + "student/getByClassAndSection",
-            data: {'class_id': class_id, 'section_id': section_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += "<option value=" + obj.id + ">" + obj.firstname + " " + obj.lastname + "</option>";
-                });
-                $('#student_id').append(div_data);
-            }
-        });
-    }
+    // TVET: Removed getStudentsByClassAndSection - no longer needed with unified class selector
 
     $(document).ready(function () {
         $("ul.type_dropdown input[type=checkbox]").each(function () {

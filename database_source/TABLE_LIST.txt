@@ -1,0 +1,83 @@
+TVET-ONLY CORE DATABASE TABLES (52 tables)
+============================================
+
+USER MANAGEMENT (4)
+-------------------
+1. staff
+2. students
+3. users
+4. userlog
+
+RBAC (5)
+--------
+5. roles
+6. roles_permissions
+7. permission_category
+8. permission_group
+9. permission_student
+
+SETTINGS (8)
+------------
+10. sch_settings
+11. languages
+12. filetypes
+13. currencies
+14. sessions
+15. sidebar_menus
+16. sidebar_sub_menus
+17. front_cms_settings
+
+COMMUNICATION (8)
+-----------------
+18. send_notification
+19. messages
+20. email_config
+21. sms_config
+22. notification_setting
+23. read_notification
+24. email_template
+25. sms_template
+
+INFRASTRUCTURE (4)
+------------------
+26. migrations
+27. captcha
+28. logs
+29. notification_roles
+
+CONTENT (6)
+-----------
+30. contents
+31. content_for
+32. content_types
+33. homework
+34. lesson
+35. daily_assignment
+
+SUPPORTING (17)
+---------------
+36. attendence_type
+37. categories
+38. complaint_type
+39. custom_fields
+40. custom_field_values
+41. department
+42. disable_reason
+43. enquiry_type
+44. holiday_type
+45. item_category
+46. leave_types
+47. reference
+48. source
+49. staff_attendance_type
+50. staff_designation
+51. staff_roles
+52. visitors_purpose
+
+NOTES:
+------
++ These 52 core tables will be combined with 14 TVET academic tables
++ Total deployment: 59-66 tables (some may be consolidated)
++ All legacy school tables excluded (80+ tables removed)
++ Source: database.sql (8,643 lines, 360KB) → 001_core_tables.sql (3,188 lines, 68KB)
++ Reduction: 63% smaller, 40% of original tables retained

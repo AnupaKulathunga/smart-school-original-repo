@@ -57,13 +57,13 @@
                                                                                                     if ($this->rbac->hasPrivilege('live_classes', 'can_add')) {
                                                                                                         echo "online-timetable";
                                                                                                     }
-                                                                                                    ?>" data-subject="<?php echo $tm_kue->subject_name . " (" . $tm_kue->subject_code . ")"; ?>" data-class="<?php echo $tm_kue->class . "(" . $tm_kue->section . ")"; ?>" data-class-section-id="<?php echo $tm_kue->class_section_id; ?>" data-class-id="<?php echo $tm_kue->class_id; ?>" data-section-id="<?php echo $tm_kue->section_id; ?>" data-time-from="<?php echo $tm_kue->time_from; ?>">
+                                                                                                    ?>" data-subject="<?php echo $tm_kue->subject_name . " (" . $tm_kue->subject_code . ")"; ?>" data-class="<?php echo $tm_kue->class; ?>" data-class-id="<?php echo $tm_kue->class_id; ?>" data-time-from="<?php echo $tm_kue->time_from; ?>">
                                                                 <b class="text-green"><?php echo $this->lang->line('subject') ?>: <?php echo $tm_kue->subject_name . " (" . $tm_kue->subject_code . ")"; ?>
 
                                                                 </b>
                                                                 <br>
 
-                                                                <strong class="text-green"><?php echo $this->lang->line('class') ?>: <?php echo $tm_kue->class . "(" . $tm_kue->section . ")"; ?></strong><br>
+                                                                <strong class="text-green"><?php echo $this->lang->line('class') ?>: <?php echo $tm_kue->class; ?></strong><br>
                                                                 <strong class="text-green"><?php echo $tm_kue->time_from ?></strong>
                                                                 <b class="text text-center">-</b>
                                                                 <strong class="text-green"><?php echo $tm_kue->time_to; ?></strong><br>
@@ -179,7 +179,7 @@
 
                                                         foreach ($conference_value->classes as $confernce_class_key => $confernce_class_value) {
                                                         ?>
-                                                            <li> <i class="fa fa-check-square-o"></i> <?php echo $confernce_class_value->class . " (" . $confernce_class_value->section . ")" ?></li>
+                                                            <li> <i class="fa fa-check-square-o"></i> <?php echo $confernce_class_value->class; ?></li>
                                                         <?php
                                                         }
                                                         ?>
@@ -289,7 +289,6 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="class_id" id="class_id" value="0">
-                    <input type="hidden" name="section_id[]" id="section_id" value="0">
                     <input type="hidden" class="form-control" id="password" name="password">
                     <div class="row">
                         <div class="form-group col-xs-12 col-sm-12 col-md-12 col-lg-12">

@@ -255,8 +255,8 @@ $row_count++;
             </div>
 
             <script type="text/javascript">
+                // TVET: Section JavaScript removed - using class_selector component
                 $(document).ready(function () {
-                    var section_id_post = '<?php echo $section_id; ?>';
-                    // TVET: No section dropdown - class_id is self-contained
+                    // No section loading needed
                 });
             </script>

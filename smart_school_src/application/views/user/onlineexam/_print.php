@@ -145,7 +145,7 @@ if (!empty($online_exam_validate)) {
                                 <div><span class="font-weight-bold"><?php echo $this->lang->line('name'); ?>: </span> <?php echo $this->customlib->getFullname($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname) . " (" . $student['admission_no'] . ")" ?> </div>
                </div>
                 <div class="col-md-4">
-                   <div><span class="font-weight-bold"><?php echo $this->lang->line('class'); ?>: </span> <?php echo $student['class'] . " (" . $student['section'] . ")" ?>
+                   <div><span class="font-weight-bold"><?php echo $this->lang->line('class'); ?>: </span> <?php echo $student['class_code'] . " (" . $student['cohort_name'] . ")" ?>
                 </div>
                 </div>
                <div class="col-md-4">

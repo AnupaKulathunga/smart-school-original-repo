@@ -27,13 +27,12 @@
                                     <div class="col-md-6">
                                         <div class="row">
                                           <?php
+                                            // TVET: Single class selector (no section)
                                             $this->load->view('admin/_partials/class_selector', [
                                                 'selected_class_id' => set_value('class_id'),
                                                 'classlist' => $classlist,
-                                                'class_input_id' => 'search_class_id',
-                                                'section_input_id' => 'search_section_id',
-                                                'error_class_id' => 'error_search_class_id',
-                                                'error_section_id' => 'error_search_section_id'
+                                                'id' => 'search_class_id',
+                                                'name' => 'class_id'
                                             ]);
                                             ?> 
                                       </div>     
@@ -77,15 +76,10 @@
                     <div class="row">
                         <div class="col-lg-12 col-md-12 col-sm-12">
                             <?php
+                            // TVET: Single class selector (no section)
                             $this->load->view('admin/_partials/class_selector', [
                                 'selected_class_id' => set_value('class_id'),
-                                'classlist' => $classlist,
-                                'class_input_id' => 'class_id',
-                                'section_input_id' => 'section_id',
-                                'error_class_id' => 'error_class_id',
-                                'error_section_id' => 'error_section_id',
-                                'section_multiple' => true,
-                                'section_class' => 'section-list select2'
+                                'classlist' => $classlist
                             ]);
                             ?>
                             <div class="row">
@@ -200,8 +194,7 @@
   })
 </script>
 <script>
-        $('#myModal').on('hidden.bs.modal', function(e) {  
-          $('.section-list option:not(:first)').remove();               
+        $('#myModal').on('hidden.bs.modal', function(e) {
            reset_form('#addvideotutorial');
         });
 
@@ -313,8 +306,8 @@ $(document).ready(function () {
         event.preventDefault();
         page = $(this).data("ci-pagination-page");
         class_id = $('#search_class_id').val();
-        search_section_id = $('#search_section_id').val();
-        load(page, class_id, search_section_id);
+        // TVET: No section needed
+        load(page, class_id);
     });
 
     $('#confirm-delete').on('show.bs.modal', function (e) {
@@ -326,16 +319,16 @@ $(document).ready(function () {
 
 });
 
-function load(page, class_id, class_section_id) {
+function load(page, class_id) {
     $('#search_class_id').val(class_id);
 
-    $("#no_record_found").addClass("hide"); 
-    var keyword = $('.search_text').val(); 
+    $("#no_record_found").addClass("hide");
+    var keyword = $('.search_text').val();
 
     $.ajax({
         url: "<?php echo base_url(); ?>admin/video_tutorial/getPage/" + page,
         method: "GET",
-        data: {'keyword': keyword,class_id:class_id,class_section_id:class_section_id},
+        data: {'keyword': keyword, class_id: class_id},
         dataType: "json",
         beforeSend: function () {
             $('#media_div').empty();
@@ -401,7 +394,7 @@ $('#detail').on('show.bs.modal', function (e) {
     $('#modal_class').text("").text(data.class);
     $('#modal_title').text("").text(data.title);
     $('#modal_description').text("").text(data.description);
-    $('#modal_sectionlist').text("").text(data.sectionlist);
+    // TVET: section list removed
     $('#modal_created_by').text("").text(data.role_name);
     updateMediaDetailPopup(data.media_type, data.source, data.image);
 });
@@ -454,7 +447,7 @@ $(document).on('submit','.class_search_form',function(e){
                     $('#error_' + key).html(value);
                     });
                 }else{
-                    load(page,response.params.class_id,response.params.class_section_id);
+                    load(page, response.params.class_id);
                 }
               },
              error: function() { // your error handler
@@ -470,9 +463,8 @@ $(document).on('submit','.class_search_form',function(e){
 function resetFields(search_type){
     if(search_type == "search_full"){
         $('#search_class_id').prop('selectedIndex',0);
-        $('#search_section_id').find('option').not(':first').remove();
+        // TVET: No section dropdown to reset
     }else if (search_type == "search_filter") {
-
          $('#search_text').val("");
     }
 }

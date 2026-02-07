@@ -72,7 +72,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                 <div class="col-md-3">
                                                     <label> <?php echo $this->lang->line('class_section') ?>: </label>
                                                
-                                                    <?php echo $student_value['class'] . " (" . $student_value['section'] . ")" ?>
+                                                    <?php echo $student_value['class'] ?>
                                                 </div>                                                  
                                             </div>
                                             <hr class="mb10 mt10">

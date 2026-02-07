@@ -261,14 +261,11 @@ foreach ($roles as $role_key => $role_value) {
                                                 'show_section_row' => false
                                             ]);
                                             ?>
+                                            <!-- TVET: Removed section list - class is self-contained -->
                                             <div class="dual-list list-right">
                                                 <div class="well minheight260">
                                                     <div class="wellscroll row">
-                                                        <div class="col-md-2" id="">
-                                                            <b><?php echo $this->lang->line('section'); ?></b>
-                                                            <ul class="list-group section_list listcheckbox"></ul>
-                                                        </div>
-                                                        <div class="col-md-10 ">
+                                                        <div class="col-md-12">
                                                             <b><?php echo $this->lang->line('send_to'); ?></b>
                                                             <ul class="list-group listcheckbox hide"  id="send_to">
                                                                 <li class="checkbox"><a href="#" class="small"><label><input class="reset_checkbox" type="checkbox" name="send_to[]" value="student"/><?php echo $this->lang->line('students'); ?></label></a></li>
@@ -791,46 +788,19 @@ foreach ($birthDaysList['staff'] as $staff_key => $staff_value) {
         })
     });
 
+    // TVET: Class change handler - no section dropdown needed
     $(document).on('change', '#class_id', function (e) {
-        $('.section_list').html("");
-        
         var class_id = $(this).val();
-        var base_url = '<?php echo base_url() ?>';
-        var url = "<?php
-$userdata = $this->customlib->getUserData();
-if (($userdata["role_id"] == 2)) {
-    echo "getClassTeacherSection";
-} else {
-    echo "getByClass";
-}
-?>";
-        var div_data = '';
-        $.ajax({
-            type: "GET",
-            url: base_url + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += '<li class="checkbox"><a href="#" class="small"><label><input type="checkbox" name="user[]" value ="' + obj.section_id + '"/>' + obj.section + '</label></a></li>';
-
-                });
-                $('.section_list').append(div_data);
-
-                if(class_id!=""){
-                    $("#send_to").addClass("show");
-                    $("#send_to").removeClass("hide");
-                }else{
-                    $("#send_to").addClass("hide");
-                    $("#send_to").removeClass("show");
-                }
-                if(class_id=="" || class_id=="select"){
-                    $('.reset_checkbox').prop('checked',false);
-                }
-                
-            }
-        });
+        if(class_id!=""){
+            $("#send_to").addClass("show");
+            $("#send_to").removeClass("hide");
+        }else{
+            $("#send_to").addClass("hide");
+            $("#send_to").removeClass("show");
+        }
+        if(class_id=="" || class_id=="select"){
+            $('.reset_checkbox').prop('checked',false);
+        }
     });
 
     $("#class_form").submit(function (event) {
@@ -882,7 +852,7 @@ if (($userdata["role_id"] == 2)) {
                     for (instance in CKEDITOR.instances) {
                         CKEDITOR.instances[instance].setData(" ");
                     }
-                    $('.section_list').html("");
+                    // TVET: Removed section_list clear
                     $("#send_to").addClass("hide");
                     $("#send_to").removeClass("show");
                     successMsg(data.msg);

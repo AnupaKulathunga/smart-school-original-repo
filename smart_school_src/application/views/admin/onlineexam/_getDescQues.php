@@ -37,7 +37,7 @@ if (!empty($result->total_result)) {
   <div class="qbox">
       <ul class="queslist">
         <li><a href="#"> <?php echo $this->lang->line('name'); ?><span class="pull-right"><?php echo $this->customlib->getFullName($result_item->firstname, $result_item->middlename, $result_item->lastname, $sch_setting->middlename, $sch_setting->lastname); ?></span></a></li>
-        <li><a href="#"> <?php echo $this->lang->line('class'); ?><span class="pull-right"><?php echo $result_item->class . "(" . $result_item->section . ")"; ?></span></a></li>
+        <li><a href="#"> <?php echo $this->lang->line('class'); ?><span class="pull-right"><?php echo $result_item->class_code . "(" . $result_item->cohort_name . ")"; ?></span></a></li>
         <li><a href="#"><?php echo $this->lang->line('admission_no'); ?><span class="pull-right"><?php echo $result_item->admission_no; ?></span></a></li>
         <li><a href="#"><?php echo $this->lang->line('mobile_number'); ?><span class="pull-right"><?php echo $result_item->mobileno; ?></span></a></li>
         <li><a href="#"> <?php echo $this->lang->line('guardian_name'); ?><span class="pull-right"><?php echo $result_item->guardian_name; ?></span></a></li>

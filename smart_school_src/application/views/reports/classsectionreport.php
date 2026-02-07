@@ -6,14 +6,14 @@
             <div class="col-md-12">
                 <div class="box removeboxmius">
                             <div class="box-header ptbnull">
-                                <h3 class="box-title titlefix"><i class="fa fa-users"></i> <?php echo $this->lang->line('class_section_report'); ?> </h3>
+                                <h3 class="box-title titlefix"><i class="fa fa-users"></i> <?php echo $this->lang->line('class'); ?> <?php echo $this->lang->line('report'); ?> </h3>
                             </div>
                             <div class="box-body table-responsive">
                                 <?php 
 
 if(!empty($class_section_list)){
 ?>
-<div class="download_label"><?php echo $this->lang->line('class_section_report'); ?></div>
+<div class="download_label"><?php echo $this->lang->line('class'); ?> <?php echo $this->lang->line('report'); ?></div>
  <table class="table table-striped table-bordered table-hover example">
         <thead>
             <tr>
@@ -30,7 +30,7 @@ if(!empty($class_section_list)){
 ?>
 <tr>
         <td><?php echo $count; ?></td>
-        <td class="text text-center"><?php echo $class_section_value->class . " (" . $class_section_value->section . ")" ?></td>
+        <td class="text text-center"><?php echo $class_section_value->class; ?></td>
         <td class="text text-center"><?php echo $class_section_value->student_count; ?></td>
         <td class="text text-right">    
           

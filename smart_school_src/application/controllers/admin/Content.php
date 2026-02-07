@@ -397,8 +397,7 @@ class Content extends Admin_Controller
             }
 
         } elseif ($send_to == "class") {
-
-            // TVET: Use class_id (includes cohort) instead of class_section_id
+            // TVET: Use academic_class_id instead of class_section_id
             $classes = $this->input->post('class_id');
             if (!isset($classes)) {
                 $this->form_validation->set_rules('classes', $this->lang->line('class'), 'required|trim|xss_clean');
@@ -497,11 +496,11 @@ class Content extends Admin_Controller
                     $insert_content_for[] = $inv;
                 }
             } elseif ($insert_data['send_to'] == "class") {
-                // TVET: Use class_id instead of class_section_id
+                // TVET: Use academic_class_id (class_id in form) instead of class_section_id
                 $classes = $this->input->post('class_id');
                 foreach ($classes as $class_key => $class_value) {
                     $insert_content_for[] = array(
-                        'class_id'         => $class_value,
+                        'class_id'         => $class_value, // TVET: Now refers to academic_class.id
                         'share_content_id' => 0,
                     );
                 }
@@ -704,85 +703,8 @@ class Content extends Admin_Controller
 
     public function index()
     {
-
-        $this->session->set_userdata('top_menu', 'Download Center');
-        $this->session->set_userdata('sub_menu', 'admin/content');
-        $user_role                 = $this->customlib->getStaffRole();
-        $data['title']             = 'Upload Content';
-        $data['title_list']        = 'Upload Content List';
-        $data['content_available'] = $this->customlib->contentAvailabelFor();
-        $ght                       = $this->customlib->getcontenttype();
-        $role                      = json_decode($user_role);
-
-        $list = $this->content_model->getContentByRole($this->customlib->getStaffID(), $role->name);
-        // TVET: Get classes from current session
-        $session = $this->setting_model->getCurrentSession();
-        $class = $this->classmodel_model->getClassesBySession($session);
-
-        $data['list']      = $list;
-        $data['classlist'] = $class;
-        $userdata          = $this->customlib->getUserData();
-        $carray            = array();
-        $data['ght']       = $ght;
-        $this->form_validation->set_rules('content_title', $this->lang->line('content_title'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('content_type', $this->lang->line('content_type'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('content_available[]', $this->lang->line('available_for'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('upload_date', $this->lang->line('date'), 'trim|required|xss_clean');
-        $post_data = $this->input->post();
-
-        // TVET: No section_id validation, class_id is sufficient
-        if (isset($post_data['content_available']) and !isset($post_data['visibility']) and (in_array("student", $post_data['content_available']))) {
-            $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        }
-
-        $this->form_validation->set_rules('file', $this->lang->line('image'), 'callback_handle_upload');
-        if ($this->form_validation->run() == false) {
-
-            $this->load->view('layout/header');
-            $this->load->view('admin/content/createcontent', $data);
-            $this->load->view('layout/footer');
-        } else {
-
-            $vs                = $this->input->post('visibility');
-            $content_available = $this->input->post('content_available');
-            $visibility        = "No";
-            $classes           = "";
-            // TVET: No section_id needed
-            if (in_array('student', $content_available) && isset($vs)) {
-                $visibility = $this->input->post('visibility');
-            } elseif (in_array('student', $content_available) && !isset($vs)) {
-                $classes = $this->input->post('class_id');
-            } else {
-
-            }
-
-            $content_for = array();
-            foreach ($content_available as $cont_avail_key => $cont_avail_value) {
-                $content_for[] = array('role' => $cont_avail_value);
-            }
-
-            $img_name = $this->media_storage->fileupload("file", "./uploads/school_content/material/");
-
-            // TVET: No cls_sec_id field, class_id includes cohort
-            $data = array(
-                'title'      => $this->input->post('content_title'),
-                'type'       => $this->input->post('content_type'),
-                'note'       => $this->input->post('note'),
-                'class_id'   => $classes,
-                'created_by' => $this->customlib->getStaffID(),
-                'is_public'  => $visibility,
-                'file'       => $img_name,
-            );
-
-            if (isset($_POST['upload_date']) && $_POST['upload_date'] != '') {
-
-                $data['date'] = date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('upload_date')));
-            }
-
-            $insert_id = $this->content_model->add($data, $content_for);
-            $this->session->set_flashdata('msg', '<div class="alert alert-success text-left">' . $this->lang->line('success_message') . '</div>');
-            redirect('admin/content');
-        }
+        // Default landing: redirect to content list
+        $this->list();
     }
 
     public function getsharedcontents()
@@ -805,18 +727,18 @@ class Content extends Admin_Controller
         $data['content_available'] = $this->customlib->contentAvailabelFor();
         $ght                       = $this->customlib->getcontenttype();
         $list                      = $this->content_model->get();
-        // TVET: Get classes from current session
+        // TVET: Get academic classes from current session
         $session                   = $this->setting_model->getCurrentSession();
         $class                     = $this->classmodel_model->getClassesBySession($session);
         $data['list']              = $list;
-        $data['classlist']         = $class;
+        $data['classlist']         = $class; // TVET: List of academic classes
         $data['ght']               = $ght;
         $this->form_validation->set_rules('content_title', $this->lang->line('content_title'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('content_type', $this->lang->line('content_type'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('content_available[]', $this->lang->line('available_for'), 'trim|required|xss_clean');
         $post_data = $this->input->post();
 
-        // TVET: No section_id validation, class_id is sufficient
+        // TVET: No section_id validation - class_id now refers to academic_class.id
         if (isset($post_data['content_available']) and !isset($post_data['visibility']) and (in_array("student", $post_data['content_available']))) {
             $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
         }
@@ -832,11 +754,11 @@ class Content extends Admin_Controller
             $content_available = $this->input->post('content_available');
             $visibility        = "No";
             $classes           = "";
-            // TVET: No section_id needed
+            // TVET: No section_id needed - class_id is academic_class_id
             if (in_array('student', $content_available) && isset($vs)) {
                 $visibility = $this->input->post('visibility');
             } elseif (in_array('student', $content_available) && !isset($vs)) {
-                $classes = $this->input->post('class_id');
+                $classes = $this->input->post('class_id'); // TVET: academic_class_id
             } else {
 
             }
@@ -846,12 +768,12 @@ class Content extends Admin_Controller
                 $content_for[] = array('role' => $cont_avail_value);
             }
 
-            // TVET: No cls_sec_id field, class_id includes cohort
+            // TVET: class_id is now academic_class_id (no cls_sec_id concatenation)
             $data = array(
                 'title'      => $this->input->post('content_title'),
                 'type'       => $this->input->post('content_type'),
                 'note'       => $this->input->post('note'),
-                'class_id'   => $classes,
+                'class_id'   => $classes, // TVET: academic_class_id (or array of them)
                 'date'       => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('upload_date'))),
                 'file'       => $this->input->post('file'),
                 'is_public'  => $visibility,
@@ -927,10 +849,10 @@ class Content extends Admin_Controller
         $data['editpost']  = $editpost;
         $ght               = $this->customlib->getcontenttype();
         $data['ght']       = $ght;
-        // TVET: Get classes from current session
+        // TVET: Get academic classes from current session
         $session           = $this->setting_model->getCurrentSession();
         $class             = $this->classmodel_model->getClassesBySession($session);
-        $data['classlist'] = $class;
+        $data['classlist'] = $class; // TVET: List of academic classes
         $this->form_validation->set_rules('content_title', $this->lang->line('content_title'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
             $listpost         = $this->content_model->get();
@@ -939,11 +861,12 @@ class Content extends Admin_Controller
             $this->load->view('admin/content/editpost', $data);
             $this->load->view('layout/footer');
         } else {
+            // TVET: class_id now refers to academic_class.id
             $data = array(
                 'id'            => $this->input->post('id'),
                 'content_title' => $this->input->post('content_title'),
                 'content_type'  => $this->input->post('content_type'),
-                'class_id'      => $this->input->post('class_id'),
+                'class_id'      => $this->input->post('class_id'), // TVET: academic_class_id
                 'date'          => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('upload_date'))),
                 'file_uploaded' => $this->input->file['file']['name'],
             );

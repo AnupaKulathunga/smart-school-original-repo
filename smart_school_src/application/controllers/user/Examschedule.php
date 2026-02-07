@@ -21,14 +21,15 @@ class ExamSchedule extends Student_Controller
         $this->session->set_userdata('sub_menu', 'examSchedule/index');
         $data['title'] = 'Exam Schedule';
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        // TVET: section_id validation removed
-        $student_current_class = $this->customlib->getStudentCurrentClsSection();
-        $student_session_id    = $student_current_class->student_session_id;
-        $examSchedule          = $this->examgroupstudent_model->studentExams($student_session_id);
+        // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
+        $student_enrolment     = $this->customlib->getStudentCurrentEnrolment();
+        $enrolment_id          = $student_enrolment->enrolment_id;
+        // TVET: Use studentExamsByEnrolment() for TVET mode
+        $examSchedule          = $this->examgroupstudent_model->studentExamsByEnrolment($enrolment_id);
         $data['examSchedule']  = $examSchedule;
-        $data['student_id']    =  $this->customlib->getStudentSessionUserID(); 
+        $data['student_id']    = $this->customlib->getStudentSessionUserID();
         $data['get_active_admitcard']  = $this->admitcard_model->get_active_admitcard();
-        $data['sch_setting']     = $this->sch_setting_detail;
+        $data['sch_setting']   = $this->sch_setting_detail;
         $this->load->view('layout/student/header', $data);
         $this->load->view('user/exam_schedule/examList', $data);
         $this->load->view('layout/student/footer', $data);

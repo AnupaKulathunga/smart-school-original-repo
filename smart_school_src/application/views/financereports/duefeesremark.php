@@ -93,7 +93,7 @@ $month_list= $this->customlib->getMonthDropdown($start_month);
                                                 ?>
                                                 <tr>
                                                     <td><?php echo $this->customlib->getFullName($student['firstname'],$student['middlename'],$student['lastname'],$sch_setting->middlename,$sch_setting->lastname) ."<br/>"."(".$student['admission_no'].")";?></td>                                         
-                                                    <td><?php echo $student['class']."-".$student['section']; ?></td>                             
+                                                    <td><?php echo $student['class']; ?></td>                             
                                                     <td>
                                                         <?php   
                                                         if(!empty($student['fees'])){
@@ -173,12 +173,11 @@ $month_list= $this->customlib->getMonthDropdown($start_month);
    
                 var $this = $(this);           
                 var class_id=$this.data('classId');
-                var section_id=$this.data('sectionId');
   $.ajax({
             type: "POST",
             url: base_url+'financereports/printduefeesremark',
             dataType: 'JSON',
-            data: {'class_id':class_id,'section_id':section_id}, // serializes the form's elements.
+            data: {'class_id':class_id}, // serializes the form's elements.
             beforeSend: function () {
                 $this.button('loading');
             },

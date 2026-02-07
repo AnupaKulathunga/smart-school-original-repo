@@ -17,10 +17,11 @@ class Subject extends Student_Controller
         $this->session->set_userdata('top_menu', 'Subjects');
         $this->session->set_userdata('sub_menu', 'subject/index');
         $data['title']       = 'Add Subject';
-        $stuid               = $this->session->userdata('student');
-        $stu_record          = $this->student_model->getRecentRecord($stuid['student_id']);
-        $subject_result      = $this->teachersubject_model->getSubjectByClsandSection($stu_record['class_id'], $stu_record['section_id']);
-        $data['subjectlist'] = $subject_result;
+        // TVET: Use student's current class from session instead of getRecentRecord
+        $student_current_class = $this->customlib->getStudentCurrentClsSection();
+        $class_id              = $student_current_class->class_id;
+        $subject_result        = $this->teachersubject_model->getSubjectByClass($class_id);
+        $data['subjectlist']   = $subject_result;
         $this->load->view('layout/student/header', $data);
         $this->load->view('user/subject/subjectList', $data);
         $this->load->view('layout/student/footer', $data);
@@ -106,11 +107,11 @@ class Subject extends Student_Controller
         }
     }
 
+    // TVET: Simplified - no section_id needed
     public function getSubjctByClassandSection()
     {
-        $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $date       = $this->teachersubject_model->getSubjectByClsandSection($class_id, $section_id);
+        $class_id = $this->input->post('class_id');
+        $data     = $this->teachersubject_model->getSubjectByClass($class_id);
         echo json_encode($data);
     }
 

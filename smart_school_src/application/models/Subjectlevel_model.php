@@ -43,7 +43,7 @@ class Subjectlevel_model extends CI_Model
         $this->db->join('level', 'subject_level.level_id = level.id');
         $this->db->where('subject_level.is_active', 1);
         $this->db->order_by('subjects.name', 'ASC');
-        $this->db->order_by('level.sequence', 'ASC');
+        $this->db->order_by('level.code', 'ASC');
         return $this->db->get()->result();
     }
 
@@ -71,13 +71,13 @@ class Subjectlevel_model extends CI_Model
      */
     public function getBySubject($subject_id)
     {
-        $this->db->select('subject_level.*, level.name as level_name, level.code as level_code, level.level_type, level.sequence');
+        $this->db->select('subject_level.*, level.name as level_name, level.code as level_code, level.level_type, level.code');
         $this->db->from('subject_level');
         $this->db->join('level', 'subject_level.level_id = level.id');
         $this->db->where('subject_level.subject_id', $subject_id);
         $this->db->where('subject_level.is_active', 1);
         $this->db->where('level.is_active', 1);
-        $this->db->order_by('level.sequence', 'ASC');
+        $this->db->order_by('level.code', 'ASC');
         return $this->db->get()->result();
     }
 
@@ -155,7 +155,7 @@ class Subjectlevel_model extends CI_Model
         $this->db->where('subject_level.is_active', 1);
         $this->db->group_by('subject_level.id');
         $this->db->order_by('subjects.name', 'ASC');
-        $this->db->order_by('level.sequence', 'ASC');
+        $this->db->order_by('level.code', 'ASC');
         return $this->db->get()->result();
     }
 }

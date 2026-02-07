@@ -52,16 +52,15 @@ class visitors_model extends MY_Model
 
     public function visitors_list($id = null)
     {
-        $this->db->select('visitors_book.*,classes.class,sections.section,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id as staff_employee_id,student_session.class_id,student_session.section_id,students.id as students_id,students.admission_no,students.firstname as student_firstname,students.middlename as student_middlename,students.lastname as student_lastname,roles.id as role_id')->from('visitors_book');
+        $this->db->select('visitors_book.*,ac.class_code,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id as staff_employee_id,e.class_id,e.id as student_session_id,students.id as students_id,students.admission_no,students.firstname as student_firstname,students.middlename as student_middlename,students.lastname as student_lastname,roles.id as role_id')->from('visitors_book');
         if ($id != null) {
             $this->db->where('visitors_book.id', $id);
         } else {
             $this->db->order_by('visitors_book.id', 'desc');
         }
-        $this->db->join('student_session', 'student_session.id=visitors_book.student_session_id', 'left');
-        $this->db->join('students', 'students.id=student_session.student_id', 'left');
-        $this->db->join('classes', 'student_session.class_id=classes.id', 'left');
-        $this->db->join('sections', 'sections.id=student_session.section_id', 'left');
+        $this->db->join('academic_class_enrolment e', 'e.id=visitors_book.student_session_id', 'left');
+        $this->db->join('students', 'students.id=e.student_id', 'left');
+        $this->db->join('academic_class ac', 'ac.id=e.class_id', 'left');
         $this->db->join('staff', 'staff.id=visitors_book.staff_id', 'left');
         $this->db->join("staff_roles", "staff_roles.staff_id = staff.id", 'left');
         $this->db->join("roles", "staff_roles.role_id = roles.id", 'left');
@@ -164,12 +163,13 @@ class visitors_model extends MY_Model
 
     public function getstudent($class_id, $section_id)
     {
-        $this->db->select('student_session.id,students.firstname,students.middlename,students.lastname,students.id as student_id, students.admission_no');
-        $this->db->from('student_session');
-        $this->db->join('students', 'students.id=student_session.student_id', 'left');
-        $this->db->where('student_session.class_id', $class_id);
-        $this->db->where('student_session.section_id', $section_id);
-        $this->db->where('student_session.session_id', $this->current_session);        
+        $this->db->select('e.id,students.firstname,students.middlename,students.lastname,students.id as student_id, students.admission_no');
+        $this->db->from('academic_class_enrolment e');
+        $this->db->join('students', 'students.id=e.student_id', 'left');
+        $this->db->join('academic_class ac', 'ac.id=e.class_id', 'left');
+        $this->db->where('e.class_id', $class_id);
+        $this->db->where('e.status', 'Active');
+        $this->db->where('ac.session_id', $this->current_session);
         $result = $this->db->get();
         return $result->result_array();
     }

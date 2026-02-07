@@ -156,9 +156,9 @@ class Feediscount_model extends MY_Model
     public function searchAssignFeeByClassSection($class_id = null, $section_id = null, $fees_discount_id = null, $category = null, $gender = null, $rte = null)
     {
         $sql = "SELECT IFNULL(`student_fees_discounts`.`id`, '0') as `student_fees_discount_id`,"
-        . "`classes`.`id` AS `class_id`, `student_session`.`id` as `student_session_id`,"
-        . " `students`.`id`, `classes`.`class`, `sections`.`id` AS `section_id`,"
-        . " `sections`.`section`, `students`.`id`, `students`.`admission_no`,"
+        . " `e`.`class_id` AS `class_id`, `e`.`id` as `student_session_id`,"
+        . " `students`.`id`, `ac`.`class_code` as `class`,"
+        . " `students`.`id`, `students`.`admission_no`,"
         . " `students`.`roll_no`, `students`.`admission_date`, `students`.`firstname`,"
         . " `students`.`lastname`,`students`.`middlename`, `students`.`image`, `students`.`mobileno`,"
         . " `students`.`email`, `students`.`state`, `students`.`city`, `students`.`pincode`,"
@@ -169,20 +169,17 @@ class Feediscount_model extends MY_Model
         . " `students`.`ifsc_code`, `students`.`guardian_name`, `students`.`guardian_relation`,"
         . " `students`.`guardian_phone`, `students`.`guardian_address`, `students`.`is_active`,"
         . " `students`.`created_at`, `students`.`updated_at`, `students`.`father_name`,"
-        . " `students`.`rte`, `students`.`gender` FROM `students` JOIN `student_session` ON"
-        . " `student_session`.`student_id` = `students`.`id` JOIN `classes` ON"
-        . " `student_session`.`class_id` = `classes`.`id` JOIN `sections` ON"
-        . " `sections`.`id` = `student_session`.`section_id` LEFT JOIN `categories` ON"
-        . " `students`.`category_id` = `categories`.`id` LEFT JOIN"
-        . " student_fees_discounts on student_fees_discounts.student_session_id=student_session.id"
-        . " AND student_fees_discounts.fees_discount_id=" . $this->db->escape($fees_discount_id) .
-        " WHERE `student_session`.`session_id` = " . $this->current_session;
+        . " `students`.`rte`, `students`.`gender` FROM `students`"
+        . " JOIN `academic_class_enrolment` `e` ON `e`.`student_id` = `students`.`id`"
+        . " JOIN `academic_class` `ac` ON `ac`.`id` = `e`.`class_id`"
+        . " LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id`"
+        . " LEFT JOIN student_fees_discounts on student_fees_discounts.student_session_id=e.id"
+        . " AND student_fees_discounts.fees_discount_id=" . $this->db->escape($fees_discount_id)
+        . " WHERE `ac`.`session_id` = " . $this->current_session
+        . " AND `e`.`status` = 'Active'";
 
         if ($class_id != null) {
-            $sql .= " AND `student_session`.`class_id` = " . $this->db->escape($class_id);
-        }
-        if ($section_id != null) {
-            $sql .= " AND `student_session`.`section_id` =" . $this->db->escape($section_id);
+            $sql .= " AND `e`.`class_id` = " . $this->db->escape($class_id);
         }
         if ($category != null) {
             $sql .= " AND `students`.`category_id` =" . $this->db->escape($category);
@@ -225,7 +222,172 @@ class Feediscount_model extends MY_Model
     public function getDiscountNotApplied($student_session_id = null)
     {
         $query = "SELECT * FROM (SELECT student_fees_discounts.*, fees_discounts.name, fees_discounts.code, fees_discounts.type, fees_discounts.percentage, fees_discounts.amount, fees_discounts.discount_limit, IFNULL(applied_fees.total_assigned, 0) AS total_assigned, fees_discounts.discount_limit - IFNULL(applied_fees.total_assigned, 0) AS remaining_discount_limit, fees_discounts.expire_date FROM `student_fees_discounts` INNER JOIN fees_discounts ON fees_discounts.id = student_fees_discounts.fees_discount_id LEFT JOIN (SELECT COUNT(*) AS total_assigned, student_fees_discount_id FROM `student_applied_discounts` GROUP BY student_fees_discount_id) AS applied_fees ON applied_fees.student_fees_discount_id = student_fees_discounts.id WHERE student_fees_discounts.student_session_id = $student_session_id and (fees_discounts.expire_date >=CURDATE() or fees_discounts.expire_date is NULL) ) AS subquery WHERE remaining_discount_limit > 0;";
-       
+
+        $query = $this->db->query($query);
+        return $query->result();
+    }
+
+    // =====================================================
+    // TVET Methods - Use enrolment_id instead of student_session_id
+    // =====================================================
+
+    /**
+     * TVET: Search students for fee discount assignment by class
+     * Replaces searchAssignFeeByClassSection() - no section_id needed
+     */
+    public function searchAssignFeeByClassTVET($class_id = null, $fees_discount_id = null, $category = null, $gender = null, $rte = null)
+    {
+        $this->db->select('IFNULL(student_fees_discounts.id, 0) as student_fees_discount_id,
+            class.id AS class_id,
+            enrolment.id as enrolment_id,
+            students.id,
+            class.class_code,
+            class.cohort_name,
+            subject.name as subject_name,
+            level.code as level_code,
+            students.admission_no,
+            students.roll_no,
+            students.admission_date,
+            students.firstname,
+            students.lastname,
+            students.middlename,
+            students.image,
+            students.mobileno,
+            students.email,
+            students.state,
+            students.city,
+            students.pincode,
+            students.religion,
+            students.dob,
+            students.current_address,
+            students.permanent_address,
+            IFNULL(students.category_id, 0) as category_id,
+            IFNULL(categories.category, "") as category,
+            students.adhar_no,
+            students.samagra_id,
+            students.bank_account_no,
+            students.bank_name,
+            students.ifsc_code,
+            students.guardian_name,
+            students.guardian_relation,
+            students.guardian_phone,
+            students.guardian_address,
+            students.is_active,
+            students.created_at,
+            students.updated_at,
+            students.father_name,
+            students.rte,
+            students.gender', FALSE)
+            ->from('academic_class_enrolment enrolment')
+            ->join('students', 'students.id = enrolment.student_id')
+            ->join('academic_class class', 'class.id = enrolment.class_id')
+            ->join('academic_subject_level subject_level', 'subject_level.id = class.subject_level_id')
+            ->join('academic_subject subject', 'subject.id = subject_level.subject_id')
+            ->join('academic_level level', 'level.id = subject_level.level_id')
+            ->join('categories', 'students.category_id = categories.id', 'left')
+            ->join('student_fees_discounts', 'student_fees_discounts.enrolment_id = enrolment.id AND student_fees_discounts.fees_discount_id = ' . $this->db->escape($fees_discount_id), 'left')
+            ->where('enrolment.session_id', $this->current_session)
+            ->where('students.is_active', 'yes');
+
+        if ($class_id != null) {
+            $this->db->where('enrolment.class_id', $class_id);
+        }
+        if ($category != null) {
+            $this->db->where('students.category_id', $category);
+        }
+        if ($gender != null) {
+            $this->db->where('students.gender', $gender);
+        }
+        if ($rte != null) {
+            $this->db->where('students.rte', $rte);
+        }
+
+        $this->db->order_by('students.id');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * TVET: Allot discount using enrolment_id
+     */
+    public function allotDiscountTVET($data)
+    {
+        $this->db->where('enrolment_id', $data['enrolment_id']);
+        $this->db->where('fees_discount_id', $data['fees_discount_id']);
+        $q = $this->db->get('student_fees_discounts');
+        if ($q->num_rows() > 0) {
+            return $q->row()->id;
+        } else {
+            $this->db->insert('student_fees_discounts', $data);
+            return $this->db->insert_id();
+        }
+    }
+
+    /**
+     * TVET: Delete discount by enrolment IDs
+     */
+    public function deleteDiscountByEnrolmentTVET($fees_discount_id, $enrolment_ids)
+    {
+        $this->db->where('fees_discount_id', $fees_discount_id);
+        $this->db->where_in('enrolment_id', $enrolment_ids);
+        $this->db->delete('student_fees_discounts');
+    }
+
+    /**
+     * TVET: Get student fees discount by enrolment
+     */
+    public function getStudentFeesDiscountTVET($enrolment_id = null)
+    {
+        $this->db->select('student_fees_discounts.id,
+            student_fees_discounts.enrolment_id,
+            student_fees_discounts.status,
+            student_fees_discounts.payment_id,
+            student_fees_discounts.description as student_fees_discount_description,
+            student_fees_discounts.fees_discount_id,
+            fees_discounts.name,
+            fees_discounts.code,
+            fees_discounts.amount,
+            fees_discounts.description,
+            fees_discounts.session_id,
+            fees_discounts.type,
+            fees_discounts.percentage', FALSE)
+            ->from('student_fees_discounts')
+            ->join('fees_discounts', 'fees_discounts.id = student_fees_discounts.fees_discount_id')
+            ->where('student_fees_discounts.enrolment_id', $enrolment_id)
+            ->order_by('student_fees_discounts.id');
+
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    /**
+     * TVET: Get discount not applied by enrolment
+     */
+    public function getDiscountNotAppliedTVET($enrolment_id = null)
+    {
+        $query = "SELECT * FROM (
+            SELECT student_fees_discounts.*,
+                fees_discounts.name,
+                fees_discounts.code,
+                fees_discounts.type,
+                fees_discounts.percentage,
+                fees_discounts.amount,
+                fees_discounts.discount_limit,
+                IFNULL(applied_fees.total_assigned, 0) AS total_assigned,
+                fees_discounts.discount_limit - IFNULL(applied_fees.total_assigned, 0) AS remaining_discount_limit,
+                fees_discounts.expire_date
+            FROM student_fees_discounts
+            INNER JOIN fees_discounts ON fees_discounts.id = student_fees_discounts.fees_discount_id
+            LEFT JOIN (
+                SELECT COUNT(*) AS total_assigned, student_fees_discount_id
+                FROM student_applied_discounts
+                GROUP BY student_fees_discount_id
+            ) AS applied_fees ON applied_fees.student_fees_discount_id = student_fees_discounts.id
+            WHERE student_fees_discounts.enrolment_id = " . $this->db->escape($enrolment_id) . "
+                AND (fees_discounts.expire_date >= CURDATE() OR fees_discounts.expire_date IS NULL)
+        ) AS subquery
+        WHERE remaining_discount_limit > 0";
+
         $query = $this->db->query($query);
         return $query->result();
     }

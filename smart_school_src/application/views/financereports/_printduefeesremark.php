@@ -278,7 +278,7 @@
                                                 ?>
                                                 <tr>
                                                     <td><?php echo $this->customlib->getFullName($student['firstname'],$student['middlename'],$student['lastname'],$sch_setting->middlename,$sch_setting->lastname) ."<br/>"."(".$student['admission_no'].")";?></td>                                         
-                                                    <td><?php echo $student['class']."-".$student['section']; ?></td>          
+                                                    <td><?php echo $student['class']; ?></td>          
                                                     <td>
                                                         <?php   
                                                         if(!empty($student['fees'])){

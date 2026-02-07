@@ -114,7 +114,7 @@ if (empty($resultlist)) {
                                                                     <a href="<?php echo base_url(); ?>student/view/<?php echo $student['id']; ?>"><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?>
                                                                     </a>
                                                                 </td>
-                                                                <td><?php echo $student['class'] . "(" . $student['section'] . ")" ?></td>
+                                                                <td><?php echo $student['class'] ?></td>
                                                                 <td><?php
 if ($student["dob"] != null && $student["dob"] != '0000-00-00') {
                 echo date($this->customlib->getSchoolDateFormat(), $this->customlib->dateyyyymmddTodateformat($student['dob']));

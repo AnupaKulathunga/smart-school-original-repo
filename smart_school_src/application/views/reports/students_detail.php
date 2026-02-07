@@ -229,7 +229,7 @@ if (isset($student_due_fee)) {
                                 <h2 style="font-size: 1.4em;
                                     font-weight: normal;
                                     margin: 0;"> <?php echo $student['firstname'] . " " . $student['lastname']; ?></h2>
-                                <div class="address"><?php echo $this->lang->line('class'); ?>: <?php echo $student['class'] . "(" . $student['section'] . ")" ?> </div>
+                                <div class="address"><?php echo $this->lang->line('class'); ?>: <?php echo $student['class'] ?> </div>
                                 <div class="address"><i class="fa fa-search"></i><?php echo $student['guardian_phone']; ?></div>
                                 <div class="address"><?php echo $student['current_address'] . ", " . $student['city'] ?></div>
                                 <div class="email"><a href="mailto:john@example.com"><?php echo $student['email']; ?></a></div>

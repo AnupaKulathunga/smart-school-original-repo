@@ -55,7 +55,7 @@ if (empty($value['exam_result'])) {
                                                             <tr>
                                                                 <td><?php echo $this->lang->line('student'); ?>
                                                                     : <?php echo $student['firstname'] . " " . $student['lastname'] ?></td>
-                                                                <td><?php echo $this->lang->line('class'); ?>: <?php echo $student['class_id'] . "(" . $student['section'] . ")"; ?> </td>
+                                                                <td><?php echo $this->lang->line('class'); ?>: <?php echo $student['class']; ?> </td>
                                                             </tr>
                                                         </thead>
                                                     </table>

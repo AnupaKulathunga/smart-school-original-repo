@@ -556,6 +556,7 @@ class Homework extends Admin_Controller
         $class_id      = $result["class_id"];
         $data['marks'] = $result["marks"];
 
+        // TVET: getStudents now takes homework_id instead of class_id, section_id
         $data["studentlist"] = $this->homework_model->getStudents($id);
         $data["result"]      = $result;
         $data['sch_setting'] = $this->setting_model->getSetting();
@@ -567,13 +568,13 @@ class Homework extends Admin_Controller
             $evaluated_by = '';
 
             if ($result["evaluated_by"]) {
-				
+
                 $eval_data = $this->staff_model->get($result["evaluated_by"]);
 
                 if ((!empty($eval_data)) && $eval_data["employee_id"] != '') {
                     $evaluated_by_staff_id = ' (' . $eval_data["employee_id"] . ')';
 					$evaluated_by = $eval_data["name"] . " " . $eval_data["surname"] . $evaluated_by_staff_id;
-                }                
+                }
             }
 
             $created_by   = '';
@@ -588,14 +589,14 @@ class Homework extends Admin_Controller
 
                     $created_by = $result["created_staff_name"] . " " . $result["created_staff_surname"] . $created_by_staff_id;
                     $evaluated_by = $evaluated_by;
-                    
+
                 } else {
 
                     if ($result["created_staff_roleid"] != 7) {
                         $created_by = $result["created_staff_name"] . " " . $result["created_staff_surname"] . $created_by_staff_id;
-                    }                   
+                    }
                     $evaluated_by = $evaluated_by;
-                    
+
                 }
             } else {
                 $created_by_staff_id = ' (' . $result["created_employee_id"] . ')';
@@ -662,19 +663,21 @@ class Homework extends Admin_Controller
                 }
 
                 if ($std_value == 0) {
+                    // TVET: Insert new evaluation record - std_key is enrolment_id
                     $insert_array[] = array(
-                        'student_session_id' => $std_key,
+                        'student_session_id' => $std_key, // TVET: This is enrolment_id
                         'note'               => $note[$std_key],
                         'marks'              => $newmarks,
                         'student_id'         => $student_id[$std_key],
                         'status'             => 'completed',
                     );
                 } else {
+                    // TVET: Update existing evaluation record
                     $insert_prev[] = $std_value;
                     $update_array[$std_value][] = array(
                         'note'               => $note[$std_key],
                         'marks'              => $newmarks,
-                        'student_session_id' => $std_key,
+                        'student_session_id' => $std_key, // TVET: This is enrolment_id
                     );
                 }
             }
@@ -735,6 +738,7 @@ class Homework extends Admin_Controller
             $data['resultlist'] = array();
             $data["report"]     = array();
         } else {
+            // TVET: search_homework now takes class_id without section_id
             $data['resultlist'] = $this->homework_model->search_homework($class_id, $subject_group_id, $subject_id);
 
             foreach ($data['resultlist'] as $key => $value) {
@@ -760,7 +764,7 @@ class Homework extends Admin_Controller
             $evaluated_by         = $eval_data["name"] . " " . $eval_data["surname"];
             $data["created_by"]   = $created_by;
             $data["evaluated_by"] = $evaluated_by;
-            // Pass homework id, not class_id
+            // TVET: getStudents now takes homework id, not class_id and section_id
             $studentlist          = $this->homework_model->getStudents($id);
             $data["studentlist"]  = $studentlist;
             $this->load->view("homework/evaluation_report", $data);
@@ -772,7 +776,9 @@ class Homework extends Admin_Controller
     public function count_percentage($id, $class_id)
     {
         $data               = array();
+        // TVET: count_students takes class_id (academic_class_id)
         $count_students     = $this->homework_model->count_students($class_id);
+        // TVET: count_evalstudents takes homework_id and class_id
         $count_evalstudents = $this->homework_model->count_evalstudents($id, $class_id);
         if ($count_students > 0) {
             $total_students     = $count_students;
@@ -861,6 +867,7 @@ class Homework extends Admin_Controller
         $userdata        = $this->customlib->getUserData();
         $login_staff_id  = $userdata["id"];
 
+        // TVET: searchdailyassignment uses class_id (no section)
         $dailyassignment = $this->homework_model->searchdailyassignment($class_id, $subject_group_id, $subject_group_subject_id, $date);
         $dailyassignment = json_decode($dailyassignment);
 
@@ -1029,6 +1036,7 @@ class Homework extends Admin_Controller
         $data['subject_id']       = $subject_id =   $this->input->post('subject_id');
 
         if (isset($_POST["search"])) {
+            // TVET: search_dthomeworkreport uses class_id (no section)
             $homeworklist = $this->homework_model->search_dthomeworkreport($class_id, $subject_group_id, $subject_id);
             $data["resultlist"] = $homeworklist;
         }
@@ -1051,6 +1059,7 @@ class Homework extends Admin_Controller
         } elseif ($type == 'homework_submitted') {
             $student_list = $this->homework_model->get_submitted_homework($homework_id);
         } elseif ($type == 'pending_student') {
+            // TVET: get_not_submitted_homework takes class_id and homework_id
             $student_list = $this->homework_model->get_not_submitted_homework($class_id, $homework_id);
         }
 
@@ -1116,6 +1125,8 @@ class Homework extends Admin_Controller
         $staffrole       = json_decode($getStaffRole);
         $userdata        = $this->customlib->getUserData();
         $login_staff_id  = $userdata["id"];
+
+        // TVET: dailyassignmentreport uses class_id (no section)
         $dailyassignment = $this->homework_model->dailyassignmentreport($class_id, $subject_group_id, $subject_group_subject_id, $condition);
         $dailyassignment = json_decode($dailyassignment);
 
@@ -1191,6 +1202,7 @@ class Homework extends Admin_Controller
 
         $condition = " date_format(daily_assignment.date,'%Y-%m-%d') between  '" . $from_date . "' and '" . $to_date . "'";
 
+        // TVET: assignmentdetails query already handles enrolment-based lookups
         $data['assignmentlist'] = $this->homework_model->assignmentdetails($student_id, $condition, $subject_id);
 
         $data['sch_setting'] = $this->setting_model->getSetting();

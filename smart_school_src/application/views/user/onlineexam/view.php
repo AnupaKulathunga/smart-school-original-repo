@@ -93,7 +93,7 @@ if (!empty($online_exam_validate)) {
                                 <div class="col-lg-4 col-md-4 col-sm-12">
                               <div class="row">
                                  <dt class="col-sm-6 col-xs-12 col-md-6 col-lg-6"> <?php echo $this->lang->line('class'); ?></dt>
-                                 <dd class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><?php echo $student['class'] . " (" . $student['section'] . ")" ?></dd>
+                                 <dd class="col-sm-6 col-xs-12 col-md-6 col-lg-6"><?php echo $student['class_code'] . " (" . $student['cohort_name'] . ")" ?></dd>
                               </div>
                            </div>
                            <!--lcol-lg-6-->

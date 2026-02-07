@@ -27,7 +27,7 @@ class Classmodel_model extends CI_Model
      */
     public function getClassById($class_id)
     {
-        // FIXED: Explicit column selection to avoid id column conflict
+        // FIXED: Use actual TVET table names with aliases for compatibility
         $this->db->select('class.id as id,
             class.class_code, class.subject_level_id, class.cohort_name,
             class.academic_year, class.session_id, class.intake_period, class.delivery_mode,
@@ -38,10 +38,10 @@ class Classmodel_model extends CI_Model
             level.name as level_name, level.code as level_code, level.level_type, level.nqf_level,
             staff.name as lecturer_name, staff.id as lecturer_id, staff.employee_id,
             sessions.session as session_name');
-        $this->db->from('class');
-        $this->db->join('subject_level', 'class.subject_level_id = subject_level.id');
-        $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
-        $this->db->join('level', 'subject_level.level_id = level.id');
+        $this->db->from('academic_class class');
+        $this->db->join('academic_subject_level subject_level', 'class.subject_level_id = subject_level.id');
+        $this->db->join('academic_subject subjects', 'subject_level.subject_id = subjects.id');
+        $this->db->join('academic_level level', 'subject_level.level_id = level.id');
         $this->db->join('staff', 'class.primary_lecturer_id = staff.id', 'left');
         $this->db->join('sessions', 'class.session_id = sessions.id');
         $this->db->where('class.id', $class_id);
@@ -56,7 +56,7 @@ class Classmodel_model extends CI_Model
      */
     public function getClassesBySession($session_id, $filters = array())
     {
-        // FIXED: Explicit column selection to avoid id column conflict between class and subject_level tables
+        // FIXED: Use actual TVET table names with aliases for compatibility
         // TVET: "class" field is formatted as "Subject - Level (Cohort)" for display in dropdowns
         $this->db->select('class.id as id,
             CONCAT(subjects.name, " - ", level.name,
@@ -70,14 +70,14 @@ class Classmodel_model extends CI_Model
             class.max_students, class.start_date, class.end_date,
             subject_level.subject_id, subject_level.level_id,
             subjects.name as subject_name, subjects.code as subject_code, subjects.programme_id,
-            level.name as level_name, level.code as level_code, level.level_type, level.sequence,
+            level.name as level_name, level.code as level_code, level.level_type, level.sequence_order,
             staff.name as lecturer_name, staff.id as lecturer_id,
             sessions.session as session_name,
-            (SELECT COUNT(*) FROM enrolment WHERE enrolment.class_id = class.id AND enrolment.status = "Active") as student_count', FALSE);
-        $this->db->from('class');
-        $this->db->join('subject_level', 'class.subject_level_id = subject_level.id');
-        $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
-        $this->db->join('level', 'subject_level.level_id = level.id');
+            (SELECT COUNT(*) FROM academic_class_enrolment WHERE academic_class_enrolment.class_id = class.id AND academic_class_enrolment.status = "Active") as student_count', FALSE);
+        $this->db->from('academic_class class');
+        $this->db->join('academic_subject_level subject_level', 'class.subject_level_id = subject_level.id');
+        $this->db->join('academic_subject subjects', 'subject_level.subject_id = subjects.id');
+        $this->db->join('academic_level level', 'subject_level.level_id = level.id');
         $this->db->join('staff', 'class.primary_lecturer_id = staff.id', 'left');
         $this->db->join('sessions', 'class.session_id = sessions.id');
         $this->db->where('class.session_id', $session_id);
@@ -109,7 +109,7 @@ class Classmodel_model extends CI_Model
         }
 
         $this->db->order_by('subjects.name', 'ASC');
-        $this->db->order_by('level.sequence', 'ASC');
+        $this->db->order_by('level.sequence_order', 'ASC');
         $this->db->order_by('class.cohort_name', 'ASC');
 
         return $this->db->get()->result_array();
@@ -130,10 +130,10 @@ class Classmodel_model extends CI_Model
             enrolment.status as enrolment_status,
             student_programme.programme_id,
             programme.name as programme_name');
-        $this->db->from('enrolment');
+        $this->db->from('academic_class_enrolment enrolment');
         $this->db->join('students', 'enrolment.student_id = students.id');
         $this->db->join('student_programme', 'student_programme.student_id = students.id AND student_programme.session_id = enrolment.session_id', 'left');
-        $this->db->join('programme', 'student_programme.programme_id = programme.id', 'left');
+        $this->db->join('academic_programme programme', 'student_programme.programme_id = programme.id', 'left');
         $this->db->where('enrolment.class_id', $class_id);
         $this->db->where('enrolment.status', 'Active');
         $this->db->where('students.is_active', 'yes');
@@ -158,10 +158,10 @@ class Classmodel_model extends CI_Model
             subjects.name as subject_name, subjects.code as subject_code,
             level.name as level_name, level.code as level_code,
             (SELECT COUNT(*) FROM enrolment WHERE enrolment.class_id = class.id AND enrolment.status = "Active") as student_count');
-        $this->db->from('class');
-        $this->db->join('subject_level', 'class.subject_level_id = subject_level.id');
-        $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
-        $this->db->join('level', 'subject_level.level_id = level.id');
+        $this->db->from('academic_class class');
+        $this->db->join('academic_subject_level subject_level', 'class.subject_level_id = subject_level.id');
+        $this->db->join('academic_subject subjects', 'subject_level.subject_id = subjects.id');
+        $this->db->join('academic_level level', 'subject_level.level_id = level.id');
         $this->db->where('class.primary_lecturer_id', $lecturer_id);
         $this->db->where('class.is_active', 1);
 
@@ -170,7 +170,7 @@ class Classmodel_model extends CI_Model
         }
 
         $this->db->order_by('subjects.name', 'ASC');
-        $this->db->order_by('level.sequence', 'ASC');
+        $this->db->order_by('level.sequence_order', 'ASC');
         return $this->db->get()->result();
     }
 
@@ -186,10 +186,10 @@ class Classmodel_model extends CI_Model
             subjects.name as subject_name, subjects.code as subject_code,
             level.name as level_name,
             staff.name as lecturer_name');
-        $this->db->from('class');
-        $this->db->join('subject_level', 'class.subject_level_id = subject_level.id');
-        $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
-        $this->db->join('level', 'subject_level.level_id = level.id');
+        $this->db->from('academic_class class');
+        $this->db->join('academic_subject_level subject_level', 'class.subject_level_id = subject_level.id');
+        $this->db->join('academic_subject subjects', 'subject_level.subject_id = subjects.id');
+        $this->db->join('academic_level level', 'subject_level.level_id = level.id');
         $this->db->join('staff', 'class.primary_lecturer_id = staff.id', 'left');
         $this->db->where('level.id', $level_id);
         $this->db->where('class.session_id', $session_id);
@@ -206,7 +206,7 @@ class Classmodel_model extends CI_Model
      */
     public function add($data)
     {
-        if ($this->db->insert('class', $data)) {
+        if ($this->db->insert('academic_class', $data)) {
             return $this->db->insert_id();
         }
         return false;
@@ -221,7 +221,7 @@ class Classmodel_model extends CI_Model
     public function update($class_id, $data)
     {
         $this->db->where('id', $class_id);
-        return $this->db->update('class', $data);
+        return $this->db->update('academic_class', $data);
     }
 
     /**
@@ -233,7 +233,7 @@ class Classmodel_model extends CI_Model
     {
         $data = array('is_active' => 0);
         $this->db->where('id', $class_id);
-        return $this->db->update('class', $data);
+        return $this->db->update('academic_class', $data);
     }
 
     /**
@@ -247,8 +247,8 @@ class Classmodel_model extends CI_Model
     {
         $sl = $this->db->select('subjects.code as subject_code, level.code as level_code')
             ->from('subject_level')
-            ->join('subjects', 'subject_level.subject_id = subjects.id')
-            ->join('level', 'subject_level.level_id = level.id')
+            ->join('academic_subject subjects', 'subject_level.subject_id = subjects.id')
+            ->join('academic_level level', 'subject_level.level_id = level.id')
             ->where('subject_level.id', $subject_level_id)
             ->get()->row();
 
@@ -295,7 +295,7 @@ class Classmodel_model extends CI_Model
 
         // Classes by status
         $this->db->select('status, COUNT(*) as count', FALSE);
-        $this->db->from('class');
+        $this->db->from('academic_class class');
         $this->db->where('session_id', $session_id);
         $this->db->where('is_active', 1);
         $this->db->group_by('status');
@@ -362,7 +362,7 @@ class Classmodel_model extends CI_Model
 
         // Find class with matching subject_level, cohort, year, session
         $this->db->select('class.*');
-        $this->db->from('class');
+        $this->db->from('academic_class class');
         $this->db->where('class.subject_level_id', $subject_level->id);
         $this->db->where('class.cohort_name', $cohort_name);
         $this->db->where('class.academic_year', $academic_year);
@@ -370,5 +370,90 @@ class Classmodel_model extends CI_Model
         $this->db->where('class.is_active', 1);
 
         return $this->db->get()->row();
+    }
+
+    /**
+     * Get class-teacher assignments (TVET)
+     * Returns unique class assignments with their primary lecturers
+     * Replaces legacy getClassTeacher() which returned class-section-teacher combinations
+     *
+     * @param int $session_id Session ID (optional, defaults to current session)
+     * @return array Array of class-lecturer assignments
+     */
+    public function getClassTeacher($session_id = null)
+    {
+        if ($session_id === null) {
+            $session_id = $this->setting_model->getCurrentSession();
+        }
+
+        $this->db->select('class.id as class_id,
+            class.class_code, class.cohort_name,
+            class.primary_lecturer_id,
+            subjects.name as subject_name, subjects.code as subject_code,
+            level.name as level_name, level.code as level_code,
+            staff.name as lecturer_name, staff.surname as lecturer_surname,
+            CONCAT(subjects.name, " - ", level.name, " (", class.cohort_name, ")") as class_name', FALSE);
+        $this->db->from('academic_class class');
+        $this->db->join('academic_subject_level subject_level', 'class.subject_level_id = subject_level.id');
+        $this->db->join('academic_subject subjects', 'subject_level.subject_id = subjects.id');
+        $this->db->join('academic_level level', 'subject_level.level_id = level.id');
+        $this->db->join('staff', 'class.primary_lecturer_id = staff.id', 'left');
+        $this->db->where('class.session_id', $session_id);
+        $this->db->where('class.is_active', 1);
+        $this->db->where('class.primary_lecturer_id IS NOT NULL', null, false);
+        $this->db->order_by('subjects.name', 'ASC');
+        $this->db->order_by('level.sequence_order', 'ASC');
+        $this->db->order_by('class.cohort_name', 'ASC');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Get classes by staff (for teacher portal)
+     * Returns all classes where staff is either primary or additional lecturer
+     *
+     * @param int $staff_id Staff ID
+     * @param int $session_id Session ID
+     * @return array Array of class objects
+     */
+    public function getClassesByStaff($staff_id, $session_id = null)
+    {
+        if ($session_id === null) {
+            $session_id = $this->setting_model->getCurrentSession();
+        }
+
+        // Get classes where staff is primary lecturer
+        $primary = $this->db->select('class.id,
+            class.class_code, class.cohort_name,
+            subjects.name as subject_name, subjects.code as subject_code,
+            level.name as level_name, level.code as level_code,
+            "Primary" as role', FALSE)
+            ->from('class')
+            ->join('academic_subject_level subject_level', 'class.subject_level_id = subject_level.id')
+            ->join('academic_subject subjects', 'subject_level.subject_id = subjects.id')
+            ->join('academic_level level', 'subject_level.level_id = level.id')
+            ->where('class.primary_lecturer_id', $staff_id)
+            ->where('class.session_id', $session_id)
+            ->where('class.is_active', 1)
+            ->get()->result_array();
+
+        // Get classes from class_lecturer table
+        $additional = $this->db->select('class.id,
+            class.class_code, class.cohort_name,
+            subjects.name as subject_name, subjects.code as subject_code,
+            level.name as level_name, level.code as level_code,
+            cl.role', FALSE)
+            ->from('class_lecturer cl')
+            ->join('class', 'cl.class_id = class.id')
+            ->join('academic_subject_level subject_level', 'class.subject_level_id = subject_level.id')
+            ->join('academic_subject subjects', 'subject_level.subject_id = subjects.id')
+            ->join('academic_level level', 'subject_level.level_id = level.id')
+            ->where('cl.staff_id', $staff_id)
+            ->where('cl.is_active', 1)
+            ->where('class.session_id', $session_id)
+            ->where('class.is_active', 1)
+            ->get()->result_array();
+
+        return array_merge($primary, $additional);
     }
 }

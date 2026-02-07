@@ -22,19 +22,22 @@ class Exam extends Admin_Controller
         $data['title']    = 'list of  Alloted';
         $exam             = $this->exam_model->get($id);
         $data['exam']     = $exam;
-        $classsectionList = $this->examschedule_model->getclassandsectionbyexam($id);
+        // TVET: Use getClassByExamTVET instead of getclassandsectionbyexam (no sections)
+        $classList        = $this->examschedule_model->getClassByExamTVET($id);
         $array            = array();
-        foreach ($classsectionList as $key => $value) {
+        foreach ($classList as $key => $value) {
             $s               = array();
             $exam_id         = $value['exam_id'];
             $class_id        = $value['class_id'];
-            $section_id      = $value['section_id'];
-            $result_prepare  = $this->examresult_model->checkexamresultpreparebyexam($exam_id, $class_id, $section_id);
+            // TVET: Use checkexamresultpreparebyexamTVET (no section_id)
+            $result_prepare  = $this->examresult_model->checkexamresultpreparebyexamTVET($exam_id, $class_id);
             $s['exam_id']    = $exam_id;
             $s['class_id']   = $class_id;
-            $s['section_id'] = $section_id;
-            $s['class']      = $value['class'];
-            $s['section']    = $value['section'];
+            $s['class']        = $value['subject_name'] . ' - ' . $value['level_name'];
+            $s['subject_name'] = $value['subject_name'];
+            $s['level_code']   = $value['level_code'];
+            $s['level_name']   = $value['level_name'];
+            $s['cohort_name']  = $value['cohort_name'];
             if ($result_prepare) {
                 $s['result_prepare'] = "yes";
             } else {

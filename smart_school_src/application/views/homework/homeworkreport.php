@@ -67,7 +67,6 @@
                                 <thead>
                                             <tr>
                                                 <th><?php echo $this->lang->line('class') ?></th>
-                                                <th><?php echo $this->lang->line('section') ?></th>
                                                 <th><?php echo $this->lang->line('subject_group'); ?></th>
                                                 <th><?php echo $this->lang->line('subject') ?></th>
                                                 <th><?php echo $this->lang->line('homework_date'); ?></th>
@@ -90,20 +89,19 @@
                                             ?>
                                             <tr>
                                                 <td><?php echo $student['class']; ?></td>
-                                                <td><?php echo $student['section']; ?></td>
                                                 <td><?php echo $student['name']; ?></td>                           
                                                 <td><?php echo $student['subject_name']; ?><?php if($student['subject_code']){ echo ' ('.$student['subject_code'].')'; }?></td>
                                                 <td><?php echo date($this->customlib->getSchoolDateFormat(), $this->customlib->dateyyyymmddTodateformat($student['homework_date'])); ?></td>  
                                                 <td><?php echo date($this->customlib->getSchoolDateFormat(), $this->customlib->dateyyyymmddTodateformat($student['submit_date']));
                                                 ?></td>                                                
                                                 <td>
-                                                    <a class="studentlist cursor-pointer" id="load" data-toggle="tooltip"  data-clss-id="<?php echo $student['class_id']; ?>" data-section-id="<?php echo $student['section_id']; ?>" data-homework-id="<?php echo $student['id']; ?>" data-type="student_count" ><?php echo $student['student_count']; ?></a>    
+                                                    <a class="studentlist cursor-pointer" id="load" data-toggle="tooltip"  data-clss-id="<?php echo $student['class_id']; ?>" data-homework-id="<?php echo $student['id']; ?>" data-type="student_count" ><?php echo $student['student_count']; ?></a>    
                                                 </td>                                                
                                                 <td> 
-                                                    <a  class="studentlist cursor-pointer" id="load" data-toggle="tooltip"  data-clss-id="<?php echo $student['class_id']; ?>" data-section-id="<?php echo $student['section_id']; ?>" data-homework-id="<?php echo $student['id']; ?>" data-type="homework_submitted" ><?php echo $student['assignments']; ?></a>
+                                                    <a  class="studentlist cursor-pointer" id="load" data-toggle="tooltip"  data-clss-id="<?php echo $student['class_id']; ?>" data-homework-id="<?php echo $student['id']; ?>" data-type="homework_submitted" ><?php echo $student['assignments']; ?></a>
                                                 </td>                                                
                                                 <td>
-                                                    <a class="studentlist cursor-pointer text-left displayblock" id="load" data-toggle="tooltip" data-clss-id="<?php echo $student['class_id']; ?>" data-section-id="<?php echo $student['section_id']; ?>" data-homework-id="<?php echo $student['id']; ?>" data-type="pending_student" ><?php echo $student['student_count']-$student['assignments']; ?></a>                                         
+                                                    <a class="studentlist cursor-pointer text-left displayblock" id="load" data-toggle="tooltip" data-clss-id="<?php echo $student['class_id']; ?>" data-homework-id="<?php echo $student['id']; ?>" data-type="pending_student" ><?php echo $student['student_count']-$student['assignments']; ?></a>                                         
                                                 </td>                                                   
                                             </tr>
                                             <?php
@@ -147,7 +145,7 @@ $(document).ready(function(){
         $.ajax({
             type: 'POST',
             url: baseurl + "homework/getStudentByClassSection",
-            data: {'class_id':$this.data('clssId'), 'section_id':$this.data('sectionId'), 'homework_id':$this.data('homeworkId'), 'type':$this.data('type')},
+            data: {'class_id':$this.data('clssId'), 'homework_id':$this.data('homeworkId'), 'type':$this.data('type')},
             dataType: 'JSON',
             beforeSend: function () {
                 $this.button('loading');
@@ -180,7 +178,7 @@ $(document).ready(function(){
             $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
             $.ajax({
                 type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClass',
+                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
                 data: {'class_id': class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
@@ -243,16 +241,11 @@ $(document).ready(function(){
         }
     }
     
-    $(document).on('change', '#secid', function () {
-        var class_id = $('#searchclassid').val();
-        var section_id = $(this).val();
-        getSubjectGroup(class_id, section_id, 0, 'subject_group_id');
-    });
-    
+    // TVET: section change handler removed - no section in TVET
+
     $(document).on('change', '#subject_group_id', function () {
         var class_id = $('#searchclassid').val();
-        var section_id = $('#secid').val();
         var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, 0, 'subid');
+        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subid');
     });
 </script>

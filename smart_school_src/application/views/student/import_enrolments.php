@@ -186,7 +186,9 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                         <div class="box-body">
                             <div class="form-group">
                                 <label for="file">Select CSV File <span class="text-red">*</span></label>
-                                <input type="file" name="file" id="file" class="form-control" accept=".csv" required>
+                                <input type="file" name="file" id="file" class="form-control" accept=".csv" required
+                                       onchange="document.getElementById('file-name').innerHTML='<i class=\'fa fa-file-text-o\'></i> Selected: <strong>'+this.files[0].name+'</strong>'; document.getElementById('file-name').style.display='block';">
+                                <span id="file-name" class="text-info" style="display:none; margin-top: 5px;"></span>
                                 <span class="text-danger"><?php echo form_error('file'); ?></span>
                                 <p class="help-block">
                                     <i class="fa fa-info-circle"></i> Only CSV files are accepted. Maximum file size: 5MB

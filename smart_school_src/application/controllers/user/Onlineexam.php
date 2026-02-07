@@ -19,10 +19,12 @@ class Onlineexam extends Student_Controller
     {
         $data = array();
         $this->session->set_userdata('top_menu', 'Onlineexam');
-        $student_current_class = $this->customlib->getStudentCurrentClsSection();
-        $student_session_id    = $student_current_class->student_session_id;
-        $onlineexam            = $this->onlineexam_model->getStudentexam($student_session_id);
-        $data['onlineexam']    = $onlineexam;
+        // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
+        $student_enrolment = $this->customlib->getStudentCurrentEnrolment();
+        $enrolment_id      = $student_enrolment->enrolment_id;
+        // TVET: Use getStudentExamByEnrolment() instead of getStudentexam()
+        $onlineexam        = $this->onlineexam_model->getStudentExamByEnrolment($enrolment_id);
+        $data['onlineexam'] = $onlineexam;
         $this->load->view('layout/student/header');
         $this->load->view('user/onlineexam/onlineexamlist', $data);
         $this->load->view('layout/student/footer');
@@ -35,10 +37,13 @@ class Onlineexam extends Student_Controller
         $data['sch_setting']         = $this->sch_setting_detail;
         $role                        = $this->customlib->getUserRole();
         $data['role']                = $role;
-        $student_current_class       = $this->customlib->getStudentCurrentClsSection();
-        $student_session_id          = $student_current_class->student_session_id;
-        $online_exam_validate        = $this->onlineexam_model->examstudentsID($student_session_id, $id);
-        $student                     = $this->student_model->getByStudentSession($student_session_id);
+        // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
+        $student_enrolment           = $this->customlib->getStudentCurrentEnrolment();
+        $enrolment_id                = $student_enrolment->enrolment_id;
+        // TVET: Use examStudentsByEnrolment() instead of examstudentsID()
+        $online_exam_validate        = $this->onlineexam_model->examStudentsByEnrolment($enrolment_id, $id);
+        // TVET: Use getByEnrolment() instead of getByStudentSession()
+        $student                     = $this->student_model->getByEnrolment($enrolment_id);
         $data['question_true_false'] = $this->config->item('question_true_false');
         $exam                        = $this->onlineexam_model->getexamdetails($id);
         $data['exam']                = $exam;
@@ -83,15 +88,18 @@ class Onlineexam extends Student_Controller
         $exam_id                     = $this->input->post('exam_id');
         $role                        = $this->customlib->getUserRole();
         $data['role']                = $role;
-        $student_current_class       = $this->customlib->getStudentCurrentClsSection();
-        $student_session_id          = $student_current_class->student_session_id;
-        $online_exam_validate        = $this->onlineexam_model->examstudentsID($student_session_id, $exam_id);
+        // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
+        $student_enrolment           = $this->customlib->getStudentCurrentEnrolment();
+        $enrolment_id                = $student_enrolment->enrolment_id;
+        // TVET: Use examStudentsByEnrolment() instead of examstudentsID()
+        $online_exam_validate        = $this->onlineexam_model->examStudentsByEnrolment($enrolment_id, $exam_id);
         $data['question_true_false'] = $this->config->item('question_true_false');
         $exam                        = $this->onlineexam_model->printstudentexamdetails($exam_id);
         $data['exam']                = $exam;
         $questionOpt                 = $this->customlib->getQuesOption();
         $data['questionOpt']         = $questionOpt;
-        $student                     = $this->student_model->getByStudentSession($student_session_id);
+        // TVET: Use getByEnrolment() instead of getByStudentSession()
+        $student                     = $this->student_model->getByEnrolment($enrolment_id);
         $data['student']             = $student;
 
         if (!empty($online_exam_validate)) {
@@ -188,9 +196,11 @@ class Onlineexam extends Student_Controller
 
         $data['questions'] = $this->onlineexam_model->getExamQuestions($recordid, $exam->is_random_question);
 
-        $student_current_class         = $this->customlib->getStudentCurrentClsSection();
-        $student_session_id            = $student_current_class->student_session_id;
-        $onlineexam_student            = $this->onlineexam_model->examstudentsID($student_session_id, $exam->id);
+        // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
+        $student_enrolment             = $this->customlib->getStudentCurrentEnrolment();
+        $enrolment_id                  = $student_enrolment->enrolment_id;
+        // TVET: Use examStudentsByEnrolment() instead of examstudentsID()
+        $onlineexam_student            = $this->onlineexam_model->examStudentsByEnrolment($enrolment_id, $exam->id);
         $data['onlineexam_student_id'] = $onlineexam_student;
         $getStudentAttemts             = $this->onlineexam_model->getStudentAttemts($onlineexam_student->id);
         $data['question_status']       = 0;
@@ -216,8 +226,8 @@ class Onlineexam extends Student_Controller
         // Apply extra time for disabled students if exam has accommodation enabled
         $extra_time_message = '';
         if (isset($exam->accommodate_disabled) && $exam->accommodate_disabled == 'yes') {
-            // Check if student is disabled
-            $student = $this->student_model->getByStudentSession($student_session_id);
+            // TVET: Use getByEnrolment() instead of getByStudentSession()
+            $student = $this->student_model->getByEnrolment($enrolment_id);
             if (isset($student['is_disabled']) && $student['is_disabled'] == 'yes') {
                 $extra_percent = isset($exam->disabled_extra_time_percent) ? intval($exam->disabled_extra_time_percent) : 25;
 
@@ -253,14 +263,17 @@ class Onlineexam extends Student_Controller
 
     public function getexamlist()
     {
-        $student_current_class = $this->customlib->getStudentCurrentClsSection();
-        $student_session_id    = $student_current_class->student_session_id;
-        $questionList          = $this->onlineexam_model->getstudentexamlist($student_session_id);
+        // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
+        $student_enrolment     = $this->customlib->getStudentCurrentEnrolment();
+        $enrolment_id          = $student_enrolment->enrolment_id;
+        // TVET: Use getStudentExamListTVET() instead of getstudentexamlist()
+        $questionList          = $this->onlineexam_model->getStudentExamListTVET($enrolment_id);
         $m                     = json_decode($questionList);
         $currency_symbol       = $this->customlib->getSchoolCurrencyFormat();
 
         // Get student disability status for accommodation calculation
-        $student = $this->student_model->getByStudentSession($student_session_id);
+        // TVET: Use getByEnrolment() instead of getByStudentSession()
+        $student = $this->student_model->getByEnrolment($enrolment_id);
         $is_disabled_student = isset($student['is_disabled']) && $student['is_disabled'] == 'yes';
 
         $dt_data               = array();
@@ -327,14 +340,17 @@ class Onlineexam extends Student_Controller
 
     public function getclosedexamlist()
     {
-        $student_current_class = $this->customlib->getStudentCurrentClsSection();
-        $student_session_id    = $student_current_class->student_session_id;
-        $questionList          = $this->onlineexam_model->getstudentclosedexamlist($student_session_id);
+        // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
+        $student_enrolment     = $this->customlib->getStudentCurrentEnrolment();
+        $enrolment_id          = $student_enrolment->enrolment_id;
+        // TVET: Use getStudentClosedExamListTVET() instead of getstudentclosedexamlist()
+        $questionList          = $this->onlineexam_model->getStudentClosedExamListTVET($enrolment_id);
         $m                     = json_decode($questionList);
         $currency_symbol       = $this->customlib->getSchoolCurrencyFormat();
 
         // Get student disability status for accommodation calculation
-        $student = $this->student_model->getByStudentSession($student_session_id);
+        // TVET: Use getByEnrolment() instead of getByStudentSession()
+        $student = $this->student_model->getByEnrolment($enrolment_id);
         $is_disabled_student = isset($student['is_disabled']) && $student['is_disabled'] == 'yes';
 
         $dt_data               = array();

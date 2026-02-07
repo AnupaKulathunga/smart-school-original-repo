@@ -334,8 +334,7 @@ if (!empty($sibling_value->image)) {
 
                                                                 <p>
                                                                     <b><?php echo $this->lang->line('admission_no'); ?></b>:<?php echo $sibling_value->admission_no; ?><br />
-                                                                    <b><?php echo $this->lang->line('class'); ?></b>:<?php echo $sibling_value->class; ?><br />
-                                                                    <b><?php echo $this->lang->line('section'); ?></b>:<?php echo $sibling_value->section; ?>
+                                                                    <b><?php echo $this->lang->line('class'); ?></b>:<?php echo $sibling_value->class; ?>
                                                                 </p>
                                                                 <!-- Split button -->
                                                             </div>
@@ -1041,7 +1040,7 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
     $(document).ready(function () {
         var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';
         var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id', $student['section_id']) ?>';
+        // TVET: section_id removed - using single class selector
         var hostel_id = $('#hostel_id').val();
         var hostel_room_id = '<?php echo set_value('hostel_room_id', $student['hostel_room_id']) ?>';
         var vehroute_id = '<?php echo set_value('vehroute_id', $student['vehroute_id']) ?>';
@@ -1058,21 +1057,21 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
             getHostel(hostel_id, 0);
         });
 
-        $(document).on('change', '#sibiling_section_id', function (e) {
-            getStudentsByClassAndSection();
+        // TVET: Load students by class when sibling class changes (no section needed)
+        $(document).on('change', '#sibiling_class_id', function (e) {
+            getStudentsByClass();
         });
 
-        function getStudentsByClassAndSection() {
+        function getStudentsByClass() {
             $('#sibiling_student_id').html("");
             var class_id = $('#sibiling_class_id').val();
-            var section_id = $('#sibiling_section_id').val();
             var current_student_id = $('.current_student_id').val();
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
             $.ajax({
                 type: "GET",
                 url: baseurl + "student/getByClassAndSectionExcludeMe",
-                data: {'class_id': class_id, 'section_id': section_id, 'current_student_id': current_student_id},
+                data: {'class_id': class_id, 'section_id': class_id, 'current_student_id': current_student_id},
                 dataType: "json",
                 beforeSend: function () {
                     $('#sibiling_student_id').addClass('dropdownloading');
@@ -1080,11 +1079,6 @@ echo set_value('rte', $student['rte']) == "No" ? "checked" : "";
                 success: function (data) {
                     $.each(data, function (i, obj)
                     {
-                        var sel = "";
-                        if (section_id == obj.section_id) {
-                            sel = "selected=selected";
-                        }
-
                         if (obj.admission_no == null) {
                             div_data += "<option value=" + obj.id + ">" + obj.full_name +  "</option>";
                         } else {

@@ -325,7 +325,8 @@ class Onlineexam extends Admin_Controller
             // TVET: No section_id, class_id includes cohort
             $data['class_id']      = $this->input->post('class_id');
             $data['onlineexam_id'] = $this->input->post('onlineexam_id');
-            $resultlist            = $this->onlineexam_model->searchOnlineExamStudents($data['class_id'], $data['onlineexam_id']);
+            // TVET: Use searchOnlineExamStudentsTVET instead of searchOnlineExamStudents
+            $resultlist            = $this->onlineexam_model->searchOnlineExamStudentsTVET($data['class_id'], $data['onlineexam_id']);
 
             $data['resultlist'] = $resultlist;
         }
@@ -369,6 +370,7 @@ class Onlineexam extends Admin_Controller
             }
 
             /* Retrieve all the posts */
+            // TVET: getDescriptionRecord now uses academic_class_enrolment (e) + academic_class (ac)
             $all_items = $this->onlineexamresult_model->getDescriptionRecord($per_page, $start, $where_search, $_POST['data']['onlineexam_id']);
 
             /* Check if our query returns anything. */
@@ -489,7 +491,8 @@ class Onlineexam extends Admin_Controller
             } else {
                 $data['class_id']      = $this->input->post('class_id');
                 $data['onlineexam_id'] = $this->input->post('onlineexam_id');
-                $resultlist            = $this->onlineexam_model->searchOnlineExamStudents($data['class_id'], $data['onlineexam_id']);
+                // TVET: Use searchOnlineExamStudentsTVET instead of searchOnlineExamStudents
+                $resultlist            = $this->onlineexam_model->searchOnlineExamStudentsTVET($data['class_id'], $data['onlineexam_id']);
                 $data['resultlist']    = $resultlist;
                 $data['sch_setting']   = $this->sch_setting_detail;
                 $this->load->view('layout/header', $data);
@@ -515,7 +518,8 @@ class Onlineexam extends Admin_Controller
             $array_delete  = array();
             $class_id      = $this->input->post('post_class_id');
             $onlineexam_id = $this->input->post('onlineexam_id');
-            $resultlist    = $this->onlineexam_model->searchOnlineExamStudents($class_id, $onlineexam_id);
+            // TVET: Use searchOnlineExamStudentsTVET instead of searchOnlineExamStudents
+            $resultlist    = $this->onlineexam_model->searchOnlineExamStudentsTVET($class_id, $onlineexam_id);
             $all_students  = array();
             if (!empty($resultlist)) {
 
@@ -1186,7 +1190,8 @@ class Onlineexam extends Admin_Controller
 
         $exam         = $this->onlineexam_model->get($examid);
         $data['exam'] = $exam;
-        $online_exam_validate = $this->onlineexam_model->examstudentsID($enrolment_id, $examid);
+        // TVET: Use examStudentsByEnrolment instead of examstudentsID
+        $online_exam_validate = $this->onlineexam_model->examStudentsByEnrolment($enrolment_id, $examid);
 
         $data['question_result']       = $this->onlineexamresult_model->getResultByStudent($onlineexam_student_id, $examid);
         $data['result_prepare']        = $this->onlineexamresult_model->checkResultPrepare($onlineexam_student_id);
@@ -1275,6 +1280,7 @@ class Onlineexam extends Admin_Controller
         $exam_id     = $this->input->post('exam_id');
         $class_id    = $this->input->post('class_id');
         $sch_setting = $this->sch_setting_detail;
+        // TVET: getStudentByExam now uses academic_class_enrolment (e) + academic_class (ac)
         $results     = $this->onlineexamresult_model->getStudentByExam($exam_id, $class_id);
         $resultlist  = json_decode($results);
         $dt_data     = array();

@@ -621,49 +621,25 @@ $j++;
 </script>
 
 <script type="text/javascript">
+    // TVET: Class change loads students directly (no section dropdown)
     $(document).on('change', '#sibiling_class_id', function (e) {
-        $('#sibiling_section_id').html("");
-        var class_id = $(this).val();
-        var base_url = '<?php echo base_url() ?>';
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: base_url + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                });
-                $('#sibiling_section_id').append(div_data);
-            }
-        });
+        getStudentsByClass();
     });
 
-    $(document).on('change', '#sibiling_section_id', function (e) {
-        getStudentsByClassAndSection();
-    });
-
-    function getStudentsByClassAndSection() {
+    function getStudentsByClass() {
         $('#sibiling_student_id').html("");
         var class_id = $('#sibiling_class_id').val();
-        var section_id = $('#sibiling_section_id').val();
         var student_id = '<?php echo set_value('student_id') ?>';
         var base_url = '<?php echo base_url() ?>';
         var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
         $.ajax({
             type: "GET",
             url: base_url + "student/getByClassAndSection",
-            data: {'class_id': class_id, 'section_id': section_id},
+            data: {'class_id': class_id},
             dataType: "json",
             success: function (data) {
                 $.each(data, function (i, obj)
                 {
-                    var sel = "";
-                    if (section_id == obj.section_id) {
-                        sel = "selected=selected";
-                    }
                     div_data += "<option value=" + obj.id + ">" + obj.firstname + " " + obj.lastname + "</option>";
                 });
                 $('#sibiling_student_id').append(div_data);

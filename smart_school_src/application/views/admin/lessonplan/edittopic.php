@@ -93,7 +93,6 @@
                                     </tr>
                                     <tr>
                                         <th><?php echo $this->lang->line('class'); ?></th>
-                                        <th><?php echo $this->lang->line('section'); ?></th>
                                         <th><?php echo $this->lang->line('subject_group'); ?></th>
                                         <th><?php echo $this->lang->line('subject'); ?></th>
                                         <th><?php echo $this->lang->line('lesson'); ?></th>
@@ -237,12 +236,11 @@
         var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
         var sub_id = $('#subid').val();
         var class_id = $('#searchclassid').val();
-        var section_id = $('#secid').val();
         var subject_group_id = $('#subject_group_id').val();
         $.ajax({
             type: "POST",
             url: base_url + "admin/lessonplan/getlessonBysubjectid/" + sub_id,
-            data: {'subjectid': sub_id, 'class_id': class_id, 'section_id': section_id, 'subject_group_id': subject_group_id},
+            data: {'subjectid': sub_id, 'class_id': class_id, 'subject_group_id': subject_group_id},
             dataType: "json",
             beforeSend: function () {
                 $('#lessonid').addClass('dropdownloading');

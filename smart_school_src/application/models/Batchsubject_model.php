@@ -32,7 +32,7 @@ class Batchsubject_model extends CI_Model
             }
         }
 
-        $this->db->select('exam_group_class_batch_exam_subjects.*,subjects.name as `subject_name`,subjects.code as `subject_code`,subjects.type as `subject_type`')->from('exam_group_class_batch_exam_subjects');
+        $this->db->select('exam_group_class_batch_exam_subjects.*,subjects.name as `subject_name`,subjects.code as `subject_code`,subjects.type as `subject_type`', FALSE)->from('exam_group_class_batch_exam_subjects');
         $this->db->join('subjects', 'subjects.id = exam_group_class_batch_exam_subjects.subject_id');
         $this->db->where('exam_group_class_batch_exam_subjects.exam_group_class_batch_exams_id', $id);
         if ($subject_condition == 1 && (!empty($my_subjects))) {
@@ -48,7 +48,7 @@ class Batchsubject_model extends CI_Model
 
     public function getExamstudentSubjects($id = null)
     {
-        $this->db->select('exam_group_class_batch_exam_subjects.*,subjects.name as `subject_name`,subjects.code as `subject_code`,subjects.type as `subject_type`')->from('exam_group_class_batch_exam_subjects');
+        $this->db->select('exam_group_class_batch_exam_subjects.*,subjects.name as `subject_name`,subjects.code as `subject_code`,subjects.type as `subject_type`', FALSE)->from('exam_group_class_batch_exam_subjects');
         $this->db->join('subjects', 'subjects.id = exam_group_class_batch_exam_subjects.subject_id');
         $this->db->where('exam_group_class_batch_exam_subjects.exam_group_class_batch_exams_id', $id);
         $this->db->order_by('exam_group_class_batch_exam_subjects.date_from', 'asc');
@@ -58,6 +58,7 @@ class Batchsubject_model extends CI_Model
         return $result;
     }
 
+    // TVET: Updated to use academic_class_enrolment instead of student_session
     public function examGroupExamResult($class_id, $batch_id, $exam_group_class_batch_exams_id)
     {
         $exam_students = $this->attempt_exam_students($class_id, $batch_id, $exam_group_class_batch_exams_id);
@@ -73,20 +74,21 @@ class Batchsubject_model extends CI_Model
         return $exam_students;
     }
 
+    // TVET: Updated to use academic_class_enrolment instead of student_session
+    // class_id now = academic_class.id
     public function attempt_exam_students($class_id, $batch_id, $exam_group_class_batch_exams_id)
     {
-        $sql   = "SELECT exam_group_students.*,student.admission_no , student.id as `student_id`, student.roll_no,student.admission_date,student.firstname,student.middlename, student.lastname,student.image, student.mobileno, student.email ,student.state , student.city , student.pincode,student.father_name,student.dob,student.gender FROM `exam_group_students` INNER JOIN exam_groups on exam_groups.id= exam_group_students.exam_group_id INNER join (SELECT exam_groups.id FROM `exam_group_class_batch_exam_subjects` INNER JOIN exam_group_class_batch_exams on exam_group_class_batch_exam_subjects.exam_group_class_batch_exams_id=exam_group_class_batch_exams.id inner JOIN exam_groups on exam_groups.id= exam_group_class_batch_exams.exam_group_id  where exam_group_class_batch_exams_id=" . $exam_group_class_batch_exams_id . " GROUP by exam_group_class_batch_exams_id ORDER BY `exam_group_class_batch_exams_id`) as exam_group on exam_group.id=exam_group_students.exam_group_id INNER JOIN (SELECT students.* from student_session INNER JOIN students on students.id=student_session.student_id WHERE student_session.class_id=" . $class_id . " and students.batch_id=" . $batch_id . " GROUP BY student_session.student_id) as student on student.id=exam_group_students.student_id";
+        $sql   = "SELECT exam_group_students.*,student.admission_no , student.id as `student_id`, student.roll_no,student.admission_date,student.firstname,student.middlename, student.lastname,student.image, student.mobileno, student.email ,student.state , student.city , student.pincode,student.father_name,student.dob,student.gender FROM `exam_group_students` INNER JOIN exam_groups on exam_groups.id= exam_group_students.exam_group_id INNER join (SELECT exam_groups.id FROM `exam_group_class_batch_exam_subjects` INNER JOIN exam_group_class_batch_exams on exam_group_class_batch_exam_subjects.exam_group_class_batch_exams_id=exam_group_class_batch_exams.id inner JOIN exam_groups on exam_groups.id= exam_group_class_batch_exams.exam_group_id  where exam_group_class_batch_exams_id=" . $exam_group_class_batch_exams_id . " GROUP by exam_group_class_batch_exams_id ORDER BY `exam_group_class_batch_exams_id`) as exam_group on exam_group.id=exam_group_students.exam_group_id INNER JOIN (SELECT students.* from academic_class_enrolment INNER JOIN students on students.id=academic_class_enrolment.student_id WHERE academic_class_enrolment.class_id=" . $class_id . " and students.batch_id=" . $batch_id . " GROUP BY academic_class_enrolment.student_id) as student on student.id=exam_group_students.student_id";
         $query = $this->db->query($sql);
         return $query->result();
     }
 
+    // TVET: Replaced class_sections/classes/sections joins with academic_class
     public function get($id = null)
     {
-        $this->db->select('class_batches.*,classes.class,sections.section,batch.name')->from('class_batches');
-        $this->db->join('class_sections', 'class_batches.class_section_id = class_sections.id');
+        $this->db->select('class_batches.*, academic_class.id as class_id, academic_class.class_code, academic_class.cohort_name, batch.name', FALSE)->from('class_batches');
+        $this->db->join('academic_class', 'academic_class.id = class_batches.class_section_id');
         $this->db->join('batch', 'batch.id = class_batches.batch_id');
-        $this->db->join('classes', 'classes.id = class_sections.class_id');
-        $this->db->join('sections', 'sections.id = class_sections.section_id');
         if ($id != null) {
             $this->db->where('class_batches.id', $id);
         } else {
@@ -106,7 +108,7 @@ class Batchsubject_model extends CI_Model
 
     public function getClassBatchSubjects($id = null)
     {
-        $this->db->select('class_batch_subjects.*,name as `subject_name`');
+        $this->db->select('class_batch_subjects.*,name as `subject_name`', FALSE);
         $this->db->from('class_batch_subjects');
         $this->db->join('subjects', 'subjects.id = class_batch_subjects.subject_id');
         $this->db->where('class_batch_subjects.class_batch_id', $id);
@@ -115,12 +117,14 @@ class Batchsubject_model extends CI_Model
         return $query->result();
     }
 
+    // TVET: Replaced class_sections join with academic_class
+    // class_section_id in class_batches now stores academic_class.id
     public function getByID($id = null)
     {
-        $this->db->select('class_batch_subjects.*,class_batches.class_section_id as `class_section_id`,class_batches.batch_id, `class_sections`.`class_id`,`class_sections`.`section_id`');
+        $this->db->select('class_batch_subjects.*, class_batches.class_section_id as `class_section_id`, class_batches.batch_id, academic_class.id as `class_id`', FALSE);
         $this->db->from('class_batch_subjects');
         $this->db->join('class_batches', 'class_batches.id = class_batch_subjects.class_batch_id');
-        $this->db->join('class_sections', 'class_sections.id = class_batches.class_section_id');
+        $this->db->join('academic_class', 'academic_class.id = class_batches.class_section_id');
         $this->db->where('class_batch_subjects.id', $id);
         $this->db->order_by('class_batch_subjects.id', 'asc');
         $query = $this->db->get();
@@ -254,39 +258,40 @@ class Batchsubject_model extends CI_Model
         }
     }
 
+    // TVET: Replaced class_sections/classes joins with academic_class
     public function getBatchClass($id = null)
     {
-        $this->db->select('class_batches.*,classes.id as class_id,classes.class')->from('class_batches');
-        $this->db->join('class_sections', 'class_batches.class_section_id = class_sections.id');
-        $this->db->join('classes', 'classes.id = class_sections.class_id');
+        $this->db->select('class_batches.*, academic_class.id as class_id, academic_class.class_code', FALSE)->from('class_batches');
+        $this->db->join('academic_class', 'academic_class.id = class_batches.class_section_id');
         $this->db->order_by('class_batches.id');
-        $this->db->group_by('classes.id');
+        $this->db->group_by('academic_class.id');
         $query  = $this->db->get();
         $result = $query->result();
         return $result;
     }
 
+    // TVET: Replaced class_sections/classes/sections joins with academic_class
+    // In TVET there are no sections, so this returns academic_class records directly
+    // $classid param kept for compatibility
     public function getBatchSectionByClass($classid)
     {
-        $this->db->select('class_batches.*,classes.id as class_id,class_sections.id as class_section_id,classes.class,sections.section')->from('class_batches');
-        $this->db->join('class_sections', 'class_batches.class_section_id = class_sections.id');
-        $this->db->join('classes', 'classes.id = class_sections.class_id');
-        $this->db->join('sections', 'sections.id = class_sections.section_id');
+        $this->db->select('class_batches.*, academic_class.id as class_id, class_batches.class_section_id as class_section_id, academic_class.class_code, academic_class.cohort_name', FALSE)->from('class_batches');
+        $this->db->join('academic_class', 'academic_class.id = class_batches.class_section_id');
         $this->db->order_by('class_batches.id');
-        $this->db->where('classes.id', $classid);
+        $this->db->where('academic_class.id', $classid);
         $this->db->group_by('class_batches.class_section_id');
         $query  = $this->db->get();
         $result = $query->result();
         return $result;
     }
 
+    // TVET: Replaced class_sections/classes/sections joins with academic_class
+    // class_section_id now stores academic_class.id
     public function getBatchByClassSection($class_section_id)
     {
-        $this->db->select('class_batches.*,classes.id as class_id,class_sections.id as class_section_id,classes.class,sections.section,batch.name as `batch_name`')->from('class_batches');
-        $this->db->join('class_sections', 'class_batches.class_section_id = class_sections.id');
+        $this->db->select('class_batches.*, academic_class.id as class_id, class_batches.class_section_id as class_section_id, academic_class.class_code, academic_class.cohort_name, batch.name as `batch_name`', FALSE)->from('class_batches');
+        $this->db->join('academic_class', 'academic_class.id = class_batches.class_section_id');
         $this->db->join('batch', 'batch.id = class_batches.batch_id');
-        $this->db->join('classes', 'classes.id = class_sections.class_id');
-        $this->db->join('sections', 'sections.id = class_sections.section_id');
         $this->db->order_by('class_batches.id');
         $this->db->where('class_batches.class_section_id', $class_section_id);
         $query  = $this->db->get();
@@ -294,13 +299,15 @@ class Batchsubject_model extends CI_Model
         return $result;
     }
 
+    // TVET: Replaced student_session/classes joins with academic_class_enrolment/academic_class
+    // class_id now = academic_class.id
     public function getBatchByClass($class_id)
     {
-        $this->db->select('student_session.*,students.firstname,students.middlename,students.batch_id,batch.name as `batch_name`')->from('student_session');
-        $this->db->join('classes', 'student_session.class_id = classes.id');
-        $this->db->join('students', 'students.id = student_session.student_id');
+        $this->db->select('academic_class_enrolment.*, students.firstname, students.middlename, students.batch_id, batch.name as `batch_name`', FALSE)->from('academic_class_enrolment');
+        $this->db->join('academic_class', 'academic_class_enrolment.class_id = academic_class.id');
+        $this->db->join('students', 'students.id = academic_class_enrolment.student_id');
         $this->db->join('batch', 'batch.id = students.batch_id');
-        $this->db->where('student_session.class_id', $class_id);
+        $this->db->where('academic_class_enrolment.class_id', $class_id);
         $this->db->group_by('students.batch_id');
         $this->db->order_by('students.id');
         $query  = $this->db->get();
@@ -315,6 +322,7 @@ class Batchsubject_model extends CI_Model
         return $query->row();
     }
 
+    // TVET: section_id still accepted from form POST but represents class_section_id (academic_class.id)
     public function valid_batchsubject()
     {
         $class_section_id = $this->input->post('section_id');

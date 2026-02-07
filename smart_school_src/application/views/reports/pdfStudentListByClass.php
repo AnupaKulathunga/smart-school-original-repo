@@ -230,7 +230,6 @@ if (isset($resultlist)) {
                                 <th class="no">  <th><?php echo $this->lang->line('name'); ?></th></th>
                                 <th class="no">  <th><?php echo $this->lang->line('guardian'); ?></th></th>
                                 <th class="no">  <th><?php echo $this->lang->line('class'); ?></th></th>
-                                <th class="no">  <th><?php echo $this->lang->line('section'); ?></th></th>
                                 <th class="no">  <th><?php echo $this->lang->line('mobile_no'); ?></th></th>
                                 <th class="no">  <th><?php echo $this->lang->line('date_of_birth'); ?></th></th>
                                 <th class="no">  <th><?php echo $this->lang->line('address'); ?></th></th>
@@ -246,7 +245,6 @@ if (isset($resultlist)) {
                                 <td class="qty"><?php echo $student['firstname'] . " " . $student['lastname']; ?></td>
                                 <td class="qty"><?php echo $student['guardian_name']; ?></td>
                                 <td class="qty"  style="text-align: center;"><?php echo $student['class']; ?></td>
-                                <td class="qty"  style="text-align: center;"><?php echo $student['section']; ?></td>
                                 <td class="qty"  style="text-align: center;"><?php echo $student['mobileno']; ?></td>
                                 <td class="qty"  style="text-align: center;"><?php echo $student['dob']; ?></td>
                                 <td class="qty"  style="text-align: left;"><?php echo $student['current_address']; ?></td>

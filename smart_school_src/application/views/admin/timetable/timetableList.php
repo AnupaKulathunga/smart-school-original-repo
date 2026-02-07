@@ -167,8 +167,8 @@
     var base_url = '<?php echo base_url() ?>';
     function printDiv(elem) {
         var cls = $("#class_id option:selected").text();
-        var sec = $("#section_id option:selected").text();
-        $('.cls').html(cls + '(' + sec + ')');
+        // TVET: No section dropdown - class_id contains the full class name
+        $('.cls').html(cls);
         Popup(jQuery(elem).html());
     }
 

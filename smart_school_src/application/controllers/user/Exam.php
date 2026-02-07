@@ -31,12 +31,12 @@ class Exam extends Student_Controller
             $this->session->set_flashdata('msg', '<div class="alert alert-success text-center">' . $this->lang->line('employee_details_added_to_database') . '</div>');
             redirect('admin/exam/index');
         }
-        $stuid              = $this->session->userdata('student');
-        $stu_record         = $this->student_model->getRecentRecord($stuid['student_id']);
-        $data['class_id']   = $stu_record['class_id'];
-        $data['section_id'] = $stu_record['section_id'];
-        $exam_result        = $this->examschedule_model->getExamByClassandSection($data['class_id'], $data['section_id']);
-        $data['examlist']   = $exam_result;
+        // TVET: Use student's current class from session instead of getRecentRecord
+        $student_current_class = $this->customlib->getStudentCurrentClsSection();
+        $data['class_id']      = $student_current_class->class_id;
+        // TVET: Use getExamByClass (no section_id needed)
+        $exam_result           = $this->examschedule_model->getExamByClass($data['class_id']);
+        $data['examlist']      = $exam_result;
         $this->load->view('layout/student/header', $data);
         $this->load->view('user/exam/examList', $data);
         $this->load->view('layout/student/footer', $data);

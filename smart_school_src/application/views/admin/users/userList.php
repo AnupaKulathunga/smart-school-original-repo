@@ -55,7 +55,7 @@
                                                     </a>
                                                 </td>
                                                 <td><?php echo $student['username']; ?></td>
-                                                <td><?php echo $student['class'] . "(" . $student['section'] . ")" ?></td>
+                                                <td><?php echo $student['class'] ?></td>
                                                 <td><?php echo $student['father_name']; ?></td>
                                                 <td><?php echo $student['mobileno']; ?></td>
                                                 <td class="relative">

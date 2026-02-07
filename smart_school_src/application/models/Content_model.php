@@ -18,13 +18,24 @@ class Content_model extends MY_Model
      * If id is not provided, then it will fetch all the records form the table.
      * @param int $id
      * @return mixed
+     *
+     * TVET Migration: Updated to use academic_class instead of class_sections
      */
     public function get($id = null)
     {
-        $this->db->select('contents.*,classes.class,sections.section,(select GROUP_CONCAT(role) FROM content_for WHERE content_id=contents.id) as role,class_sections.id as `aa`', FALSE)->from('contents');
-        $this->db->join('class_sections', 'contents.cls_sec_id = class_sections.id', 'left outer');
-        $this->db->join('classes', 'class_sections.class_id = classes.id', 'left outer');
-        $this->db->join('sections', 'class_sections.section_id = sections.id', 'left outer');
+        // TVET: Join to academic_class and related tables instead of class_sections
+        $this->db->select('contents.*,
+            ac.name as class_name,
+            sl.name as subject_level_name,
+            subj.name as subject_name,
+            lvl.name as level_name,
+            (SELECT GROUP_CONCAT(role) FROM content_for WHERE content_id=contents.id) as role', FALSE)
+            ->from('contents');
+        $this->db->join('academic_class ac', 'contents.academic_class_id = ac.id', 'left');
+        $this->db->join('academic_subject_level sl', 'sl.id = ac.subject_level_id', 'left');
+        $this->db->join('academic_subject subj', 'subj.id = sl.subject_id', 'left');
+        $this->db->join('academic_level lvl', 'lvl.id = sl.level_id', 'left');
+
         if ($id != null) {
             $this->db->where('contents.id', $id);
         }
@@ -38,6 +49,11 @@ class Content_model extends MY_Model
         }
     }
 
+    /**
+     * Get content by role and user ID
+     *
+     * TVET Migration: Updated to use academic_class instead of class_sections
+     */
     public function getContentByRole($id = null, $role = null)
     {
         $inner_sql = "";
@@ -47,51 +63,129 @@ class Content_model extends MY_Model
         } elseif ($role == "Teacher") {
             $inner_sql = " WHERE (role='Teacher' and created_by='" . $id . "' ) or (created_by=0 and role='" . $role . "')";
         }
-        $query = "SELECT contents.*,(select GROUP_CONCAT(role) FROM content_for WHERE content_id=contents.id) as role,class_sections.id as `class_section_id`,classes.class,sections.section  FROM `content_for`  INNER JOIN contents on contents.id=content_for.content_id left JOIN class_sections on class_sections.id=contents.cls_sec_id left join classes on classes.id=class_sections.class_id LEFT JOIN sections on sections.id=class_sections.section_id" . $inner_sql . " GROUP by contents.id";
+
+        // TVET: Updated to join academic_class and related tables
+        $query = "SELECT contents.*,
+            (SELECT GROUP_CONCAT(role) FROM content_for WHERE content_id=contents.id) as role,
+            ac.id as academic_class_id,
+            ac.name as class_name,
+            sl.name as subject_level_name,
+            subj.name as subject_name,
+            lvl.name as level_name
+            FROM `content_for`
+            INNER JOIN contents on contents.id=content_for.content_id
+            LEFT JOIN academic_class ac on ac.id=contents.academic_class_id
+            LEFT JOIN academic_subject_level sl on sl.id=ac.subject_level_id
+            LEFT JOIN academic_subject subj on subj.id=sl.subject_id
+            LEFT JOIN academic_level lvl on lvl.id=sl.level_id" . $inner_sql . "
+            GROUP by contents.id";
 
         $query = $this->db->query($query);
         return $query->result_array();
     }
 
+    /**
+     * Get list of content by category
+     *
+     * TVET Migration: Updated to use academic_class instead of class_sections
+     */
     public function getListByCategory($category)
     {
-        $this->db->select('contents.*,classes.class,sections.section')->from('contents');
-        $this->db->join('classes', 'contents.class_id = classes.id', 'left');
-        $this->db->join(' class_sections', 'contents.cls_sec_id =  class_sections.id', 'left');
-        $this->db->join('sections', 'sections.id = class_sections.section_id', 'left');
+        // TVET: Updated to join academic_class and related tables
+        $this->db->select('contents.*,
+            ac.name as class_name,
+            sl.name as subject_level_name,
+            subj.name as subject_name,
+            lvl.name as level_name', FALSE)
+            ->from('contents');
+        $this->db->join('academic_class ac', 'contents.academic_class_id = ac.id', 'left');
+        $this->db->join('academic_subject_level sl', 'sl.id = ac.subject_level_id', 'left');
+        $this->db->join('academic_subject subj', 'subj.id = sl.subject_id', 'left');
+        $this->db->join('academic_level lvl', 'lvl.id = sl.level_id', 'left');
         $this->db->where('contents.type', $category);
         $this->db->order_by('contents.id');
         $query = $this->db->get();
         return $query->result_array();
     }
 
-    public function getListByCategoryforUser($class_id, $section_id, $category = '')
+    /**
+     * Get list of content by category for user (student)
+     *
+     * TVET Migration: Changed from class_id+section_id to academic_class_id
+     * Now uses student enrolment to determine accessible content
+     * @param int $student_id - Student ID
+     * @param string $category - Content category/type
+     */
+    public function getListByCategoryforUser($student_id, $category = '')
     {
-
-        if (empty($class_id)) {
-            $class_id = "0";
+        if (empty($student_id)) {
+            $student_id = "0";
         }
 
-        if (empty($section_id)) {
-            $section_id = "0";
-        }
-        $query = "SELECT contents.*,class_sections.id as `class_section_id`,classes.class,sections.section FROM `content_for` INNER JOIN contents on content_for.content_id=contents.id left JOIN class_sections on class_sections.id=contents.cls_sec_id left join classes on classes.id=class_sections.class_id LEFT JOIN sections on sections.id=class_sections.section_id WHERE  (role='student' and contents.type='" . $category . "' and contents.is_public='yes') or (classes.id =" . $class_id . " and sections.id=" . $section_id . " and role='student' and contents.type='" . $category . "')";
+        // TVET: Updated to use enrolment-based access with academic_class
+        $query = "SELECT contents.*,
+            ac.id as academic_class_id,
+            ac.name as class_name,
+            sl.name as subject_level_name,
+            subj.name as subject_name,
+            lvl.name as level_name
+            FROM `content_for`
+            INNER JOIN contents on content_for.content_id=contents.id
+            LEFT JOIN academic_class ac on ac.id=contents.academic_class_id
+            LEFT JOIN academic_subject_level sl on sl.id=ac.subject_level_id
+            LEFT JOIN academic_subject subj on subj.id=sl.subject_id
+            LEFT JOIN academic_level lvl on lvl.id=sl.level_id
+            WHERE role='student'
+            AND contents.type='" . $this->db->escape_str($category) . "'
+            AND (
+                contents.is_public='yes'
+                OR contents.academic_class_id IN (
+                    SELECT academic_class_id
+                    FROM enrolments
+                    WHERE student_id=" . intval($student_id) . "
+                    AND status='active'
+                )
+            )";
         $query = $this->db->query($query);
         return $query->result_array();
     }
 
-    public function getListByforUser($class_id, $section_id)
+    /**
+     * Get all content list for user (student) - all categories
+     *
+     * TVET Migration: Changed from class_id+section_id to academic_class_id
+     * Now uses student enrolment to determine accessible content
+     * @param int $student_id - Student ID
+     */
+    public function getListByforUser($student_id)
     {
-
-        if (empty($class_id)) {
-            $class_id = "0";
+        if (empty($student_id)) {
+            $student_id = "0";
         }
 
-        if (empty($section_id)) {
-            $section_id = "0";
-        }
-        
-        $query = "SELECT contents.*,class_sections.id as `class_section_id`,classes.class,sections.section FROM `content_for` INNER JOIN contents on content_for.content_id=contents.id left JOIN class_sections on class_sections.id=contents.cls_sec_id left join classes on classes.id=class_sections.class_id LEFT JOIN sections on sections.id=class_sections.section_id WHERE  (role='student' and contents.is_public='yes') or (classes.id =" . $class_id . " and sections.id=" . $section_id . " and role='student')";
+        // TVET: Updated to use enrolment-based access with academic_class
+        $query = "SELECT contents.*,
+            ac.id as academic_class_id,
+            ac.name as class_name,
+            sl.name as subject_level_name,
+            subj.name as subject_name,
+            lvl.name as level_name
+            FROM `content_for`
+            INNER JOIN contents on content_for.content_id=contents.id
+            LEFT JOIN academic_class ac on ac.id=contents.academic_class_id
+            LEFT JOIN academic_subject_level sl on sl.id=ac.subject_level_id
+            LEFT JOIN academic_subject subj on subj.id=sl.subject_id
+            LEFT JOIN academic_level lvl on lvl.id=sl.level_id
+            WHERE role='student'
+            AND (
+                contents.is_public='yes'
+                OR contents.academic_class_id IN (
+                    SELECT academic_class_id
+                    FROM enrolments
+                    WHERE student_id=" . intval($student_id) . "
+                    AND status='active'
+                )
+            )";
         $query = $this->db->query($query);
         return $query->result_array();
     }
@@ -136,6 +230,8 @@ class Content_model extends MY_Model
      * If id is present, then it will do an update
      * else an insert. One function doing both add and edit.
      * @param $data
+     *
+     * TVET Migration: Data should now contain academic_class_id instead of cls_sec_id
      */
     public function add($data, $content_role = array())
     {
@@ -176,7 +272,7 @@ class Content_model extends MY_Model
         } else {
             return $insert_id;
         }
-         
+
     }
 
 }

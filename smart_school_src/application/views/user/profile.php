@@ -68,9 +68,6 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                             <li class="list-group-item border0">
                                 <b><?php echo $this->lang->line('class'); ?></b> <a class="pull-right text-aqua"><?php echo $student['class'] . ' (' . $student['session'] . ')'; ?></a>
                             </li>
-                            <li class="list-group-item">
-                                <b><?php echo $this->lang->line('section'); ?></b> <a class="pull-right text-aqua"><?php echo $student['section']; ?></a>
-                            </li>
 							<li class="list-group-item">
                                 <b><?php echo $this->lang->line('gender'); ?></b> <a class="pull-right text-aqua"> <?php echo $this->lang->line(strtolower($student['gender'])); ?></a>
                             </li>

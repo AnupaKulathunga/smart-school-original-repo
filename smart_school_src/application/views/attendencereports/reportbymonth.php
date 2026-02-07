@@ -174,7 +174,7 @@ $count++;
                                     <?php
 } else {
         ?>
-                                    <div class="alert alert-info">No student admitted in this Class-Section</div>
+                                    <div class="alert alert-info"><?php echo $this->lang->line('no_record_found'); ?></div>
                                     <?php
 }
     ?>
@@ -207,72 +207,26 @@ function getattendencetype($attendencetype, $find)
 }
 ?>
             <script type="text/javascript">
-
+                // TVET: Converted to class-only pattern (no section)
                 $(document).ready(function () {
-                    var section_id_post = "<?php echo set_value('section_id'); ?>";
                     var class_id_post = "<?php echo set_value('class_id'); ?>";
-                    var date_post = "<?php echo set_value('date'); ?>";
                     var subject_id = "<?php echo set_value('subject_id'); ?>";
-                    var subject_timetable_id = "<?php echo set_value('subject_timetable_id', 0); ?>";
-                    populateSection(section_id_post, class_id_post);
-                    populateSubject(class_id_post,section_id_post,subject_id);
-
-                    function populateSection(section_id_post, class_id_post) {
-                        if (section_id_post != "" && class_id_post != "") {
-
-                            $('#section_id').html("");
-
-                            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                            $.ajax({
-                                type: "GET",
-                                url: baseurl + "sections/getByClass",
-                                data: {'class_id': class_id_post},
-                                dataType: "json",
-                                success: function (data) {
-                                    $.each(data, function (i, obj)
-                                    {
-                                        var select = "";
-                                        if (section_id_post == obj.section_id) {
-                                            var select = "selected=selected";
-                                        }
-                                        div_data += "<option value=" + obj.section_id + " " + select + ">" + obj.section + "</option>";
-                                    });
-                                    $('#section_id').append(div_data);
-                                }
-                            });
-                        }
-                    }
+                    populateSubject(class_id_post, subject_id);
 
                     $(document).on('change', '#class_id', function (e) {
-                        $('#section_id').html("");
                         var class_id = $(this).val();
-                        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                        var url = "";
-                        $.ajax({
-                            type: "GET",
-                            url: baseurl + "sections/getByClass",
-                            data: {'class_id': class_id},
-                            dataType: "json",
-                            success: function (data) {
-                                $.each(data, function (i, obj)
-                                {
-                                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                                });
-                                $('#section_id').append(div_data);
-                            }
-                        });
+                        populateSubject(class_id, 0);
                     });
 
-   function populateSubject(class_id_post,section_id_post,subject_id_post) {
-
-                        if (section_id_post != "" && class_id_post != "") {
-                             $('#subject_id').html("");
+                    function populateSubject(class_id_post, subject_id_post) {
+                        if (class_id_post != "") {
+                            $('#subject_id').html("");
 
                             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
                             $.ajax({
                                 type: "POST",
                                 url: baseurl + "admin/subjectgroup/getAllSubjectByClassandSection",
-                            data: {'class_id': class_id_post,'section_id':section_id_post},
+                                data: {'class_id': class_id_post},
                                 dataType: "json",
                                 success: function (data) {
                                     $.each(data, function (i, obj)
@@ -281,12 +235,12 @@ function getattendencetype($attendencetype, $find)
                                         if (subject_id_post == obj.subject_id) {
                                             var select = "selected=selected";
                                         }
-                                        
+
                                         var code ='';
                                         if(obj.subject_code){
                                             code = " (" + obj.subject_code + ") ";
                                         }
-                        
+
                                         div_data += "<option value=" + obj.subject_id + " " + select + ">" + obj.subject_name + code +"</option>";
                                     });
                                     $('#subject_id').append(div_data);
@@ -294,13 +248,5 @@ function getattendencetype($attendencetype, $find)
                             });
                         }
                     }
-
-                    $(document).on('change', '#section_id', function (e) {
-                        $('#subject_id').html("");
-                        let class_id = $('#class_id').val();
-                        let section_id = $(this).val();
-                        populateSubject(class_id,section_id,0);
-
-                    });
                 });
             </script>

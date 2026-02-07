@@ -93,8 +93,8 @@ class Examresult extends Admin_Controller
             $session_id                 = $this->input->post('session_id');
             $class_id                   = $this->input->post('class_id');
 
-            // TVET: No section_id parameter
-            $data['studentList'] = $this->examgroupstudent_model->searchExamStudents($exam_group_id, $exam_id, $class_id, null, $session_id);
+            // TVET: Use searchExamStudentsByClass() - no section_id parameter
+            $data['studentList'] = $this->examgroupstudent_model->searchExamStudentsByClass($exam_group_id, $exam_id, $class_id, $session_id);
             $data['examList'] = $this->examgroup_model->getExamByExamGroup($exam_group_id, true);
             $data['exam_id']       = $exam_id;
             $data['exam_group_id'] = $exam_group_id;
@@ -145,7 +145,8 @@ class Examresult extends Admin_Controller
 
             $marksheet_template         = $this->input->post('marksheet');
             $data['marksheet_template'] = $marksheet_template;
-            $data['studentList']        = $this->examgroupstudent_model->searchExamStudents($exam_group_id, $exam_id, $class_id, null, $session_id);
+            // TVET: Use searchExamStudentsByClass() - no section_id parameter
+            $data['studentList']        = $this->examgroupstudent_model->searchExamStudentsByClass($exam_group_id, $exam_id, $class_id, $session_id);
             $data['examList']           = $this->examgroup_model->getExamByExamGroup($exam_group_id, true);
             $data['exam_id']            = $exam_id;
             $data['exam_group_id']      = $exam_group_id;
@@ -320,8 +321,8 @@ class Examresult extends Admin_Controller
             $data['marksheet_template'] = $marksheet_template;
             $exam_details               = $this->examgroup_model->getExamByID($exam_id);
 
-            // TVET: Search by class only (section_id removed)
-            $studentList = $this->examgroupstudent_model->searchExamStudents($exam_group_id, $exam_id, $class_id, null, $session_id);
+            // TVET: Use searchExamStudentsByClass() - no section_id parameter
+            $studentList = $this->examgroupstudent_model->searchExamStudentsByClass($exam_group_id, $exam_id, $class_id, $session_id);
 
             $exam_subjects       = $this->batchsubject_model->getExamSubjects($exam_id);
             $data['subjectList'] = $exam_subjects;
@@ -397,9 +398,10 @@ class Examresult extends Admin_Controller
     public function getStudentByClassBatch()
     {
         $class_id            = $this->input->post('class_id');
-        // TVET: section_id removed
+        // TVET: section_id removed - use class_id only
         $session_id          = $this->input->post('session_id');
-        $data['studentList'] = $this->examgroupstudent_model->searchStudentByClassSectionSession($class_id, null, $session_id);
+        // TVET: Use searchStudentByClassSession() - no section_id parameter
+        $data['studentList'] = $this->examgroupstudent_model->searchStudentByClassSession($class_id, $session_id);
         echo json_encode($data);
     }
 
@@ -555,7 +557,8 @@ class Examresult extends Admin_Controller
             $data['marksheet_template'] = $marksheet_template;
             $exam_details               = $this->examgroup_model->getExamByID($exam_id);
 
-            $studentList = $this->examgroupstudent_model->searchExamStudents($exam_group_id, $exam_id, $class_id, null, $session_id);
+            // TVET: Use searchExamStudentsByClass() - no section_id parameter
+            $studentList = $this->examgroupstudent_model->searchExamStudentsByClass($exam_group_id, $exam_id, $class_id, $session_id);
 
             $exam_subjects       = $this->batchsubject_model->getExamSubjects($exam_id);
             $data['subjectList'] = $exam_subjects;

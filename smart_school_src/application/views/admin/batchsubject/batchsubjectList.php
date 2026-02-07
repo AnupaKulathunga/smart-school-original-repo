@@ -110,10 +110,9 @@ foreach ($batchlist as $batch) {
     ?>
                                         <tr>
                                             <td class="mailbox-name">
-                                                <!-- TVET: Display CLASS info (class may be legacy or TVET depending on data) -->
+                                                <!-- TVET: Display CLASS info (no section) -->
                                                 <a href="#" data-toggle="popover" class="detail_popover">
                                                     <?php echo isset($batch->class) ? $batch->class : ''; ?>
-                                                    <?php echo isset($batch->section) && $batch->section ? ' (' . $batch->section . ')' : ''; ?>
                                                 </a>
                                             </td>
                                             <td class="mailbox-name"><?php echo $batch->name; ?></td>

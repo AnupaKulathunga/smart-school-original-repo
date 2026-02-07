@@ -16,7 +16,7 @@ class Stuattendence_model extends MY_Model
 
     /**
      * Add or update attendance
-     * UPDATED: Now supports both enrolment_id (TVET) and student_session_id (legacy)
+     * Uses enrolment_id from academic_class_enrolment
      */
     public function addorUpdate($attendances)
     {
@@ -25,26 +25,18 @@ class Stuattendence_model extends MY_Model
 
         if(!empty($attendances)){
             foreach ($attendances as $attendance_key => $attendance_value) {
-                // Support both TVET (enrolment_id) and legacy (student_session_id)
-                if (isset($attendance_value['enrolment_id'])) {
-                    // TVET: Use enrolment_id
-                    $this->db->where('enrolment_id', $attendance_value['enrolment_id']);
-                } else if (isset($attendance_value['student_session_id'])) {
-                    // Legacy: Use student_session_id
-                    $this->db->where('student_session_id', $attendance_value['student_session_id']);
-                } else {
-                    continue; // Skip if neither ID is present
+                if (!isset($attendance_value['enrolment_id'])) {
+                    continue;
                 }
+                $this->db->where('enrolment_id', $attendance_value['enrolment_id']);
 
                 $this->db->where('date', $attendance_value['date']);
                 $query = $this->db->get('student_attendences');
 
                 if ($query->num_rows() > 0) {
-                    // Record exists, update it
                     $this->db->where('id', $query->row()->id);
                     $this->db->update('student_attendences', $attendance_value);
                 } else {
-                    // Record does not exist, insert a new one
                     $this->db->insert('student_attendences', $attendance_value);
                 }
             }
@@ -82,61 +74,50 @@ class Stuattendence_model extends MY_Model
         }
     }
 
-    public function onlineattendence($data,$class_section_id)
+    /**
+     * Online attendance (biometric/QR) - TVET version
+     * Uses enrolment_id
+     */
+    public function onlineattendence($data, $class_id)
     {
-    
-            $status =false;
-            $this->db->where('student_session_id', $data['student_session_id']);
-            $this->db->where('date', $data['date']);
-            $q = $this->db->get('student_attendences');
-            $time = date('H:i:s');
-    
-            if ($q->num_rows() == 0) {
- 
-                    $attendance_range = $this->studentAttendaceSetting_model->getAttendanceTypeByClassAndSectionTime($class_section_id, $time);
-                    if ($attendance_range) {
-                        $data['attendence_type_id'] = $attendance_range->attendence_type_id;
-                        $data['in_time'] = $time;
-    
-                        $this->db->insert('student_attendences', $data);
-                        $status = 1; //for successfully saving                        
+        $status = false;
+        if (!isset($data['enrolment_id'])) {
+            return false;
+        }
+        $this->db->where('enrolment_id', $data['enrolment_id']);
+        $this->db->where('date', $data['date']);
+        $q = $this->db->get('student_attendences');
+        $time = date('H:i:s');
 
-                        $present_student_list['student_sessions_id'][$data['student_session_id']] = ($data['student_session_id']);
-                        $present_student_list['in_time'][$data['student_session_id']] =$time;
-                        $this->mailsmsconf->mailsms('student_present_attendence', $present_student_list, $data['date']);
-    
-                    } else {
-                        $status = 2; //for range not exist to save
-    
-                    }
-              
+        if ($q->num_rows() == 0) {
+            $attendance_range = $this->studentAttendaceSetting_model->getAttendanceTypeByClassAndSectionTime($class_id, $time);
+            if ($attendance_range) {
+                $data['attendence_type_id'] = $attendance_range->attendence_type_id;
+                $this->db->insert('student_attendences', $data);
+                $status = 1;
+
+                $enrol_id = $data['enrolment_id'];
+                $present_student_list['student_sessions_id'][$enrol_id] = $enrol_id;
+                $this->mailsmsconf->mailsms('student_present_attendence', $present_student_list, $data['date']);
             } else {
-                $return_result = $q->row();
-                if (!IsNullOrEmptyString($return_result->in_time)  && !IsNullOrEmptyString($return_result->out_time)) {    
-                    $status = 0; //if both attendance is exist for the day
-                } else {    
-    
-                    $updateArr = ['out_time' => $time];
-                    $return_attendance_type =  $this->student_schedule_hours($class_section_id, $return_result->in_time);
-                    if ($return_attendance_type) {
-                        $updateArr['attendence_type_id'] = $return_attendance_type;
-                    }
-    
-                    $this->db->where('id', $return_result->id);
-                    $this->db->update('student_attendences', $updateArr);
-                    $status = 1;
-                }
+                $status = 2;
             }
+        } else {
+            $return_result = $q->row();
+            $status = 0;
+        }
         return $status;
     }
-	
-	public function student_schedule_hours($class_section_id, $in_time)
+
+    /**
+     * Student schedule hours lookup by class_id
+     */
+    public function student_schedule_hours($class_id, $in_time)
     {
-        $date = date('Y-m-d');
-        $sql    = "SELECT * FROM `student_attendence_schedules`WHERE class_section_id=" . $this->db->escape($class_section_id);      
+        $sql = "SELECT * FROM `student_attendence_schedules` WHERE class_section_id = " . $this->db->escape($class_id);
 
         $current_time = date('H:i:s');
-        $query  = $this->db->query($sql);
+        $query = $this->db->query($sql);
         if ($query->num_rows() > 0) {
 
             $return_attedance_type = false;
@@ -145,15 +126,13 @@ class Stuattendence_model extends MY_Model
             $total_spend_time = $time_current_seconds - $time_entry_seconds;
 
             $result = $query->result();
-            $find_array = array();         
+            $find_array = array();
 
             foreach ($result as $result_key => $result_value) {
-
                 $entry_time_from_seconds = strtotime("1970-01-01 $result_value->entry_time_from UTC");
                 $entry_time_to_seconds = strtotime("1970-01-01 $result_value->entry_time_to UTC");
 
-                if ($entry_time_from_seconds  <= $time_entry_seconds && $entry_time_to_seconds >= $time_entry_seconds) {
-
+                if ($entry_time_from_seconds <= $time_entry_seconds && $entry_time_to_seconds >= $time_entry_seconds) {
                     $find_array[] = array(
                         'attendence_type_id' => $result_value->attendence_type_id,
                         'time_schedule_seconds' => strtotime("1970-01-01 $result_value->total_institute_hour UTC")
@@ -194,47 +173,120 @@ class Stuattendence_model extends MY_Model
         }
     }
 
+    /**
+     * Search attendance by class. section_id kept for signature compatibility but ignored.
+     */
     public function searchAttendenceClassSection($class_id, $section_id, $date)
     {
-        $sql = "select student_sessions.in_time,student_sessions.out_time,student_sessions.attendence_id,student_sessions.attendence_dt,students.firstname,students.middlename,students.lastname,student_sessions.date,student_sessions.remark,student_sessions.biometric_attendence,student_sessions.qrcode_attendance,student_sessions.biometric_device_data,student_sessions.user_agent,students.roll_no,students.admission_no,students.id as std_id,students.lastname,student_sessions.attendence_type_id,student_sessions.id as student_session_id, attendence_type.type as `att_type`,attendence_type.key_value as `key`,attendence_type.long_lang_name,attendence_type.long_name_style from students,(SELECT student_attendences.in_time,student_attendences.out_time,
-        student_session.id,student_session.student_id , IFNULL(student_attendences.date, 'xxx') as date, IFNULL(student_attendences.created_at, 'xxx') as attendence_dt,
-        student_attendences.remark,student_attendences.biometric_attendence,student_attendences.user_agent,student_attendences.biometric_device_data,student_attendences.qrcode_attendance, IFNULL(student_attendences.id, 0) as attendence_id,student_attendences.attendence_type_id FROM `student_session` LEFT JOIN student_attendences ON student_attendences.student_session_id=student_session.id  and student_attendences.date=" . $this->db->escape($date) . " where  student_session.session_id=" . $this->db->escape($this->current_session) . " and student_session.class_id=" . $this->db->escape($class_id) . " and student_session.section_id=" . $this->db->escape($section_id) . ") as student_sessions   LEFT JOIN attendence_type ON attendence_type.id=student_sessions.attendence_type_id where student_sessions.student_id = students.id and students.is_active = 'yes' ORDER BY students.admission_no asc";
+        $sql = "SELECT student_sessions.attendence_id,
+                students.firstname, students.middlename, students.lastname,
+                student_sessions.date, student_sessions.remark,
+                students.roll_no, students.admission_no, students.id as std_id,
+                student_sessions.attendence_type_id, student_sessions.id as student_session_id,
+                attendence_type.type as `att_type`, attendence_type.key_value as `key`,
+                attendence_type.long_lang_name, attendence_type.long_name_style
+            FROM students, (
+                SELECT ace.id, ace.student_id,
+                    IFNULL(student_attendences.date, 'xxx') as date,
+                    student_attendences.remark,
+                    IFNULL(student_attendences.id, 0) as attendence_id,
+                    student_attendences.attendence_type_id
+                FROM `academic_class_enrolment` ace
+                INNER JOIN `academic_class` ac ON ace.class_id = ac.id
+                LEFT JOIN student_attendences ON student_attendences.enrolment_id = ace.id
+                    AND student_attendences.date = " . $this->db->escape($date) . "
+                WHERE ac.session_id = " . $this->db->escape($this->current_session) . "
+                    AND ace.class_id = " . $this->db->escape($class_id) . "
+                    AND ace.status = 'Active'
+            ) as student_sessions
+            LEFT JOIN attendence_type ON attendence_type.id = student_sessions.attendence_type_id
+            WHERE student_sessions.student_id = students.id
+                AND students.is_active = 'yes'
+            ORDER BY students.admission_no ASC";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
 
+    /**
+     * Search attendance by class with mode filter. section_id kept for signature compatibility but ignored.
+     */
     public function searchAttendenceClassSectionWithMode($class_id, $section_id, $date, $mode)
     {
-        $condition = "";
-        if ($mode == 1) {
-            $condition = " and student_sessions.biometric_attendence= 0 and student_sessions.qrcode_attendance=0";
-        } elseif ($mode == 2) {
-            $condition = " and student_sessions.biometric_attendence= 0 and student_sessions.qrcode_attendance=1";
-        } elseif ($mode == 3) {
-            $condition = " and student_sessions.biometric_attendence= 1 and student_sessions.qrcode_attendance=0";
-        }
-        
-        $sql = "select student_sessions.attendence_id,student_sessions.attendence_dt,students.firstname,students.middlename,students.lastname,student_sessions.date,student_sessions.remark,student_sessions.biometric_attendence,student_sessions.qrcode_attendance,student_sessions.biometric_device_data,student_sessions.user_agent,students.roll_no,students.admission_no,students.id as std_id,students.lastname,student_sessions.attendence_type_id,student_sessions.id as student_session_id, attendence_type.type as `att_type`,attendence_type.key_value as `key`,attendence_type.long_lang_name,attendence_type.long_name_style from students ,(SELECT student_session.id,student_session.student_id ,IFNULL(student_attendences.date, 'xxx') as date,IFNULL(student_attendences.created_at, 'xxx') as attendence_dt,student_attendences.remark,student_attendences.biometric_attendence,student_attendences.user_agent,student_attendences.biometric_device_data,student_attendences.qrcode_attendance, IFNULL(student_attendences.id, 0) as attendence_id,student_attendences.attendence_type_id FROM `student_session` LEFT JOIN student_attendences ON student_attendences.student_session_id=student_session.id  and student_attendences.date=" . $this->db->escape($date) . " where  student_session.session_id=" . $this->db->escape($this->current_session) . " and student_session.class_id=" . $this->db->escape($class_id) . " and student_session.section_id=" . $this->db->escape($section_id) . ") as student_sessions   LEFT JOIN attendence_type ON attendence_type.id=student_sessions.attendence_type_id where student_sessions.student_id = students.id and students.is_active = 'yes' ".$condition." ORDER BY students.admission_no asc";
-        $query = $this->db->query($sql);
-        return $query->result_array();
+        // Mode filtering not applicable without biometric columns; return standard results
+        return $this->searchAttendenceClassSection($class_id, $section_id, $date);
     }
 
+    /**
+     * Search attendance report by class. section_id kept for signature compatibility but ignored.
+     */
     public function searchAttendenceReport($class_id, $section_id, $date)
     {
-        $sql = "select student_sessions.attendence_id,students.firstname,students.middlename,student_sessions.date,student_sessions.remark,students.roll_no,students.admission_no,students.lastname,student_sessions.attendence_type_id,student_sessions.id as student_session_id, attendence_type.type as `att_type`,attendence_type.key_value as `key` from students ,(SELECT student_session.id,student_session.student_id ,IFNULL(student_attendences.date, 'xxx') as date,student_attendences.remark, IFNULL(student_attendences.id, 0) as attendence_id,student_attendences.attendence_type_id FROM `student_session` LEFT JOIN student_attendences ON student_attendences.student_session_id=student_session.id  and student_attendences.date=" . $this->db->escape($date) . " where  student_session.session_id=" . $this->db->escape($this->current_session) . " and student_session.class_id=" . $this->db->escape($class_id) . " and student_session.section_id=" . $this->db->escape($section_id) . ") as student_sessions   LEFT JOIN attendence_type ON attendence_type.id=student_sessions.attendence_type_id where student_sessions.student_id=students.id  and students.is_active = 'yes' ";
+        $sql = "SELECT student_sessions.attendence_id, students.firstname, students.middlename,
+                student_sessions.date, student_sessions.remark,
+                students.roll_no, students.admission_no, students.lastname,
+                student_sessions.attendence_type_id, student_sessions.id as student_session_id,
+                attendence_type.type as `att_type`, attendence_type.key_value as `key`
+            FROM students, (
+                SELECT ace.id, ace.student_id,
+                    IFNULL(student_attendences.date, 'xxx') as date,
+                    student_attendences.remark,
+                    IFNULL(student_attendences.id, 0) as attendence_id,
+                    student_attendences.attendence_type_id
+                FROM `academic_class_enrolment` ace
+                INNER JOIN `academic_class` ac ON ace.class_id = ac.id
+                LEFT JOIN student_attendences ON student_attendences.enrolment_id = ace.id
+                    AND student_attendences.date = " . $this->db->escape($date) . "
+                WHERE ac.session_id = " . $this->db->escape($this->current_session) . "
+                    AND ace.class_id = " . $this->db->escape($class_id) . "
+                    AND ace.status = 'Active'
+            ) as student_sessions
+            LEFT JOIN attendence_type ON attendence_type.id = student_sessions.attendence_type_id
+            WHERE student_sessions.student_id = students.id
+                AND students.is_active = 'yes'";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
 
+    /**
+     * Search attendance prepare by class. section_id kept for signature compatibility but ignored.
+     */
     public function searchAttendenceClassSectionPrepare($class_id, $section_id, $date)
     {
-        $query = $this->db->query("select student_sessions.attendence_id,student_sessions.remark,students.id as std_id,students.firstname,students.middlename,students.admission_no,student_sessions.date,students.roll_no,students.lastname,student_sessions.attendence_type_id,student_sessions.id as student_session_id from students ,(SELECT student_session.id,student_session.student_id ,IFNULL(student_attendences.date, 'xxx') as date,student_attendences.remark,IFNULL(student_attendences.id, 0) as attendence_id,student_attendences.attendence_type_id FROM `student_session` RIGHT JOIN student_attendences ON student_attendences.student_session_id=student_session.id  and student_attendences.date=" . $this->db->escape($date) . " where  student_session.session_id=" . $this->db->escape($this->current_session) . " and student_session.class_id=" . $this->db->escape($class_id) . " and student_session.section_id=" . $this->db->escape($section_id) . ") as student_sessions where student_sessions.student_id=students.id ");
+        $query = $this->db->query("SELECT student_sessions.attendence_id, student_sessions.remark,
+                students.id as std_id, students.firstname, students.middlename,
+                students.admission_no, student_sessions.date, students.roll_no, students.lastname,
+                student_sessions.attendence_type_id, student_sessions.id as student_session_id
+            FROM students, (
+                SELECT ace.id, ace.student_id,
+                    IFNULL(student_attendences.date, 'xxx') as date,
+                    student_attendences.remark,
+                    IFNULL(student_attendences.id, 0) as attendence_id,
+                    student_attendences.attendence_type_id
+                FROM `academic_class_enrolment` ace
+                INNER JOIN `academic_class` ac ON ace.class_id = ac.id
+                RIGHT JOIN student_attendences ON student_attendences.enrolment_id = ace.id
+                    AND student_attendences.date = " . $this->db->escape($date) . "
+                WHERE ac.session_id = " . $this->db->escape($this->current_session) . "
+                    AND ace.class_id = " . $this->db->escape($class_id) . "
+                    AND ace.status = 'Active'
+            ) as student_sessions
+            WHERE student_sessions.student_id = students.id");
         return $query->result_array();
     }
 
+    /**
+     * Count attendance by month for enrolment_id
+     */
     public function count_attendance_obj($month, $year, $student_id, $attendance_type = 1)
     {
-        $query = $this->db->select('count(*) as attendence')->join("student_session", "student_attendences.student_session_id = student_session.id")->where(array('student_attendences.student_session_id' => $student_id, 'month(date)' => $month, 'year(date)' => $year, 'student_attendences.attendence_type_id' => $attendance_type))->get("student_attendences");
+        $query = $this->db->select('count(*) as attendence', FALSE)
+            ->where(array(
+                'student_attendences.enrolment_id' => $student_id,
+                'month(date)' => $month,
+                'year(date)' => $year,
+                'student_attendences.attendence_type_id' => $attendance_type
+            ))
+            ->get("student_attendences");
         return $query->row()->attendence;
     }
 
@@ -244,17 +296,63 @@ class Stuattendence_model extends MY_Model
         return $query->result_array();
     }
 
+    /**
+     * Today's attendance summary across all active enrolments
+     */
     public function getTodayDayAttendance($total_student)
     {
-        $query = $this->db->query("SELECT 
-            concat(round((sum( case when `attendence_type_id`=1 then 1 else 0 end)*100/" . $total_student . "),2),'%') as present, concat(round((sum( case when `attendence_type_id`=3 then 1 else 0 end)*100/" . $total_student . "),2),'%') as late,
-            concat(round((sum( case when `attendence_type_id`=4 then 1 else 0 end)*100/" . $total_student . "),2),'%') as absent,concat(round((sum( case when `attendence_type_id`=6 then 1 else 0 end)*100/" . $total_student . "),2),'%') as half_day,sum( case when `attendence_type_id`=1 then 1 else 0 end) as total_present,sum( case when `attendence_type_id`=3 then 1 else 0 end) as total_late,sum( case when `attendence_type_id`=4 then 1 else 0 end) as total_absent,sum( case when `attendence_type_id`=6 then 1 else 0 end) as total_half_day FROM `student_attendences` inner join student_session on student_attendences.student_session_id=student_session.id where date_format(date,'%Y-%m-%d')='" . date('Y-m-d') . "' and student_session.session_id='" . $this->current_session . "'");
+        $query = $this->db->query("SELECT
+            CONCAT(ROUND((SUM(CASE WHEN `attendence_type_id`=1 THEN 1 ELSE 0 END)*100/" . $total_student . "),2),'%') as present,
+            CONCAT(ROUND((SUM(CASE WHEN `attendence_type_id`=3 THEN 1 ELSE 0 END)*100/" . $total_student . "),2),'%') as late,
+            CONCAT(ROUND((SUM(CASE WHEN `attendence_type_id`=4 THEN 1 ELSE 0 END)*100/" . $total_student . "),2),'%') as absent,
+            CONCAT(ROUND((SUM(CASE WHEN `attendence_type_id`=6 THEN 1 ELSE 0 END)*100/" . $total_student . "),2),'%') as half_day,
+            SUM(CASE WHEN `attendence_type_id`=1 THEN 1 ELSE 0 END) as total_present,
+            SUM(CASE WHEN `attendence_type_id`=3 THEN 1 ELSE 0 END) as total_late,
+            SUM(CASE WHEN `attendence_type_id`=4 THEN 1 ELSE 0 END) as total_absent,
+            SUM(CASE WHEN `attendence_type_id`=6 THEN 1 ELSE 0 END) as total_half_day
+            FROM `student_attendences`
+            INNER JOIN `academic_class_enrolment` ace ON student_attendences.enrolment_id = ace.id
+            INNER JOIN `academic_class` ac ON ace.class_id = ac.id
+            WHERE DATE_FORMAT(date,'%Y-%m-%d') = '" . date('Y-m-d') . "'
+                AND ac.session_id = '" . $this->current_session . "'
+                AND ace.status = 'Active'");
         return $query->row_array();
     }
 
+    /**
+     * Get student attendances with class info for reports
+     */
     public function student_attendences($condition, $date_condition)
     {
-        $query = $this->db->query("SELECT `classes`.`id` AS `class_id`, `students`.`id`, `classes`.`class`, `sections`.`id` AS `section_id`, `sections`.`section`, `students`.`id`, `students`.`admission_no`, `students`.`roll_no`, `students`.`admission_date`, `students`.`firstname`,students.middlename, `students`.`lastname`, `students`.`image`, `students`.`mobileno`, `students`.`email`, `students`.`state`, `students`.`city`, `students`.`pincode`, `students`.`religion`, `students`.`dob`, `students`.`current_address`,  `students`.`adhar_no`, `students`.`samagra_id`, `students`.`bank_account_no`, `students`.`bank_name`, `students`.`ifsc_code`, `students`.`father_name`, `students`.`guardian_name`, `students`.`guardian_relation`, `students`.`guardian_phone`, `students`.`guardian_address`, `students`.`is_active`, `students`.`created_at`, `students`.`updated_at`, `students`.`gender`, `students`.`rte`, `student_session`.`session_id`,`date`, count(student_attendences.id) as total_type FROM `student_attendences` INNER JOIN `student_session` ON `student_session`.`id` = `student_attendences`.`student_session_id` INNER JOIN `students` ON `student_session`.`student_id` = `students`.`id` JOIN `classes` ON `student_session`.`class_id` = `classes`.`id` JOIN `sections` ON `sections`.`id` = `student_session`.`section_id` LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id` WHERE `student_session`.`session_id` = '" . $this->current_session . "' AND `students`.`is_active` = 'yes' " . $condition . " group by students.id  ORDER BY `students`.`id`");
+        $query = $this->db->query("SELECT
+                ac.id AS class_id, students.id,
+                ac.class_code as `class`,
+                asubj.name as subject_name, al.name as level_name,
+                students.id, students.admission_no, students.roll_no,
+                students.admission_date, students.firstname, students.middlename,
+                students.lastname, students.image, students.mobileno,
+                students.email, students.state, students.city,
+                students.pincode, students.religion, students.dob,
+                students.current_address, students.adhar_no, students.samagra_id,
+                students.bank_account_no, students.bank_name, students.ifsc_code,
+                students.father_name, students.guardian_name, students.guardian_relation,
+                students.guardian_phone, students.guardian_address, students.is_active,
+                students.created_at, students.updated_at, students.gender,
+                students.rte, ac.session_id, `date`,
+                COUNT(student_attendences.id) as total_type
+            FROM `student_attendences`
+            INNER JOIN `academic_class_enrolment` ace ON ace.id = student_attendences.enrolment_id
+            INNER JOIN `students` ON ace.student_id = students.id
+            JOIN `academic_class` ac ON ace.class_id = ac.id
+            JOIN `academic_subject_level` asl ON ac.subject_level_id = asl.id
+            JOIN `academic_subject` asubj ON asl.subject_id = asubj.id
+            JOIN `academic_level` al ON asl.level_id = al.id
+            LEFT JOIN `categories` ON students.category_id = categories.id
+            WHERE ac.session_id = '" . $this->current_session . "'
+                AND ace.status = 'Active'
+                AND students.is_active = 'yes' " . $condition . "
+            GROUP BY students.id
+            ORDER BY students.id");
         return $query->result_array();
     }
 
@@ -266,53 +364,110 @@ class Stuattendence_model extends MY_Model
         return $query['day'];
     }
 
+    /**
+     * Biometric attendance log
+     */
     public function biometric_attlog($limit = null, $offset = NULL)
     {
-        return $this->db->select('student_attendences.*,CONCAT_WS(students.firstname," ",students.lastname) as name,students.firstname,students.middlename,students.lastname,students.roll_no', FALSE)->from('student_attendences')->join('student_session', 'student_session.id=student_attendences.student_session_id', 'left')->join('students', 'student_session.student_id=students.id', 'left')->where('biometric_attendence', 1)->limit($limit, $offset)->get()->result_array();
+        return $this->db->select('student_attendences.*, CONCAT_WS(students.firstname," ",students.lastname) as name, students.firstname, students.middlename, students.lastname, students.roll_no', FALSE)
+            ->from('student_attendences')
+            ->join('academic_class_enrolment ace', 'ace.id = student_attendences.enrolment_id', 'left')
+            ->join('students', 'ace.student_id = students.id', 'left')
+            ->limit($limit, $offset)
+            ->get()->result_array();
     }
 
     public function biometric_attlogcount()
     {
-        $count = $this->db->select('count(*) as total')->from('student_attendences')->where('biometric_attendence', 1)->get()->row_array();
+        $count = $this->db->select('count(*) as total', FALSE)->from('student_attendences')->get()->row_array();
         return $count['total'];
     }
 
+    /**
+     * Get attendance summary by date grouped by class
+     */
     public function get_attendancebydate($date)
     {
-        $sql = 'SELECT classes.class as class_name,classes.id as class_id, sections.id as sections_id, sections.section as section_name, SUM(CASE WHEN `attendence_type_id` = 1 THEN 1 ELSE 0 END) AS "present",SUM(CASE WHEN `attendence_type_id` = 2 THEN 1 ELSE 0 END) AS "excuse",SUM(CASE WHEN `attendence_type_id` = 4 THEN 1 ELSE 0 END) AS "absent",SUM(CASE WHEN `attendence_type_id` = 3 THEN 1 ELSE 0 END) AS "late",SUM(CASE WHEN `attendence_type_id` = 6 THEN 1 ELSE 0 END) AS "half_day" FROM `student_attendences` join student_session on student_attendences.student_session_id=student_session.id inner join class_sections on (student_session.class_id=class_sections.class_id and student_session.section_id=class_sections.section_id) inner join classes on classes.id=class_sections.class_id inner join sections on sections.id=class_sections.section_id WHERE 1  and `student_session`.`session_id`=' . $this->current_session . ' ' . $date . ' group by class_sections.id';
+        $sql = 'SELECT ac.class_code as class_name, ac.id as class_id,
+                asubj.name as subject_name, al.name as level_name,
+                SUM(CASE WHEN `attendence_type_id` = 1 THEN 1 ELSE 0 END) AS "present",
+                SUM(CASE WHEN `attendence_type_id` = 2 THEN 1 ELSE 0 END) AS "excuse",
+                SUM(CASE WHEN `attendence_type_id` = 4 THEN 1 ELSE 0 END) AS "absent",
+                SUM(CASE WHEN `attendence_type_id` = 3 THEN 1 ELSE 0 END) AS "late",
+                SUM(CASE WHEN `attendence_type_id` = 6 THEN 1 ELSE 0 END) AS "half_day"
+            FROM `student_attendences`
+            JOIN `academic_class_enrolment` ace ON student_attendences.enrolment_id = ace.id
+            INNER JOIN `academic_class` ac ON ace.class_id = ac.id
+            INNER JOIN `academic_subject_level` asl ON ac.subject_level_id = asl.id
+            INNER JOIN `academic_subject` asubj ON asl.subject_id = asubj.id
+            INNER JOIN `academic_level` al ON asl.level_id = al.id
+            WHERE 1
+                AND ac.session_id = ' . $this->current_session . '
+                AND ace.status = \'Active\' ' . $date . '
+            GROUP BY ac.id';
 
-        $query = $this->db->query($sql);		
-		$result = $query->result();
+        $query = $this->db->query($sql);
+        $result = $query->result();
         foreach ($result as $key => $sectionList_value) {
-            $classid   = $sectionList_value->class_id;
-            $sectionsid 	= $sectionList_value->sections_id;	
-			
-			$result[$key]->male_present		=	count($this->getmalefemalecount($classid, $sectionsid, $date, "Male", "in(1,2,3,6)"));
-			$result[$key]->female_present	=	count($this->getmalefemalecount($classid, $sectionsid, $date, "Female", "in(1,2,3,6)"));			
-			$result[$key]->male_absent		=	count($this->getmalefemalecount($classid, $sectionsid, $date, "Male", "in(4)"));			 
-			$result[$key]->female_absent	=	count($this->getmalefemalecount($classid, $sectionsid, $date, "Female", "in(4)"));			
-             
+            $classid = $sectionList_value->class_id;
+
+            $result[$key]->male_present   = count($this->getmalefemalecount($classid, null, $date, "Male", "in(1,2,3,6)"));
+            $result[$key]->female_present = count($this->getmalefemalecount($classid, null, $date, "Female", "in(1,2,3,6)"));
+            $result[$key]->male_absent    = count($this->getmalefemalecount($classid, null, $date, "Male", "in(4)"));
+            $result[$key]->female_absent  = count($this->getmalefemalecount($classid, null, $date, "Female", "in(4)"));
         }
-        return $result;		
-    }	
-	
-	public function getmalefemalecount($class_id, $section_id, $date, $gender, $type) 
+        return $result;
+    }
+
+    /**
+     * Get male/female attendance counts by class. section_id kept for signature compatibility.
+     */
+    public function getmalefemalecount($class_id, $section_id, $date, $gender, $type)
     {
-        $sql = "select student_sessions.in_time,student_sessions.out_time,student_sessions.attendence_id,student_sessions.attendence_dt,students.firstname,students.middlename,students.lastname,student_sessions.date,student_sessions.remark,student_sessions.biometric_attendence,student_sessions.qrcode_attendance,student_sessions.biometric_device_data,student_sessions.user_agent,students.roll_no,students.admission_no,students.id as std_id,students.lastname,student_sessions.attendence_type_id,student_sessions.id as student_session_id, attendence_type.type as `att_type`,attendence_type.key_value as `key`,attendence_type.long_lang_name,attendence_type.long_name_style from students,
-		
-		(SELECT student_attendences.in_time,student_attendences.out_time,
-        student_session.id,student_session.student_id , IFNULL(student_attendences.date, 'xxx') as date, IFNULL(student_attendences.created_at, 'xxx') as attendence_dt,        student_attendences.remark,student_attendences.biometric_attendence,student_attendences.user_agent,student_attendences.biometric_device_data,student_attendences.qrcode_attendance, IFNULL(student_attendences.id, 0) as attendence_id,student_attendences.attendence_type_id FROM `student_session` LEFT JOIN student_attendences ON student_attendences.student_session_id=student_session.id  " . $date . " and student_attendences.attendence_type_id ".$type." where student_attendences.attendence_type_id !='' and student_session.session_id=" . $this->db->escape($this->current_session) . " and student_session.class_id=" . $this->db->escape($class_id) . " and student_session.section_id=" . $this->db->escape($section_id) . ") as student_sessions  
-		
-		LEFT JOIN attendence_type ON attendence_type.id=student_sessions.attendence_type_id 
-		where student_sessions.student_id = students.id and students.is_active = 'yes'  and students.gender = '$gender'
-		group by students.id ORDER BY students.admission_no asc ";
+        $sql = "SELECT student_sessions.attendence_id,
+                students.firstname, students.middlename, students.lastname,
+                student_sessions.date, student_sessions.remark,
+                students.roll_no, students.admission_no, students.id as std_id,
+                student_sessions.attendence_type_id, student_sessions.id as student_session_id,
+                attendence_type.type as `att_type`, attendence_type.key_value as `key`,
+                attendence_type.long_lang_name, attendence_type.long_name_style
+            FROM students, (
+                SELECT ace.id, ace.student_id,
+                    IFNULL(student_attendences.date, 'xxx') as date,
+                    student_attendences.remark,
+                    IFNULL(student_attendences.id, 0) as attendence_id,
+                    student_attendences.attendence_type_id
+                FROM `academic_class_enrolment` ace
+                INNER JOIN `academic_class` ac ON ace.class_id = ac.id
+                LEFT JOIN student_attendences ON student_attendences.enrolment_id = ace.id
+                    " . $date . " AND student_attendences.attendence_type_id " . $type . "
+                WHERE student_attendences.attendence_type_id != ''
+                    AND ac.session_id = " . $this->db->escape($this->current_session) . "
+                    AND ace.class_id = " . $this->db->escape($class_id) . "
+                    AND ace.status = 'Active'
+            ) as student_sessions
+            LEFT JOIN attendence_type ON attendence_type.id = student_sessions.attendence_type_id
+            WHERE student_sessions.student_id = students.id
+                AND students.is_active = 'yes'
+                AND students.gender = '$gender'
+            GROUP BY students.id
+            ORDER BY students.admission_no ASC";
         $query = $this->db->query($sql);
         return $query->result_array();
-    }	
+    }
 
-    public function studentattendance($date, $student_session_id)
+    /**
+     * Get student attendance for a specific date and enrolment_id
+     */
+    public function studentattendance($date, $enrolment_id)
     {
-        $sql = "select student_attendences.*,student_session.student_id,attendence_type.type as `att_type`,attendence_type.key_value as `key` from student_attendences join student_session ON student_session.id=student_attendences.student_session_id left join attendence_type ON attendence_type.id = student_attendences.attendence_type_id where student_attendences.student_session_id = $student_session_id and student_attendences.date =" . $this->db->escape($date);
+        $sql = "SELECT student_attendences.*, ace.student_id,
+                attendence_type.type as `att_type`, attendence_type.key_value as `key`
+            FROM student_attendences
+            JOIN academic_class_enrolment ace ON ace.id = student_attendences.enrolment_id
+            LEFT JOIN attendence_type ON attendence_type.id = student_attendences.attendence_type_id
+            WHERE student_attendences.enrolment_id = " . $this->db->escape($enrolment_id) . "
+                AND student_attendences.date = " . $this->db->escape($date);
 
         $query = $this->db->query($sql);
         if ($query->num_rows() > 0) {
@@ -321,23 +476,28 @@ class Stuattendence_model extends MY_Model
         return false;
     }
 
-    public function studentattendancecount($year, $student_id, $att_type)
+    /**
+     * Count student attendance by year and enrolment_id
+     */
+    public function studentattendancecount($year, $enrolment_id, $att_type)
     {
-        $query = $this->db->select('count(*) as attendence')
-            ->join('student_session', 'student_session.id = student_attendences.student_session_id', 'left')
-            ->where('student_attendences.student_session_id', $student_id)
+        $query = $this->db->select('count(*) as attendence', FALSE)
+            ->where('student_attendences.enrolment_id', $enrolment_id)
             ->where('year(date)', $year)
             ->where('student_attendences.attendence_type_id', $att_type)
             ->get("student_attendences");
         return $query->row()->attendence;
     }
 
-    public function student_attendence_bw_date($date_from, $date_to, $student_session_id)
+    /**
+     * Get student attendance between dates for an enrolment_id
+     */
+    public function student_attendence_bw_date($date_from, $date_to, $enrolment_id)
     {
-        $query = $this->db->select('student_attendences.*,attendence_type.type as `att_type`,attendence_type.key_value as `key`')
-            ->join('student_session', 'student_session.id = student_attendences.student_session_id')
+        $query = $this->db->select('student_attendences.*, attendence_type.type as `att_type`, attendence_type.key_value as `key`')
+            ->join('academic_class_enrolment ace', 'ace.id = student_attendences.enrolment_id')
             ->join('attendence_type', 'attendence_type.id = student_attendences.attendence_type_id')
-            ->where('student_attendences.student_session_id', $student_session_id)
+            ->where('student_attendences.enrolment_id', $enrolment_id)
             ->where("date BETWEEN '{$date_from}' AND '{$date_to}'")
             ->get("student_attendences");
 
@@ -345,36 +505,31 @@ class Stuattendence_model extends MY_Model
     }
 
     // ========================================================================
-    // TVET METHODS - Uses enrolment_id instead of student_session_id
+    // TVET METHODS - Uses enrolment_id from academic_class_enrolment
     // ========================================================================
 
     /**
      * Get attendance for all students in a class on a specific date
-     * TVET: Uses class_id and enrolment_id
-     *
-     * @param int $class_id Class ID
-     * @param string $date Date in Y-m-d format
-     * @return array Array of students with attendance data
      */
     public function getAttendanceByClass($class_id, $date)
     {
         $query = $this->db->select('students.*, students.id as student_id,
-            enrolment.id as enrolment_id, enrolment.enrolment_type,
+            ace.id as enrolment_id, ace.status as enrolment_status,
             student_attendences.*, student_attendences.id as attendance_id,
             attendence_type.type as attendence_type, attendence_type.key_value,
-            class.class_code, class.cohort_name,
-            subjects.name as subject_name, level.name as level_name')
-            ->from('enrolment')
-            ->join('students', 'enrolment.student_id = students.id')
-            ->join('class', 'enrolment.class_id = class.id')
-            ->join('subject_level', 'class.subject_level_id = subject_level.id')
-            ->join('subjects', 'subject_level.subject_id = subjects.id')
-            ->join('level', 'subject_level.level_id = level.id')
-            ->join('student_attendences', 'student_attendences.enrolment_id = enrolment.id
+            ac.class_code, ac.cohort_name,
+            asubj.name as subject_name, al.name as level_name', FALSE)
+            ->from('academic_class_enrolment ace')
+            ->join('students', 'ace.student_id = students.id')
+            ->join('academic_class ac', 'ace.class_id = ac.id')
+            ->join('academic_subject_level asl', 'ac.subject_level_id = asl.id')
+            ->join('academic_subject asubj', 'asl.subject_id = asubj.id')
+            ->join('academic_level al', 'asl.level_id = al.id')
+            ->join('student_attendences', 'student_attendences.enrolment_id = ace.id
                 AND student_attendences.date = "' . $this->db->escape_str($date) . '"', 'left')
             ->join('attendence_type', 'student_attendences.attendence_type_id = attendence_type.id', 'left')
-            ->where('class.id', $class_id)
-            ->where('enrolment.status', 'Active')
+            ->where('ac.id', $class_id)
+            ->where('ace.status', 'Active')
             ->where('students.is_active', 'yes')
             ->order_by('students.firstname, students.lastname')
             ->get();
@@ -384,10 +539,7 @@ class Stuattendence_model extends MY_Model
 
     /**
      * Add or update attendance (TVET version)
-     * Supports both legacy student_session_id and new enrolment_id
-     *
-     * @param array $attendances Array of attendance records
-     * @return bool Success status
+     * Uses enrolment_id from academic_class_enrolment
      */
     public function addorUpdateTVET($attendances)
     {
@@ -396,26 +548,18 @@ class Stuattendence_model extends MY_Model
 
         if (!empty($attendances)) {
             foreach ($attendances as $attendance_key => $attendance_value) {
-                // Check if using enrolment_id (TVET) or student_session_id (legacy)
-                if (isset($attendance_value['enrolment_id'])) {
-                    // TVET: Use enrolment_id
-                    $this->db->where('enrolment_id', $attendance_value['enrolment_id']);
-                } else if (isset($attendance_value['student_session_id'])) {
-                    // Legacy: Use student_session_id
-                    $this->db->where('student_session_id', $attendance_value['student_session_id']);
-                } else {
-                    continue; // Skip if neither ID is present
+                if (!isset($attendance_value['enrolment_id'])) {
+                    continue;
                 }
+                $this->db->where('enrolment_id', $attendance_value['enrolment_id']);
 
                 $this->db->where('date', $attendance_value['date']);
                 $query = $this->db->get('student_attendences');
 
                 if ($query->num_rows() > 0) {
-                    // Record exists, update it
                     $this->db->where('id', $query->row()->id);
                     $this->db->update('student_attendences', $attendance_value);
                 } else {
-                    // Record does not exist, insert a new one
                     $this->db->insert('student_attendences', $attendance_value);
                 }
             }
@@ -434,12 +578,6 @@ class Stuattendence_model extends MY_Model
 
     /**
      * Get student attendance by enrolment ID
-     * TVET: Uses enrolment_id
-     *
-     * @param int $enrolment_id Enrolment ID
-     * @param string $date_from Start date
-     * @param string $date_to End date
-     * @return array Attendance records
      */
     public function getAttendanceByEnrolment($enrolment_id, $date_from = null, $date_to = null)
     {
@@ -454,5 +592,85 @@ class Stuattendence_model extends MY_Model
 
         $query = $this->db->get();
         return $query->result();
+    }
+
+    /**
+     * Search attendance by class only with mode filter
+     */
+    public function searchAttendenceClassWithMode($class_id, $date, $mode = null)
+    {
+        $sql = "SELECT
+                    students.firstname, students.middlename, students.lastname,
+                    students.roll_no, students.admission_no, students.id as std_id,
+                    ace.id as enrolment_id,
+                    IFNULL(student_attendences.id, 0) as attendence_id,
+                    IFNULL(student_attendences.date, 'xxx') as date,
+                    student_attendences.remark,
+                    student_attendences.attendence_type_id,
+                    attendence_type.type as att_type,
+                    attendence_type.key_value as `key`,
+                    attendence_type.long_lang_name,
+                    attendence_type.long_name_style
+                FROM students
+                INNER JOIN `academic_class_enrolment` ace ON ace.student_id = students.id
+                    AND ace.class_id = " . $this->db->escape($class_id) . "
+                    AND ace.status = 'Active'
+                INNER JOIN `academic_class` ac ON ace.class_id = ac.id
+                    AND ac.session_id = " . $this->db->escape($this->current_session) . "
+                LEFT JOIN student_attendences ON student_attendences.enrolment_id = ace.id
+                    AND student_attendences.date = " . $this->db->escape($date) . "
+                LEFT JOIN attendence_type ON attendence_type.id = student_attendences.attendence_type_id
+                WHERE students.is_active = 'yes'
+                ORDER BY students.admission_no ASC";
+
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    /**
+     * Search attendance report by class only
+     */
+    public function searchAttendenceReportByClass($class_id, $date)
+    {
+        $sql = "SELECT
+                    students.firstname, students.middlename, students.lastname,
+                    students.roll_no, students.admission_no,
+                    ace.id as enrolment_id,
+                    IFNULL(student_attendences.id, 0) as attendence_id,
+                    IFNULL(student_attendences.date, 'xxx') as date,
+                    student_attendences.remark,
+                    student_attendences.attendence_type_id,
+                    attendence_type.type as att_type,
+                    attendence_type.key_value as `key`
+                FROM students
+                INNER JOIN `academic_class_enrolment` ace ON ace.student_id = students.id
+                    AND ace.class_id = " . $this->db->escape($class_id) . "
+                    AND ace.status = 'Active'
+                INNER JOIN `academic_class` ac ON ace.class_id = ac.id
+                    AND ac.session_id = " . $this->db->escape($this->current_session) . "
+                LEFT JOIN student_attendences ON student_attendences.enrolment_id = ace.id
+                    AND student_attendences.date = " . $this->db->escape($date) . "
+                LEFT JOIN attendence_type ON attendence_type.id = student_attendences.attendence_type_id
+                WHERE students.is_active = 'yes'
+                ORDER BY students.admission_no ASC";
+
+        $query = $this->db->query($sql);
+        return $query->result_array();
+    }
+
+    /**
+     * Count attendance by month for a specific enrolment
+     */
+    public function count_attendance_by_enrolment($month, $year, $enrolment_id, $attendance_type = 1)
+    {
+        $query = $this->db->select('count(*) as attendence', FALSE)
+            ->where(array(
+                'enrolment_id' => $enrolment_id,
+                'month(date)' => $month,
+                'year(date)' => $year,
+                'attendence_type_id' => $attendance_type
+            ))
+            ->get("student_attendences");
+        return $query->row()->attendence;
     }
 }

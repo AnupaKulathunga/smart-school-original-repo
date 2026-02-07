@@ -69,7 +69,7 @@ if (empty($examSchedule)) {
                                                 <td><?php echo $count; ?>.</td>
                                                 <td><?php echo $exam['name']; ?></td>
                                                 <td class="pull-right">
-                                                    <a  class="btn btn-primary btn-sm schedule_modal" data-toggle="tooltip" title="" data-examname="<?php echo $exam['name']; ?>" data-examid="<?php echo $exam['exam_id']; ?>" data-original-title="<?php echo $this->lang->line('view_detail'); ?>" data-sectionid='<?php echo $section_id ?>' data-classid='<?php echo $class_id ?>' data-classname="<?php echo $exam['class_name'] ?>"  data-sectionname="<?php echo $exam['section_name'] ?>">
+                                                    <a  class="btn btn-primary btn-sm schedule_modal" data-toggle="tooltip" title="" data-examname="<?php echo $exam['name']; ?>" data-examid="<?php echo $exam['exam_id']; ?>" data-original-title="<?php echo $this->lang->line('view_detail'); ?>" data-classid='<?php echo $class_id ?>' data-classname="<?php echo $exam['class_name'] ?>">
                                                         <i class="fa fa-calendar-times-o"></i> <?php echo $this->lang->line('view'); ?>
                                                     </a>
                                                 </td>
@@ -125,21 +125,19 @@ $count++;
         $('.modal-title').html("");
         var exam_id = $(this).data('examid');
         var examname = $(this).data('examname');
-        var section_id = $(this).data('sectionid');
         var class_id = $(this).data('classid');
         var classname = $(this).data('classname');
-        var sectionname = $(this).data('sectionname');
         $('.modal-title').html("<?php echo $this->lang->line('exam'); ?> " + examname);
         var base_url = '<?php echo base_url() ?>';
         $.ajax({
             type: "post",
             url: base_url + "admin/examschedule/getexamscheduledetail",
-            data: {'exam_id': exam_id, 'section_id': section_id, 'class_id': class_id},
+            data: {'exam_id': exam_id, 'class_id': class_id},
             dataType: "json",
             success: function (response) {
                 var data = "";
                 data += '<div class="table-responsive">';
-                data += "<p class='lead titlefix pt0'><?php echo $this->lang->line('class'); ?>: " + classname + "(" + sectionname + ")</p>";
+                data += "<p class='lead titlefix pt0'><?php echo $this->lang->line('class'); ?>: " + classname + "</p>";
                 data += '<table class="table table-hover sss">';
                 data += '<thead>';
                 data += '<tr>';

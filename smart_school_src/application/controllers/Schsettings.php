@@ -12,7 +12,7 @@ class Schsettings extends Admin_Controller
         parent::__construct();
         $this->load->library('media_storage');
         $this->load->library('upload');
-        $this->load->model(array('class_section_time_model','sidebarmenu_model','staffAttendaceSetting_model','attendencetype_model','studentAttendaceSetting_model'));
+        $this->load->model(array('sidebarmenu_model','staffAttendaceSetting_model','attendencetype_model','studentAttendaceSetting_model'));
     }
 
     public function index()
@@ -680,9 +680,12 @@ class Schsettings extends Admin_Controller
         if(isset($classid)==false){
             $data['classid']=0;
         }
-        
-        $class_list=$this->class_section_time_model->allClassSections();
-        $data['class_list']=$class_list;
+
+        // TVET: Use classmodel_model for class listing (no sections)
+        $session_id              = $this->setting_model->getCurrentSession();
+        $class                   = $this->classmodel_model->getClassesBySession($session_id);
+        $data['classlist']       = $class;
+        $data['class_list']      = $class;
 
         $setting              = $this->setting_model->getSetting();
         $setting->base_url    = ($setting->base_url == "") ? base_url() : $setting->base_url;
@@ -690,10 +693,10 @@ class Schsettings extends Admin_Controller
         $data['result']       = $setting;
 
         //staff attedance settings
-        $staff_attendance_data   = $this->staffAttendaceSetting_model->getRoleAttendanceSetting();  
+        $staff_attendance_data   = $this->staffAttendaceSetting_model->getRoleAttendanceSetting();
         $attendance_type         = $this->attendencetype_model->getScheduleTypeStaffAttendance();
         $user_roles              = $this->staff_model->getStaffRole();
-        $data['user_roles']      = $user_roles;    
+        $data['user_roles']      = $user_roles;
         $data['attendance_type'] = $attendance_type;
         $new_list_attendance     = array();
 
@@ -708,52 +711,36 @@ class Schsettings extends Admin_Controller
                 ];
             }
         }
-        $data['list_attendance'] = $new_list_attendance;     
+        $data['list_attendance'] = $new_list_attendance;
         // staff attedance settings
 
-        //student attedance settings
-        $student_class_section_data = $this->studentAttendaceSetting_model->getClassWiseAttendanceSetting($classid);
-        $student_attendance_type            = $this->attendencetype_model->getScheduleTypeAttendance();
-        // $data = array();
+        // TVET: Student attendance settings - use class-only (no sections)
+        $student_class_data = $this->studentAttendaceSetting_model->getClassWiseAttendanceSettingTVET($classid ?: null);
+        $student_attendance_type         = $this->attendencetype_model->getScheduleTypeAttendance();
         $data['student_attendance_type'] = $student_attendance_type;
         $student_new_list_attendance = array();
 
-        foreach ($student_class_section_data as $student_class_key => $student_class_value) {
+        foreach ($student_class_data as $student_class_key => $student_class_value) {
             if (array_key_exists($student_class_value->class_id, $student_new_list_attendance)) {
-
-                if (array_key_exists($student_class_value->section_id, $student_new_list_attendance[$student_class_value->class_id]['sections'])) {
-
-                    $student_new_list_attendance[$student_class_value->class_id]['sections'][$student_class_value->section_id]['student_schedule'][] = $student_class_value;
-                } else {
-
-                    $student_new_list_attendance[$student_class_value->class_id]['sections'][$student_class_value->section_id] = array(
-                        'class_section_id' => $student_class_value->id,
-                        'section_id' => $student_class_value->section_id,
-                        'section' => $student_class_value->section,
-                        'student_schedule' => array($student_class_value)
-                    );
-                }
+                // TVET: No sections - use a single entry per class with class_id as key
+                $student_new_list_attendance[$student_class_value->class_id]['sections'][$student_class_value->class_id]['student_schedule'][] = $student_class_value;
             } else {
                 $student_new_list_attendance[$student_class_value->class_id] = [
                     'class_id' => $student_class_value->class_id,
                     'class' => $student_class_value->class,
-                    'sections' => array($student_class_value->section_id =>
+                    // TVET: Use class_id as the key instead of section_id; class_section_id maps to academic_class.id
+                    'sections' => array($student_class_value->class_id =>
                     array(
-                        'class_section_id' => $student_class_value->id,
-                        'section_id' => $student_class_value->section_id,
-                        'section' => $student_class_value->section,
+                        'class_section_id' => $student_class_value->class_id,
+                        'section_id' => $student_class_value->class_id,
+                        'section' => $student_class_value->class,
                         'student_schedule' => array($student_class_value)
                     ))
                 ];
             }
         }
         $data['student_list_attendance'] = $student_new_list_attendance;
-        //student attedance settings
-
-        // TVET: Use classmodel_model to get classes for current session
-        $session_id              = $this->setting_model->getCurrentSession();
-        $class                   = $this->classmodel_model->getClassesBySession($session_id);
-        $data['classlist']       = $class;
+        // student attedance settings
 
         $this->load->view('layout/header', $data);
         $this->load->view('setting/attendancetype', $data);

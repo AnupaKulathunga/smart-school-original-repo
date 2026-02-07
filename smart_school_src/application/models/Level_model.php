@@ -29,7 +29,7 @@ class Level_model extends CI_Model
         }
 
         $query = $this->db->where('is_active', 1)
-            ->order_by('sequence', 'ASC')
+            ->order_by('code', 'ASC')
             ->get('level');
         return $query->result();
     }
@@ -56,7 +56,7 @@ class Level_model extends CI_Model
     {
         $query = $this->db->where('level_type', $type)
             ->where('is_active', 1)
-            ->order_by('sequence', 'ASC')
+            ->order_by('code', 'ASC')
             ->get('level');
         return $query->result();
     }
@@ -88,7 +88,7 @@ class Level_model extends CI_Model
     {
         $query = $this->db->where('nqf_level', $nqf_level)
             ->where('is_active', 1)
-            ->order_by('sequence', 'ASC')
+            ->order_by('code', 'ASC')
             ->get('level');
         return $query->result();
     }
@@ -142,7 +142,7 @@ class Level_model extends CI_Model
         $this->db->join('class', 'class.subject_level_id = subject_level.id', 'left');
         $this->db->where('level.is_active', 1);
         $this->db->group_by('level.id');
-        $this->db->order_by('level.sequence', 'ASC');
+        $this->db->order_by('level.code', 'ASC');
         return $this->db->get()->result();
     }
 }

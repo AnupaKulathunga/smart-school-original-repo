@@ -21,13 +21,13 @@ class Academic_class_model extends CI_Model
     public function getAll($filters = array())
     {
         $this->db->select('c.*,
-                          sl.subject_code_full,
+                          CONCAT(s.code, "-", l.code) as subject_code_full,
                           s.code as subject_code, s.name as subject_name, s.programme_id,
                           l.code as level_code, l.name as level_name, l.nqf_level,
                           p.name as programme_name,
                           st.name as lecturer_name, st.surname as lecturer_surname,
                           sess.session as session_name,
-                          (SELECT COUNT(*) FROM academic_class_enrolment WHERE class_id = c.id AND status = "Active") as student_count');
+                          (SELECT COUNT(*) FROM academic_class_enrolment WHERE class_id = c.id AND status = "Active") as student_count', FALSE);
         $this->db->from($this->table . ' c');
         $this->db->join('academic_subject_level sl', 'sl.id = c.subject_level_id');
         $this->db->join('academic_subject s', 's.id = sl.subject_id');
@@ -68,12 +68,12 @@ class Academic_class_model extends CI_Model
     public function get($id)
     {
         return $this->db->select('c.*,
-                                  sl.subject_code_full,
+                                  CONCAT(s.code, "-", l.code) as subject_code_full,
                                   s.id as subject_id, s.code as subject_code, s.name as subject_name, s.programme_id,
                                   l.id as level_id, l.code as level_code, l.name as level_name, l.nqf_level,
                                   p.name as programme_name,
                                   st.name as lecturer_name, st.surname as lecturer_surname,
-                                  sess.session as session_name')
+                                  sess.session as session_name', FALSE)
             ->from($this->table . ' c')
             ->join('academic_subject_level sl', 'sl.id = c.subject_level_id')
             ->join('academic_subject s', 's.id = sl.subject_id')

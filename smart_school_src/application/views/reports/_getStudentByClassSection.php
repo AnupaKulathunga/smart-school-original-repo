@@ -59,7 +59,7 @@ if (empty($student_list)) {
                      <a target="_blank" href="<?php echo site_url('student/view/' . $student['id']); ?>"><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?>
                                                         </a>
                                                     </td>
-                                                    <td><?php echo $student['class'] . "(" . $student['section'] . ")" ?></td>
+                                                    <td><?php echo $student['class'] ?></td>
                                                     <?php if ($sch_setting->father_name) {?>
                                                     <td><?php echo $student['father_name']; ?></td>
                                                     <?php }?>

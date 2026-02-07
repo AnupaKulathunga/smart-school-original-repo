@@ -92,17 +92,19 @@ class Attendencetype_model extends CI_Model
         }
     }
 
+    // TVET: student_session_id parameter is actually enrolment_id (academic_class_enrolment.id)
     public function getStudentAttendence($date, $student_session_id)
     {
-        $sql = "SELECT attendence_type.type FROM `student_attendences` INNER JOIN attendence_type ON attendence_type.id=student_attendences.attendence_type_id where  student_attendences.`student_session_id`=" . $this->db->escape($student_session_id) . " and student_attendences.date=" . $this->db->escape($date);
+        $sql = "SELECT attendence_type.type FROM `student_attendences` INNER JOIN attendence_type ON attendence_type.id=student_attendences.attendence_type_id WHERE student_attendences.`enrolment_id`=" . $this->db->escape($student_session_id) . " AND student_attendences.date=" . $this->db->escape($date);
         $query = $this->db->query($sql);
         return $query->row();
     }
 
+    // TVET: student_session_id parameter is actually enrolment_id (academic_class_enrolment.id)
     public function getStudentAttendenceRange($date, $student_session_id)
     {
-        $sql = "SELECT attendence_type.type,attendence_type.key_value,student_attendences.* FROM `student_attendences`
-INNER JOIN attendence_type ON attendence_type.id=student_attendences.attendence_type_id where  student_attendences.`student_session_id`=" . $this->db->escape($student_session_id) . " and student_attendences.date >= " . $this->db->escape($date['start']) . " and student_attendences.date <= " . $this->db->escape($date['end']);
+        $sql = "SELECT attendence_type.type, attendence_type.key_value, student_attendences.* FROM `student_attendences`
+INNER JOIN attendence_type ON attendence_type.id=student_attendences.attendence_type_id WHERE student_attendences.`enrolment_id`=" . $this->db->escape($student_session_id) . " AND student_attendences.date >= " . $this->db->escape($date['start']) . " AND student_attendences.date <= " . $this->db->escape($date['end']);
         $query = $this->db->query($sql);
         return $query->result();
     }

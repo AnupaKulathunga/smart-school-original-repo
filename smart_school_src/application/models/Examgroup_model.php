@@ -345,11 +345,91 @@ class Examgroup_model extends MY_Model
     public function getExamGroupByClassSection($class_id, $section_id, $session_id)
     {
         $result_array = array();
-        $sql          = "SELECT student_session.*,exam_group_students.exam_group_id,exam_groups.name FROM `student_session` INNER join exam_group_students on exam_group_students.student_id=student_session.student_id INNER JOIN exam_groups on exam_groups.id=exam_group_students.exam_group_id WHERE class_id= " . $this->db->escape($class_id) . " and section_id=" . $this->db->escape($section_id) . " and session_id=" . $this->db->escape($session_id) . " GROUP BY exam_group_students.exam_group_id";
+        $sql          = "SELECT e.*, exam_group_students.exam_group_id, exam_groups.name FROM `academic_class_enrolment` e INNER JOIN academic_class ac ON ac.id = e.class_id INNER JOIN exam_group_students ON exam_group_students.student_id = e.student_id INNER JOIN exam_groups ON exam_groups.id = exam_group_students.exam_group_id WHERE e.class_id = " . $this->db->escape($class_id) . " AND ac.session_id = " . $this->db->escape($session_id) . " AND e.status = 'Active' GROUP BY exam_group_students.exam_group_id";
         $query        = $this->db->query($sql);
 
         $result = $query->result();
         return $result;
+    }
+
+    // ============================================================================
+    // TVET METHODS - Use academic_class_enrolment instead of student_session
+    // No section_id filtering - class_id is the only filter
+    // ============================================================================
+
+    /**
+     * Get exam groups by class only (TVET)
+     * Replaces getExamGroupByClassSection() - no section_id parameter
+     *
+     * @param int $class_id academic_class.id
+     * @param int $session_id Session ID
+     * @return array List of exam groups for the class
+     */
+    public function getExamGroupByClass($class_id, $session_id)
+    {
+        $sql = "SELECT ace.*, exam_group_students.exam_group_id, exam_groups.name,
+                       ac.class_code, ac.cohort_name
+                FROM academic_class_enrolment ace
+                INNER JOIN academic_class ac ON ac.id = ace.class_id
+                INNER JOIN exam_group_students ON exam_group_students.student_id = ace.student_id
+                INNER JOIN exam_groups ON exam_groups.id = exam_group_students.exam_group_id
+                WHERE ace.class_id = " . $this->db->escape($class_id) . "
+                  AND ac.session_id = " . $this->db->escape($session_id) . "
+                  AND ace.status = 'Enrolled'
+                GROUP BY exam_group_students.exam_group_id";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    /**
+     * Get exam groups by student's enrolment (TVET)
+     * Replaces getExamGroupByStudentSession() - uses enrolment_id
+     *
+     * @param int $enrolment_id academic_class_enrolment.id
+     * @param int $active Filter by active status (default 1)
+     * @return array List of exam groups with results
+     */
+    public function getExamGroupByEnrolment($enrolment_id, $active = 1)
+    {
+        $this->db->select('exam_group_students.*, exam_groups.name, exam_groups.exam_type')
+            ->from('exam_group_students')
+            ->join('exam_groups', 'exam_groups.id = exam_group_students.exam_group_id')
+            ->where('student_session_id', $enrolment_id)
+            ->where('exam_groups.is_active', $active);
+
+        $query = $this->db->get();
+        $exam_groups = $query->result();
+
+        if (!empty($exam_groups)) {
+            foreach ($exam_groups as $exam_group_key => $exam_group_value) {
+                $exam_groups[$exam_group_key]->exam_group_connection = $this->getExamGroupConnection($exam_group_value->exam_group_id);
+                $exam_groups[$exam_group_key]->exam_results = $this->getExamGroupExamsResultByStudentID($exam_group_value->exam_group_id, $enrolment_id);
+            }
+            return $exam_groups;
+        }
+        return false;
+    }
+
+    /**
+     * Get student batch for exam assignment (TVET)
+     * Returns students enrolled in a class without section filter
+     *
+     * @param int $class_id academic_class.id
+     * @return array List of students in the class
+     */
+    public function getStudentBatchByClass($class_id)
+    {
+        $this->db->select('students.*, ace.id as enrolment_id, ac.class_code, ac.cohort_name', FALSE)
+            ->from('students')
+            ->join('academic_class_enrolment ace', 'students.id = ace.student_id')
+            ->join('academic_class ac', 'ac.id = ace.class_id')
+            ->where('ace.class_id', $class_id)
+            ->where('ace.status', 'Enrolled')
+            ->where('students.is_active', 'yes')
+            ->order_by('students.firstname', 'ASC');
+
+        return $this->db->get()->result();
     }
 
 }

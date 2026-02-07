@@ -294,7 +294,7 @@
                        
                      },
                     complete: function() {
-                    $('#section_id').removeClass('dropdownloading');
+                    // TVET: Removed section_id reference
                     $('.modal_loader_div').fadeOut(400);
                 }
             });

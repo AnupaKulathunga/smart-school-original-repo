@@ -18,7 +18,7 @@ class Mark extends Student_Controller
         $data['title']           = 'Exam Marks';
         $data['exam_id']         = "";
         $data['class_id']        = "";
-        // TVET: section_id removed
+        // TVET: section_id removed - use class_id only
         $exam                    = $this->exam_model->get();
         // TVET: Use classmodel_model to get classes for current session
         $session_id              = $this->setting_model->getCurrentSession();
@@ -30,17 +30,20 @@ class Mark extends Student_Controller
         $stuid                   = $this->session->userdata('student');
         $stu_record              = $this->student_model->getRecentRecord($stuid['student_id']);
         $data['class_id']        = $stu_record['class_id'];
-        // TVET: section_id removed
-        $reportcard              = $this->examschedule_model->getExamByClassandSection($data['class_id'], null);
+        // TVET: Use getExamByClass() instead of getExamByClassandSection()
+        $reportcard              = $this->examschedule_model->getExamByClass($data['class_id']);
         $class_id                = $stu_record['class_id'];
-        // TVET: section_id removed
-        foreach ($reportcard as $data) {
-            echo $exam_id = $data['exam_id'];
+        $exam_id                 = null;
+        // TVET: Get first exam_id from reportcard
+        foreach ($reportcard as $rc) {
+            $exam_id = $rc['id'];
+            break;
         }
         $data['class_id']     = $stu_record['class_id'];
-        // TVET: section_id removed
-        $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, null, $exam_id);
-        $studentList          = $this->student_model->searchByClassSection($class_id, null);
+        // TVET: Use getDetailbyClass() instead of getDetailbyClsandSection()
+        $examSchedule         = !empty($exam_id) ? $this->examschedule_model->getDetailbyClass($class_id, $exam_id) : array();
+        // TVET: Use searchByAcademicClass() to get students enrolled in the class
+        $studentList          = $this->student_model->searchByAcademicClass($class_id);
         $data['examSchedule'] = array();
         if (!empty($examSchedule)) {
             $new_array                      = array();
@@ -90,16 +93,20 @@ class Mark extends Student_Controller
         $this->session->set_userdata('sub_menu', 'mark/marklist');
         $student_id              = $this->customlib->getStudentSessionUserID();
         $student                 = $this->student_model->get($student_id);
-        $class_id                = $student['class_id'];
-        // TVET: section_id removed
+        // TVET: Get enrolment data for current class
+        $student_enrolment       = $this->customlib->getStudentCurrentEnrolment();
+        $class_id                = $student_enrolment->class_id;
+        // TVET: section_id removed - use class_id only
         $data['title']           = 'Student Details';
         $gradeList               = $this->grade_model->get();
         $data['gradeList']       = $gradeList;
-        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($student['class_id'], null, $student_id);
+        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($class_id, null, $student_id);
         $data['student_due_fee'] = $student_due_fee;
-        $transport_fee           = $this->studenttransportfee_model->getTransportFeeByStudent($student['student_session_id']);
+        // TVET: Use enrolment_id for transport fee lookup
+        $transport_fee           = $this->studenttransportfee_model->getTransportFeeByStudent($student_enrolment->enrolment_id);
         $data['transport_fee']   = $transport_fee;
-        $examList                = $this->examschedule_model->getExamByClassandSection($student['class_id'], null);
+        // TVET: Use getExamByClass() instead of getExamByClassandSection()
+        $examList                = $this->examschedule_model->getExamByClass($class_id);
         $data['examSchedule']    = array();
         if (!empty($examList)) {
             $new_array                      = array();
@@ -107,8 +114,9 @@ class Mark extends Student_Controller
             foreach ($examList as $ex_key => $ex_value) {
                 $array         = array();
                 $x             = array();
-                $exam_id       = $ex_value['exam_id'];
-                $exam_subjects = $this->examschedule_model->getresultByStudentandExam($exam_id, $student['id']);
+                $exam_id       = $ex_value['id'];
+                // TVET: Use getResultByStudentAndExamTVET() for TVET mode
+                $exam_subjects = $this->examschedule_model->getResultByStudentAndExamTVET($exam_id, $student['id']);
                 foreach ($exam_subjects as $key => $value) {
                     $exam_array                     = array();
                     $exam_array['exam_schedule_id'] = $value['exam_schedule_id'];
@@ -156,7 +164,7 @@ class Mark extends Student_Controller
         $data['title']           = 'Exam Schedule';
         $data['exam_id']         = "";
         $data['class_id']        = "";
-        // TVET: section_id removed
+        // TVET: section_id removed - use class_id only
         $exam                    = $this->exam_model->get();
         // TVET: Use classmodel_model to get classes for current session
         $session_id              = $this->setting_model->getCurrentSession();
@@ -179,9 +187,10 @@ class Mark extends Student_Controller
             // TVET: section_id removed
             $data['exam_id']      = $exam_id;
             $data['class_id']     = $class_id;
-            // TVET: section_id removed
-            $examSchedule         = $this->examschedule_model->getDetailbyClsandSection($class_id, null, $exam_id);
-            $studentList          = $this->student_model->searchByClassSection($class_id, null);
+            // TVET: Use getDetailbyClass() instead of getDetailbyClsandSection()
+            $examSchedule         = $this->examschedule_model->getDetailbyClass($class_id, $exam_id);
+            // TVET: Use searchByAcademicClass() to get students enrolled in the class
+            $studentList          = $this->student_model->searchByAcademicClass($class_id);
             $data['examSchedule'] = array();
             if (!empty($examSchedule)) {
                 $new_array = array();

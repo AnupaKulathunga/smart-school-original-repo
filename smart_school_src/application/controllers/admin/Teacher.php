@@ -31,8 +31,8 @@ class Teacher extends Admin_Controller
     public function getSubjctByClassandSection()
     {
         $class_id   = $this->input->post('class_id');
-        // TVET: section_id removed
-        $data       = $this->teachersubject_model->getSubjectByClsandSection($class_id, null);
+        // TVET: Use getSubjectByClass() instead of getSubjectByClsandSection()
+        $data       = $this->teachersubject_model->getSubjectByClass($class_id);
         echo json_encode($data);
     }
 
@@ -357,7 +357,7 @@ class Teacher extends Admin_Controller
                 // TVET: Removed class_teacher_exists validation (legacy)
             )
         );
-        $this->form_validation->set_rules('section', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section validation removed - sections don't exist in TVET
         $this->form_validation->set_rules('teachers[]', $this->lang->line('class_teacher'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
@@ -365,7 +365,7 @@ class Teacher extends Admin_Controller
         } else {
 
             $class    = $this->input->post("class");
-            $section  = $this->input->post("section");
+            // TVET: section removed
             $teachers = $this->input->post("teachers");
 
             $i = 0;
@@ -410,7 +410,7 @@ class Teacher extends Admin_Controller
             $class_id   = $value["class_id"];
             // TVET: section_id removed
 
-            $tlist[] = $this->classteacher_model->teacherByClassSection($class_id, null);
+            $tlist[] = $this->classteacher_model->lecturersByClass($class_id);
         }
         if (!empty($tlist)) {
             $data["tlist"] = $tlist;
@@ -431,7 +431,7 @@ class Teacher extends Admin_Controller
         }
 
         // TVET: section_id parameter removed
-        $result = $this->classteacher_model->teacherByClassSection($class_id, null);
+        $result = $this->classteacher_model->lecturersByClass($class_id);
 
         $data["result"] = $result;
 
@@ -442,7 +442,7 @@ class Teacher extends Admin_Controller
             $classid   = $value["class_id"];
             // TVET: section_id removed
 
-            $tlist[] = $this->classteacher_model->teacherByClassSection($classid, null);
+            $tlist[] = $this->classteacher_model->lecturersByClass($classid);
         }
 
         $data["tlist"]       = $tlist;
@@ -476,12 +476,12 @@ class Teacher extends Admin_Controller
                 // TVET: Removed class_teacher_exists validation (legacy)
             )
         );
-        $this->form_validation->set_rules('section', $this->lang->line('section'), 'trim|required|xss_clean');
+        // TVET: section validation removed - sections don't exist in TVET
         $this->form_validation->set_rules('teachers[]', $this->lang->line('class_teacher'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
-            // TVET: section_id parameter removed
-            $result = $this->classteacher_model->teacherByClassSection($class_id, null);
+            // TVET: Use lecturersByClass() instead of teacherByClassSection()
+            $result = $this->classteacher_model->lecturersByClass($class_id);
 
             $data["result"] = $result;
 
@@ -492,7 +492,7 @@ class Teacher extends Admin_Controller
                 $classid   = $value["class_id"];
                 // TVET: section_id removed
 
-                $tlist[] = $this->classteacher_model->teacherByClassSection($classid, null);
+                $tlist[] = $this->classteacher_model->lecturersByClass($classid);
             }
 
             $data["tlist"]       = $tlist;

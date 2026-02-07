@@ -60,17 +60,17 @@ class Conferencehistory_model extends MY_Model {
     }   
 
     public function getclass($class_id, $section_id) {
-        $sql = "SELECT conferences.*,conference_sections.id as conferences_section_id,create_by.employee_id as create_bystaffid,for_create.employee_id as for_creatstaffid,
-        (SELECT COUNT(*) FROM conferences_history   INNER JOIN students on students.id=conferences_history.student_id INNER JOIN student_session on student_session.student_id=students.id WHERE student_session.class_id=" . $this->db->escape($class_id) . " and student_session.section_id= " . $this->db->escape($section_id) . " and student_session.session_id=". $this->current_session . "   and conferences_history.conference_id=conferences.id) as `total_viewers`, `create_by`.`name` as `create_by_name`, `create_by`.`surname` as `create_by_surname`,`for_create`.`name` as `for_create_name`, `for_create`.`surname` as `for_create_surname`,roles.name as `create_by_role_name`,for_create_role.name as `create_for_role_name`,staff_roles.role_id FROM `conferences`        
-        JOIN `staff` as `create_by` ON `create_by`.`id` = `conferences`.`created_id` 
-        JOIN `staff` as `for_create` ON `for_create`.`id` = `conferences`.`staff_id` 
-        INNER JOIN staff_roles on staff_roles.staff_id=`conferences`.`created_id` 
-        INNER join roles on roles.id =staff_roles.role_id 
-        INNER JOIN staff_roles as `for_create_staff_role` on for_create_staff_role.staff_id=`conferences`.`staff_id` 
-        INNER join roles as `for_create_role`on for_create_role.id =for_create_staff_role.role_id 
-        INNER JOIN conference_sections on conferences.id=conference_sections.conference_id 
-        INNER JOIN class_sections on class_sections.id =conference_sections.cls_section_id 
-        WHERE purpose='class' and status=2 and conferences.session_id=" . $this->current_session . " and class_sections.class_id = " . $this->db->escape($class_id) . " and class_sections.section_id= " . $this->db->escape($section_id) . " ORDER BY DATE(`conferences`.`date`) DESC, `conferences`.`date` DESC";
+        $sql = "SELECT conferences.*, cc.id as conferences_section_id, create_by.employee_id as create_bystaffid, for_create.employee_id as for_creatstaffid,
+        (SELECT COUNT(*) FROM conferences_history INNER JOIN students ON students.id = conferences_history.student_id INNER JOIN academic_class_enrolment e ON e.student_id = students.id INNER JOIN academic_class ac ON ac.id = e.class_id WHERE e.class_id = " . $this->db->escape($class_id) . " AND ac.session_id = " . $this->current_session . " AND e.status = 'Active' AND conferences_history.conference_id = conferences.id) as `total_viewers`, `create_by`.`name` as `create_by_name`, `create_by`.`surname` as `create_by_surname`, `for_create`.`name` as `for_create_name`, `for_create`.`surname` as `for_create_surname`, roles.name as `create_by_role_name`, for_create_role.name as `create_for_role_name`, staff_roles.role_id FROM `conferences`
+        JOIN `staff` as `create_by` ON `create_by`.`id` = `conferences`.`created_id`
+        JOIN `staff` as `for_create` ON `for_create`.`id` = `conferences`.`staff_id`
+        INNER JOIN staff_roles ON staff_roles.staff_id = `conferences`.`created_id`
+        INNER JOIN roles ON roles.id = staff_roles.role_id
+        INNER JOIN staff_roles as `for_create_staff_role` ON for_create_staff_role.staff_id = `conferences`.`staff_id`
+        INNER JOIN roles as `for_create_role` ON for_create_role.id = for_create_staff_role.role_id
+        INNER JOIN conference_classes cc ON conferences.id = cc.conference_id
+        INNER JOIN academic_class acm ON acm.id = cc.class_id
+        WHERE purpose = 'class' AND status = 2 AND conferences.session_id = " . $this->current_session . " AND cc.class_id = " . $this->db->escape($class_id) . " ORDER BY DATE(`conferences`.`date`) DESC, `conferences`.`date` DESC";
         $query = $this->db->query($sql);
         return $query->result();
     } 
@@ -87,13 +87,14 @@ class Conferencehistory_model extends MY_Model {
     }
 
     public function getLiveStudent($conference_id,$class_id,$section_id) {
-        $this->db->select('conferences_history.*,student_session.class_id,student_session.section_id,students.admission_no, students.roll_no,students.admission_date,students.firstname, students.middlename, students.lastname,students.image,students.mobileno, students.email,students.father_name')->from('conferences_history');
+        $this->db->select('conferences_history.*, e.id as student_session_id, e.class_id, ac.session_id, students.admission_no, students.roll_no, students.admission_date, students.firstname, students.middlename, students.lastname, students.image, students.mobileno, students.email, students.father_name', FALSE)->from('conferences_history');
         $this->db->join('students', 'students.id = conferences_history.student_id');
-        $this->db->join('student_session', 'student_session.student_id = students.id');
+        $this->db->join('academic_class_enrolment e', 'e.student_id = students.id');
+        $this->db->join('academic_class ac', 'ac.id = e.class_id');
         $this->db->where('conference_id', $conference_id);
-        $this->db->where('student_session.class_id', $class_id);
-        $this->db->where('student_session.section_id', $section_id);
-        $this->db->where('student_session.session_id', $this->current_session);
+        $this->db->where('e.class_id', $class_id);
+        $this->db->where('ac.session_id', $this->current_session);
+        $this->db->where('e.status', 'Active');
         $this->db->order_by('conferences_history.id');
         $query = $this->db->get();
         return $query->result();

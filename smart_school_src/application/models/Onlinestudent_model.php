@@ -163,8 +163,9 @@ class Onlinestudent_model extends MY_Model
 
                 //============================
                 if ($insert) {
-                    $this->db->select('class_sections.*')->from('class_sections');
-                    $this->db->where('class_sections.id', $data['class_section_id']);
+                    // Look up the academic_class to get session_id
+                    $this->db->select('ac.*')->from('academic_class ac');
+                    $this->db->where('ac.id', $data['class_section_id']);
                     $query                 = $this->db->get();
                     $classs_section_result = $query->row();
                     $route_pickup_point_id=$data['route_pickup_point_id'];
@@ -183,14 +184,14 @@ class Onlinestudent_model extends MY_Model
                     //save created by staff/user id on student enroll
 
                     $data_new   = array(
-                        'student_id' => $student_id,
-                        'class_id'   => $classs_section_result->class_id,
-                        'section_id' => $classs_section_result->section_id,
-                        'session_id' => $this->current_session,
+                        'student_id'            => $student_id,
+                        'class_id'              => $classs_section_result->id,
+                        'enrolment_date'        => date('Y-m-d'),
+                        'status'                => 'Active',
                         'route_pickup_point_id' => $route_pickup_point_id,
                         'vehroute_id'           => $vehroute_id,
                     );
-                    $this->db->insert('student_session', $data_new);
+                    $this->db->insert('academic_class_enrolment', $data_new);
                     $student_session_id = $this->db->insert_id();
 
                     if ($fee_session_group_id) {
@@ -545,6 +546,462 @@ class Onlinestudent_model extends MY_Model
         } else {
             return 0;
         }
+    }
+
+    // =====================================================
+    // TVET Methods - Use academic_class instead of class_sections
+    // =====================================================
+
+    /**
+     * TVET: Get online admission with academic_class details
+     * Replaces get() for TVET model
+     */
+    public function getTVET($id = null, $class_ids = null)
+    {
+        $this->db->select('online_admissions.vehroute_id,
+            vehicle_routes.route_id,
+            vehicle_routes.vehicle_id,
+            transport_route.route_title,
+            vehicles.vehicle_no,
+            hostel_rooms.room_no,
+            vehicles.driver_name,
+            vehicles.driver_contact,
+            hostel.id as hostel_id,
+            hostel.hostel_name,
+            room_types.id as room_type_id,
+            room_types.room_type,
+            online_admissions.hostel_room_id,
+            class.id AS class_id,
+            class.class_code,
+            class.cohort_name,
+            subject.name as subject_name,
+            level.code as level_code,
+            online_admissions.id,
+            online_admissions.admission_no,
+            online_admissions.roll_no,
+            online_admissions.admission_date,
+            online_admissions.firstname,
+            online_admissions.middlename,
+            online_admissions.lastname,
+            online_admissions.image,
+            online_admissions.mobileno,
+            online_admissions.email,
+            online_admissions.state,
+            online_admissions.city,
+            online_admissions.pincode,
+            online_admissions.note,
+            online_admissions.religion,
+            online_admissions.cast,
+            school_houses.house_name,
+            online_admissions.dob,
+            online_admissions.current_address,
+            online_admissions.previous_school,
+            online_admissions.guardian_is,
+            online_admissions.permanent_address,
+            IFNULL(online_admissions.category_id, 0) as category_id,
+            IFNULL(categories.category, "") as category,
+            online_admissions.adhar_no,
+            online_admissions.samagra_id,
+            online_admissions.bank_account_no,
+            online_admissions.bank_name,
+            online_admissions.ifsc_code,
+            online_admissions.guardian_name,
+            online_admissions.father_pic,
+            online_admissions.height,
+            online_admissions.weight,
+            online_admissions.measurement_date,
+            online_admissions.mother_pic,
+            online_admissions.guardian_pic,
+            online_admissions.guardian_relation,
+            online_admissions.guardian_phone,
+            online_admissions.guardian_address,
+            online_admissions.is_enroll,
+            online_admissions.created_at,
+            online_admissions.document,
+            online_admissions.updated_at,
+            online_admissions.father_name,
+            online_admissions.father_phone,
+            online_admissions.blood_group,
+            online_admissions.school_house_id,
+            online_admissions.father_occupation,
+            online_admissions.mother_name,
+            online_admissions.mother_phone,
+            online_admissions.mother_occupation,
+            online_admissions.guardian_occupation,
+            online_admissions.gender,
+            online_admissions.rte,
+            online_admissions.guardian_email,
+            online_admissions.paid_status,
+            online_admissions.form_status,
+            online_admissions.reference_no,
+            online_admissions.class_id', FALSE)
+            ->from('online_admissions')
+            ->join('academic_class class', 'class.id = online_admissions.class_id', 'left')
+            ->join('academic_subject_level subject_level', 'subject_level.id = class.subject_level_id', 'left')
+            ->join('academic_subject subject', 'subject.id = subject_level.subject_id', 'left')
+            ->join('academic_level level', 'level.id = subject_level.level_id', 'left')
+            ->join('hostel_rooms', 'hostel_rooms.id = online_admissions.hostel_room_id', 'left')
+            ->join('hostel', 'hostel.id = hostel_rooms.hostel_id', 'left')
+            ->join('room_types', 'room_types.id = hostel_rooms.room_type_id', 'left')
+            ->join('categories', 'online_admissions.category_id = categories.id', 'left')
+            ->join('vehicle_routes', 'vehicle_routes.id = online_admissions.vehroute_id', 'left')
+            ->join('transport_route', 'vehicle_routes.route_id = transport_route.id', 'left')
+            ->join('vehicles', 'vehicles.id = vehicle_routes.vehicle_id', 'left')
+            ->join('school_houses', 'school_houses.id = online_admissions.school_house_id', 'left');
+
+        if ($class_ids != null) {
+            $this->db->where_in('class.id', $class_ids);
+        }
+
+        if ($id != null) {
+            $this->db->where('online_admissions.id', $id);
+        } else {
+            $this->db->order_by('online_admissions.id', 'desc');
+        }
+
+        $query = $this->db->get();
+        if ($id != null) {
+            return $query->row_array();
+        } else {
+            return $query->result_array();
+        }
+    }
+
+    /**
+     * TVET: Get student list with academic_class details for datatable
+     */
+    public function getstudentlistTVET($class_ids = null, $id = null)
+    {
+        if ($id != null) {
+            $this->datatables->where('online_admissions.id', $id);
+        } else {
+            $this->datatables->orderable('online_admissions.id', 'desc');
+        }
+
+        $this->datatables
+            ->select('online_admissions.vehroute_id,
+                vehicle_routes.route_id,
+                vehicle_routes.vehicle_id,
+                transport_route.route_title,
+                vehicles.vehicle_no,
+                hostel_rooms.room_no,
+                vehicles.driver_name,
+                vehicles.driver_contact,
+                hostel.id as hostel_id,
+                hostel.hostel_name,
+                room_types.id as room_type_id,
+                room_types.room_type,
+                online_admissions.hostel_room_id,
+                class.id AS class_id,
+                class.class_code,
+                class.cohort_name,
+                subject.name as subject_name,
+                level.code as level_code,
+                online_admissions.id,
+                online_admissions.admission_no,
+                online_admissions.roll_no,
+                online_admissions.admission_date,
+                online_admissions.firstname,
+                online_admissions.lastname,
+                online_admissions.image,
+                online_admissions.mobileno,
+                online_admissions.email,
+                online_admissions.state,
+                online_admissions.city,
+                online_admissions.pincode,
+                online_admissions.note,
+                online_admissions.religion,
+                online_admissions.cast,
+                school_houses.house_name,
+                online_admissions.dob,
+                online_admissions.current_address,
+                online_admissions.previous_school,
+                online_admissions.guardian_is,
+                online_admissions.permanent_address,
+                IFNULL(online_admissions.category_id, 0) as category_id,
+                IFNULL(categories.category, "") as category,
+                online_admissions.adhar_no,
+                online_admissions.samagra_id,
+                online_admissions.bank_account_no,
+                online_admissions.bank_name,
+                online_admissions.ifsc_code,
+                online_admissions.guardian_name,
+                online_admissions.father_pic,
+                online_admissions.height,
+                online_admissions.weight,
+                online_admissions.measurement_date,
+                online_admissions.mother_pic,
+                online_admissions.guardian_pic,
+                online_admissions.guardian_relation,
+                online_admissions.guardian_phone,
+                online_admissions.guardian_address,
+                online_admissions.is_enroll,
+                online_admissions.created_at,
+                online_admissions.document,
+                online_admissions.updated_at,
+                online_admissions.father_name,
+                online_admissions.father_phone,
+                online_admissions.blood_group,
+                online_admissions.school_house_id,
+                online_admissions.father_occupation,
+                online_admissions.mother_name,
+                online_admissions.mother_phone,
+                online_admissions.mother_occupation,
+                online_admissions.guardian_occupation,
+                online_admissions.gender,
+                online_admissions.rte,
+                online_admissions.guardian_email,
+                online_admissions.reference_no,
+                online_admissions.paid_status,
+                online_admissions.form_status,
+                online_admissions.submit_date,
+                online_admissions.middlename')
+            ->orderable('online_admissions.reference_no,online_admissions.firstname,class.class_code,online_admissions.father_name,online_admissions.dob,online_admissions.gender,categories.category,online_admissions.mobileno," "," "," " ')
+            ->searchable('online_admissions.reference_no,online_admissions.firstname,class.class_code,online_admissions.father_name,online_admissions.dob,online_admissions.gender,categories.category,online_admissions.mobileno')
+            ->join('academic_class class', 'class.id = online_admissions.class_id', 'left')
+            ->join('academic_subject_level subject_level', 'subject_level.id = class.subject_level_id', 'left')
+            ->join('academic_subject subject', 'subject.id = subject_level.subject_id', 'left')
+            ->join('academic_level level', 'level.id = subject_level.level_id', 'left')
+            ->join('hostel_rooms', 'hostel_rooms.id = online_admissions.hostel_room_id', 'left')
+            ->join('hostel', 'hostel.id = hostel_rooms.hostel_id', 'left')
+            ->join('room_types', 'room_types.id = hostel_rooms.room_type_id', 'left')
+            ->join('categories', 'online_admissions.category_id = categories.id', 'left')
+            ->join('vehicle_routes', 'vehicle_routes.id = online_admissions.vehroute_id', 'left')
+            ->join('transport_route', 'vehicle_routes.route_id = transport_route.id', 'left')
+            ->join('vehicles', 'vehicles.id = vehicle_routes.vehicle_id', 'left')
+            ->join('school_houses', 'school_houses.id = online_admissions.school_house_id', 'left');
+
+        if ($class_ids != null && !empty($class_ids)) {
+            $this->datatables->where_in('class.id', $class_ids);
+        }
+
+        $this->datatables->from('online_admissions');
+        $this->datatables->sort('online_admissions.id', 'desc');
+
+        return $this->datatables->generate('json');
+    }
+
+    /**
+     * TVET: Update online admission and enroll student
+     * Uses academic_class_enrolment instead of student_session
+     */
+    public function updateTVET($data, $fee_session_group_id, $transport_feemaster_id, $discount_id, $action = "save")
+    {
+        $record_update_status = true;
+        $student_id           = "";
+        $user_password        = "";
+        $parent_password      = "";
+
+        if (isset($data['id'])) {
+            $this->db->trans_begin();
+            $data_id  = $data['id'];
+            $class_id = $data['class_id'];
+
+            if ($action == "enroll") {
+                $insert             = true;
+                $sch_setting_detail = $this->setting_model->getSetting();
+
+                // Auto-generate admission number if enabled
+                if ($sch_setting_detail->adm_auto_insert) {
+                    if ($sch_setting_detail->adm_update_status) {
+                        $last_student = $this->student_model->lastRecord();
+                        if (empty($last_student)) {
+                            $admission_no = $sch_setting_detail->adm_prefix . $sch_setting_detail->adm_start_from;
+                        } else {
+                            $last_admission_digit = str_replace($sch_setting_detail->adm_prefix, "", $last_student->admission_no);
+                            $admission_no = $sch_setting_detail->adm_prefix . sprintf("%0" . $sch_setting_detail->adm_no_digit . "d", $last_admission_digit + 1);
+                        }
+                        $data['admission_no'] = $admission_no;
+                    } else {
+                        $admission_no         = $sch_setting_detail->adm_prefix . $sch_setting_detail->adm_start_from;
+                        $data['admission_no'] = $admission_no;
+                    }
+                }
+
+                // Check if admission number already exists
+                $admission_no_exists = $this->student_model->check_adm_exists($data['admission_no']);
+                if ($admission_no_exists) {
+                    $insert               = false;
+                    $record_update_status = false;
+                }
+
+                if ($insert) {
+                    $route_pickup_point_id = $data['route_pickup_point_id'];
+                    $vehroute_id           = $data['vehroute_id'];
+                    unset($data['route_pickup_point_id']);
+                    unset($data['vehroute_id']);
+                    unset($data['class_id']);
+                    unset($data['id']);
+
+                    // Insert student
+                    $this->db->insert('students', $data);
+                    $student_id = $this->db->insert_id();
+
+                    // Save created_by
+                    $created_by_data['id']         = $student_id;
+                    $created_by_data['created_by'] = $this->session->userdata['admin']['id'];
+                    $this->student_model->add($created_by_data);
+
+                    // TVET: Create enrolment in academic_class_enrolment instead of student_session
+                    $enrolment_data = array(
+                        'student_id'            => $student_id,
+                        'class_id'              => $class_id,
+                        'session_id'            => $this->current_session,
+                        'enrolment_date'        => date('Y-m-d'),
+                        'status'                => 'Active',
+                        'route_pickup_point_id' => $route_pickup_point_id,
+                        'vehroute_id'           => $vehroute_id,
+                    );
+                    $this->db->insert('academic_class_enrolment', $enrolment_data);
+                    $enrolment_id = $this->db->insert_id();
+
+                    // Assign fees if provided
+                    if ($fee_session_group_id) {
+                        $this->studentfeemaster_model->assign_bulk_fees_tvet($fee_session_group_id, $enrolment_id, array());
+                    }
+
+                    // Assign fee discounts
+                    if (!empty($discount_id)) {
+                        foreach ($discount_id as $value) {
+                            $insert_array = array(
+                                'enrolment_id'     => $enrolment_id,
+                                'fees_discount_id' => $value,
+                            );
+                            $this->feediscount_model->allotDiscountTVET($insert_array);
+                        }
+                    }
+
+                    // Assign transport fees if provided
+                    if (!empty($transport_feemaster_id)) {
+                        $trns_data_insert = array();
+                        foreach ($transport_feemaster_id as $transport_feemaster_value) {
+                            $trns_data_insert[] = array(
+                                'enrolment_id'           => $enrolment_id,
+                                'route_pickup_point_id'  => $route_pickup_point_id,
+                                'transport_feemaster_id' => $transport_feemaster_value
+                            );
+                        }
+                        // Note: Transport fee model may need TVET update
+                        $this->studenttransportfee_model->addTVET($trns_data_insert, $enrolment_id, array(), $route_pickup_point_id);
+                    }
+
+                    // Create student login
+                    $user_password = $this->role->get_random_password(6, 6, false, true, false);
+                    $data_student_login = array(
+                        'username' => $this->student_login_prefix . $student_id,
+                        'password' => $user_password,
+                        'user_id'  => $student_id,
+                        'role'     => 'student',
+                    );
+                    $this->user_model->add($data_student_login);
+
+                    // Create parent login
+                    $parent_password   = $this->role->get_random_password(6, 6, false, true, false);
+                    $data_parent_login = array(
+                        'username' => $this->parent_login_prefix . $student_id,
+                        'password' => $parent_password,
+                        'user_id'  => 0,
+                        'role'     => 'parent',
+                        'childs'   => $student_id,
+                    );
+                    $ins_parent_id = $this->user_model->add($data_parent_login);
+
+                    // Update student with parent ID
+                    $update_student = array(
+                        'id'        => $student_id,
+                        'parent_id' => $ins_parent_id,
+                    );
+                    $this->student_model->add($update_student);
+
+                    // Update setting if first student
+                    if ($sch_setting_detail->adm_auto_insert && $sch_setting_detail->adm_update_status == 0) {
+                        $data_setting                      = array();
+                        $data_setting['id']                = $sch_setting_detail->id;
+                        $data_setting['adm_update_status'] = 1;
+                        $this->setting_model->add($data_setting);
+                    }
+
+                    $data['is_enroll'] = 1;
+                    $data['class_id']  = $class_id;
+                }
+            }
+
+            unset($data['route_pickup_point_id']);
+            unset($data['vehroute_id']);
+            $this->db->where('id', $data_id);
+            $this->db->update('online_admissions', $data);
+
+            $message   = UPDATE_RECORD_CONSTANT . " On online admissions id " . $data_id;
+            $action    = "Update";
+            $record_id = $data_id;
+            $this->log($message, $record_id, $action);
+
+            if ($this->db->trans_status() === false) {
+                $this->db->trans_rollback();
+            } else {
+                $this->db->trans_commit();
+            }
+        }
+
+        return json_encode(array(
+            'record_update_status' => $record_update_status,
+            'admission_no'         => $data['admission_no'],
+            'student_id'           => $student_id,
+            'user_password'        => $user_password,
+            'parent_password'      => $parent_password
+        ));
+    }
+
+    /**
+     * TVET: Get class by class ID (replaces getclassbyclasssectionid)
+     */
+    public function getClassByIdTVET($class_id)
+    {
+        $this->db->select('class.id as class_id,
+            class.class_code,
+            class.cohort_name,
+            subject.name as subject_name,
+            level.code as level_code', FALSE)
+            ->from('academic_class class')
+            ->join('academic_subject_level subject_level', 'subject_level.id = class.subject_level_id')
+            ->join('academic_subject subject', 'subject.id = subject_level.subject_id')
+            ->join('academic_level level', 'level.id = subject_level.level_id')
+            ->where('class.id', $class_id);
+
+        $query  = $this->db->get();
+        return $query->row_array();
+    }
+
+    /**
+     * TVET: Get online admission fee collection report
+     */
+    public function getOnlineAdmissionFeeCollectionReportTVET($start_date, $end_date)
+    {
+        $query = "SELECT online_admissions.*,
+            online_admission_payment.*,
+            class.class_code,
+            class.cohort_name,
+            subject.name as subject_name,
+            level.code as level_code
+        FROM online_admissions
+        JOIN online_admission_payment ON online_admissions.id = online_admission_payment.online_admission_id
+        LEFT JOIN academic_class class ON class.id = online_admissions.class_id
+        LEFT JOIN academic_subject_level subject_level ON subject_level.id = class.subject_level_id
+        LEFT JOIN academic_subject subject ON subject.id = subject_level.subject_id
+        LEFT JOIN academic_level level ON level.id = subject_level.level_id
+        LEFT JOIN hostel_rooms ON hostel_rooms.id = online_admissions.hostel_room_id
+        LEFT JOIN hostel ON hostel.id = hostel_rooms.hostel_id
+        LEFT JOIN room_types ON room_types.id = hostel_rooms.room_type_id
+        LEFT JOIN categories ON online_admissions.category_id = categories.id
+        LEFT JOIN vehicle_routes ON vehicle_routes.id = online_admissions.vehroute_id
+        LEFT JOIN transport_route ON vehicle_routes.route_id = transport_route.id
+        LEFT JOIN vehicles ON vehicles.id = vehicle_routes.vehicle_id
+        LEFT JOIN school_houses ON school_houses.id = online_admissions.school_house_id
+        WHERE DATE_FORMAT(online_admission_payment.date, '%Y-%m-%d') >= " . $this->db->escape($start_date) . "
+            AND DATE_FORMAT(online_admission_payment.date, '%Y-%m-%d') <= " . $this->db->escape($end_date);
+
+        $query = $this->db->query($query);
+        return $query->result();
     }
 
     public function getOnlineAdmissionFeeCollectionReport($start_date, $end_date)

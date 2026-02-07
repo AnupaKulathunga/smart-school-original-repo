@@ -14,6 +14,7 @@ class Admin extends Admin_Controller
         $this->load->model("Staff_model");
         $this->load->library('Enc_lib');
         $this->sch_setting_detail = $this->setting_model->getSetting();
+        $this->current_session = $this->setting_model->getCurrentSession();
     }
 
     public function unauthorized()

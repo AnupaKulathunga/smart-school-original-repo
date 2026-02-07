@@ -517,13 +517,15 @@ class User_model extends MY_Model
 
     public function student_information($users_id)
     {
-        $this->db->select('users.*,students.admission_no,students.firstname,students.lastname,users.password,students.mobileno,students.email,students.guardian_phone,students.guardian_email,students.parent_id,student_session.id as student_session_id');
+        $this->db->select('users.*,students.admission_no,students.firstname,students.lastname,users.password,students.mobileno,students.email,students.guardian_phone,students.guardian_email,students.parent_id,e.id as student_session_id', FALSE);
         $this->db->from('users');
         $this->db->join('students', 'students.id = users.user_id');
-        $this->db->join('student_session', 'student_session.student_id = students.id');
+        $this->db->join('academic_class_enrolment e', 'e.student_id = students.id');
+        $this->db->join('academic_class ac', 'ac.id = e.class_id');
         $this->db->where('students.is_active', 'yes');
         $this->db->where('users.user_id', $users_id);
-        $this->db->where('student_session.session_id', $this->current_session);
+        $this->db->where('e.status', 'Active');
+        $this->db->where('ac.session_id', $this->current_session);
         $this->db->limit(1);
         $query = $this->db->get();
 
@@ -536,7 +538,7 @@ class User_model extends MY_Model
 
     public function get_studentdefaultClass($student_id)
     {
-        $sql   = "SELECT class_sections.id from student_session join class_sections on class_sections.class_id=student_session.class_id and class_sections.section_id=student_session.section_id WHERE student_session.student_id=" . $student_id;
+        $sql   = "SELECT ac.id from academic_class_enrolment e JOIN academic_class ac ON ac.id = e.class_id WHERE e.student_id=" . $this->db->escape($student_id) . " AND e.status = 'Active' AND ac.session_id = " . $this->db->escape($this->current_session);
         $query = $this->db->query($sql);
         return $query->row_array();
     }

@@ -153,7 +153,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                     <a href="<?php echo base_url(); ?>student/view/<?php echo $student['id']; ?>"><?php echo $student['firstname'] . " " . $student['lastname']; ?>
                                                     </a>
                                                 </td>
-                                                <td><?php echo $student['class'] . " (" . $student['section'] . ")" ?></td>
+                                                <td><?php echo $student['class'] ?></td>
                                                 <td><?php echo $student['father_name']; ?></td>
                                                 <td><?php
                                                     if (!empty($student['dob'])) {

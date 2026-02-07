@@ -218,4 +218,67 @@ class Academic_attendance_model extends CI_Model
     {
         return $this->getStudentSummary($enrolment_id);
     }
+
+    /**
+     * Get student attendance for date range across all enrolments (for student portal calendar)
+     * Returns attendance records with class info for calendar display
+     *
+     * @param int $student_id Student ID
+     * @param string $start_date Start date (Y-m-d)
+     * @param string $end_date End date (Y-m-d)
+     * @param int|null $class_id Optional class_id to filter to specific class
+     * @return array Attendance records
+     */
+    public function getStudentAttendanceRange($student_id, $start_date, $end_date, $class_id = null)
+    {
+        $this->db->select('a.*, a.attendance_date as date, c.class_code, c.cohort_name,
+                          subj.name as subject_name, subj.code as subject_code,
+                          l.code as level_code', FALSE);
+        $this->db->from($this->table . ' a');
+        $this->db->join('academic_class_enrolment e', 'e.id = a.enrolment_id');
+        $this->db->join('student_session ss', 'ss.id = e.student_session_id');
+        $this->db->join('academic_class c', 'c.id = a.class_id');
+        $this->db->join('academic_subject_level sl', 'sl.id = c.subject_level_id');
+        $this->db->join('academic_subject subj', 'subj.id = sl.subject_id');
+        $this->db->join('academic_level l', 'l.id = sl.level_id');
+        $this->db->where('ss.student_id', $student_id);
+        $this->db->where('a.attendance_date >=', $start_date);
+        $this->db->where('a.attendance_date <=', $end_date);
+
+        if ($class_id) {
+            $this->db->where('a.class_id', $class_id);
+        }
+
+        return $this->db->order_by('a.attendance_date', 'ASC')
+            ->get()->result();
+    }
+
+    /**
+     * Get student attendance for a specific date across all enrolled classes
+     * Used for subject-based attendance view in student portal
+     *
+     * @param int $student_id Student ID
+     * @param string $date Date (Y-m-d)
+     * @return array Attendance records for all classes on that date
+     */
+    public function getStudentAttendanceByDate($student_id, $date)
+    {
+        $this->db->select('a.*, c.class_code, c.cohort_name, c.venue,
+                          subj.name as subject_name, subj.code as subject_code,
+                          l.code as level_code, l.name as level_name,
+                          st.name as lecturer_name, st.surname as lecturer_surname', FALSE);
+        $this->db->from($this->table . ' a');
+        $this->db->join('academic_class_enrolment e', 'e.id = a.enrolment_id');
+        $this->db->join('student_session ss', 'ss.id = e.student_session_id');
+        $this->db->join('academic_class c', 'c.id = a.class_id');
+        $this->db->join('academic_subject_level sl', 'sl.id = c.subject_level_id');
+        $this->db->join('academic_subject subj', 'subj.id = sl.subject_id');
+        $this->db->join('academic_level l', 'l.id = sl.level_id');
+        $this->db->join('staff st', 'st.id = c.primary_lecturer_id', 'left');
+        $this->db->where('ss.student_id', $student_id);
+        $this->db->where('a.attendance_date', $date);
+
+        return $this->db->order_by('subj.name', 'ASC')
+            ->get()->result();
+    }
 }

@@ -132,12 +132,13 @@ echo $this->lang->line('result_report'); ?></div>
         var $this = $(this);
         var recordid = $this.data('recordid');
         var examid = $this.data('examid');
-        var student_session_id = $this.data('student_session_id');
+        // TVET: Use enrolment_id instead of student_session_id
+        var enrolment_id = $this.data('enrolment_id');
         $('input[name=recordid]').val(recordid);
         $.ajax({
             type: 'POST',
             url: baseurl + "admin/onlineexam/getstudentresult",
-            data: {'recordid': recordid, 'examid': examid,'student_session_id':student_session_id},
+            data: {'recordid': recordid, 'examid': examid,'enrolment_id':enrolment_id},
             dataType: 'JSON',
             beforeSend: function () {
                 $this.button('loading');
@@ -196,12 +197,13 @@ echo $this->lang->line('result_report'); ?></div>
         $this.button('loading');
         var recordid = $this.data('recordid');
         var examid = $this.data('examid');
-        var student_session_id = $this.data('student_session_id');
+        // TVET: Use enrolment_id instead of student_session_id
+        var enrolment_id = $this.data('enrolment_id');
         $.ajax(
                 {
                     url: "<?php echo site_url('admin/onlineexam/getstudentresult') ?>",
                     type: "POST",
-                    data: {'recordid': recordid,'examid': examid,'student_session_id':student_session_id,'print':'print'},
+                    data: {'recordid': recordid,'examid': examid,'enrolment_id':enrolment_id,'print':'print'},
                     dataType: 'Json',
                     success: function (data, textStatus, jqXHR)
                     {

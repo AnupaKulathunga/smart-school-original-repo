@@ -27,7 +27,6 @@
                 <div class="scroll-area">
                     <div class="test">                         
                         <div class="">
-                            <input type="hidden" id="student_section_id" name="student_section_id" value="<?php echo $result['section_id']; ?>">
                             <input type="hidden" id="student_class_id" name="student_class_id" value="<?php echo $result['class_id']; ?>">
 
                         <?php if(!empty($studentlist)){ ?>
@@ -174,7 +173,6 @@
                 <label><span><?php echo $this->lang->line('created_by'); ?></span>: <?php echo $created_by; ?></label>
                 <label><span><?php echo $this->lang->line('evaluated_by'); ?></span>: <?php echo $evaluated_by; ?></label>            
                 <label><span><?php echo $this->lang->line('class') ?></span>: <?php echo $result['class']; ?></label>
-                <label><span><?php echo $this->lang->line('section') ?></span>: <?php echo $result['section']; ?></label>
                 <label><span><?php echo $this->lang->line('subject_group'); ?></span>: <?php echo $result['subject_group']; ?></label>
                 <label><span><?php echo $this->lang->line('subject') ?></span>: <?php echo $result['name']; ?> <?php if($result['code']){ echo '('.$result['code'].')'; } ?></label>
                 <label><span><?php echo $this->lang->line('total_marks') ?></span>: <?php if($result['marks'] != '0.00' || $result['marks'] !='0'){echo $result['marks']; } ?></label>

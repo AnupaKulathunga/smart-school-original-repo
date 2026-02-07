@@ -177,13 +177,13 @@ class Alumni_model extends MY_Model
 
     public function alumniMail($class_id = null, $session = null, $section = null)
     {
-        $this->db->select('alumni_students.*');
-        $this->db->join('student_session', 'student_session.student_id = alumni_students.student_id');
+        $this->db->select('alumni_students.*, e.id as student_session_id');
+        $this->db->join('academic_class_enrolment e', 'e.student_id = alumni_students.student_id');
+        $this->db->join('academic_class ac', 'ac.id = e.class_id');
         if ($class_id != null) {
-            $this->db->where('student_session.class_id', $class_id);
-            $this->db->where('student_session.session_id', $session);
-            $this->db->where('student_session.section_id', $section);
-            $this->db->where('student_session.is_alumni', 1);
+            $this->db->where('e.class_id', $class_id);
+            $this->db->where('ac.session_id', $session);
+            $this->db->where('e.status', 'Completed');
         }
         $this->db->from('alumni_students');
         $query = $this->db->get();

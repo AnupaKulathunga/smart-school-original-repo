@@ -140,13 +140,13 @@ class Hostelroom_model extends MY_Model
         $userdata = $this->customlib->getUserData();
         if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
             if (!empty($carray)) {
-                $this->datatables->where_in("student_session.class_id", $carray);
+                $this->datatables->where_in("e.class_id", $carray);
             } else {
-                $this->datatables->where_in("student_session.class_id", "");
+                $this->datatables->where_in("e.class_id", "");
             }
         }
 
-        $sql = "select students.firstname,students.middlename,students.id as sid,students.guardian_phone,students.admission_no,classes.class,sections.section,students.lastname,students.mobileno,hostel_rooms.*,hostel.hostel_name,room_types.room_type from students join student_session on  students.id = student_session.student_id join sections on sections.id = student_session.section_id join classes on classes.id = student_session.class_id join hostel_rooms on  hostel_rooms.id = students.hostel_room_id join hostel on hostel.id = hostel_rooms.hostel_id join room_types on  room_types.id = hostel_rooms.room_type_id where students.is_active= 'yes' ";
+        $sql = "select students.firstname,students.middlename,students.id as sid,students.guardian_phone,students.admission_no,ac.class_code as class,students.lastname,students.mobileno,hostel_rooms.*,hostel.hostel_name,room_types.room_type,e.id as student_session_id from students join academic_class_enrolment e on students.id = e.student_id join academic_class ac on ac.id = e.class_id join hostel_rooms on hostel_rooms.id = students.hostel_room_id join hostel on hostel.id = hostel_rooms.hostel_id join room_types on room_types.id = hostel_rooms.room_type_id where students.is_active= 'yes' and e.status = 'Active' and ac.session_id = " . $this->current_session . " ";
 
         $this->datatables->query($sql)
             ->query_where_enable(true)
@@ -159,12 +159,12 @@ class Hostelroom_model extends MY_Model
     public function searchHostelDetails($section_id, $class_id, $hostel_name = "")
     {
         if (!empty($hostel_name)) {
-            $condition = "student_session.section_id ='" . $section_id . "' and student_session.class_id='" . $class_id . "' and hostel.hostel_name ='" . $hostel_name . "' and students.is_active='yes' ";
+            $condition = "e.class_id=" . $this->db->escape($class_id) . " and hostel.hostel_name =" . $this->db->escape($hostel_name) . " and students.is_active='yes' and e.status = 'Active' and ac.session_id = " . $this->current_session . " ";
         } else {
-            $condition = "student_session.section_id ='" . $section_id . "' and student_session.class_id='" . $class_id . "'  and students.is_active='yes' ";
+            $condition = "e.class_id=" . $this->db->escape($class_id) . " and students.is_active='yes' and e.status = 'Active' and ac.session_id = " . $this->current_session . " ";
         }
 
-        $sql = "select students.firstname,students.middlename,students.id as sid, students.admission_no,students.guardian_phone,classes.class,sections.section,students.lastname,students.mobileno,hostel_rooms.*,hostel.hostel_name,room_types.room_type from students join student_session on students.id = student_session.student_id join sections on sections.id = student_session.section_id join classes on classes.id = student_session.class_id join  hostel_rooms on hostel_rooms.id = students.hostel_room_id join  hostel on hostel.id = hostel_rooms.hostel_id join room_types on room_types.id = hostel_rooms.room_type_id where " . $condition;
+        $sql = "select students.firstname,students.middlename,students.id as sid, students.admission_no,students.guardian_phone,ac.class_code as class,students.lastname,students.mobileno,hostel_rooms.*,hostel.hostel_name,room_types.room_type,e.id as student_session_id from students join academic_class_enrolment e on students.id = e.student_id join academic_class ac on ac.id = e.class_id join hostel_rooms on hostel_rooms.id = students.hostel_room_id join hostel on hostel.id = hostel_rooms.hostel_id join room_types on room_types.id = hostel_rooms.room_type_id where " . $condition;
         $this->datatables->query($sql)
             ->query_where_enable(true)
             ->orderable('class,admission_no,students.firstname,mobileno,guardian_phone,hostel_name,room_no,room_type,cost_per_bed')

@@ -25,15 +25,9 @@ services:
       MYSQL_PASSWORD: smartschool123
     volumes:
       - db_data:/var/lib/mysql
-      - ./smart_school_src/application/controllers/install/database.sql:/docker-entrypoint-initdb.d/01_database.sql
-      - ./smart_school_src/application/migrations/001_add_tvet_tables.sql:/docker-entrypoint-initdb.d/02_tvet_tables.sql
-      - ./docker/init/03_admin_user.sql:/docker-entrypoint-initdb.d/03_admin_user.sql
-      - ./smart_school_src/application/migrations/002_feature_enhancements.sql:/docker-entrypoint-initdb.d/04_feature_enhancements.sql
-      - ./smart_school_src/application/migrations/003_content_subject_cohort.sql:/docker-entrypoint-initdb.d/05_content_subject_cohort.sql
-      - ./docker/init/04_test_data.sql:/docker-entrypoint-initdb.d/06_test_data.sql
-      - ./smart_school_src/application/migrations/007_academic_management_rename.sql:/docker-entrypoint-initdb.d/07_academic_management_rename.sql
-      - ./smart_school_src/application/migrations/008_tvet_missing_tables.sql:/docker-entrypoint-initdb.d/08_tvet_missing_tables.sql
-      - ./smart_school_src/application/migrations/009_academic_subject_centric_model.sql:/docker-entrypoint-initdb.d/09_academic_subject_centric.sql
+      # TVET-Only Database: Schema + Seed Data (loaded in order by filename)
+      - ./docker/init/001_tvet_complete_database.sql:/docker-entrypoint-initdb.d/001_tvet_complete_database.sql
+      - ./docker/init/002_seed_data.sql:/docker-entrypoint-initdb.d/002_seed_data.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
       interval: 5s

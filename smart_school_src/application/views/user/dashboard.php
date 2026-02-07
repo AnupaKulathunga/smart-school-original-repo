@@ -192,7 +192,7 @@
 			                    <img src="<?php echo base_url(); ?><?php echo $profile_pic.img_time(); ?>" alt="" class="img-circle msr-3 object-fit-cover fit-image-40" width="40" height="40">
 
 				                <div class="set-flex">
-					                <div class="media-title bmedium"><?php echo $timetablelist->name.' '.$timetablelist->surname.' (' . $timetablelist->employee_id .')'; ?> 
+					                <div class="media-title bmedium"><?php echo $timetablelist->name.' '.$timetablelist->surname; ?> 
 					                </div>
 					                <div class="text-muted mb0">
 					                	<?php
@@ -323,7 +323,7 @@
 			                    <img src="<?php echo base_url(); ?><?php echo $profile_pic.img_time(); ?>" alt="" class="img-circle msr-3 object-fit-cover fit-image-40" width="40" height="40">
 
 				                <div class="set-flex">
-					                <div class="media-title bmedium"><?php echo $teacher[0]->name . " " . $teacher[0]->surname . "<br> (" . $teacher[0]->employee_id . ") " . $class_teacher ?>	 
+					                <div class="media-title bmedium"><?php echo $teacher[0]->name . " " . $teacher[0]->surname . " " . $class_teacher ?>	 
 					                </div>
 					                 
 			            		</div>  

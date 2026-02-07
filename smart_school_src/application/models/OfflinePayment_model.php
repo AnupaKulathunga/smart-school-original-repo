@@ -13,9 +13,10 @@ class OfflinePayment_model extends MY_Model
 
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function get($id = null)
     {
-        $this->db->select('offline_fees_payments.*,fee_groups_feetype.due_date,feetype.type,feetype.code,feetype.is_system,fee_groups.name as `fee_group_name`,transport_feemaster.month,transport_feemaster.due_date as `transport_feemaster_due_date`,pickup_point.name as `pickup_point`,transport_route.route_title,classes.id AS `class_id`,student_session.id as student_session_id,students.id as `student_id`,classes.class,sections.id AS `section_id`,sections.section,students.admission_no , students.roll_no,students.admission_date,students.firstname,students.middlename,  students.lastname,students.image,    students.mobileno, students.email ,students.state ,   students.city , students.pincode ,     students.religion,     students.dob ,students.current_address,    students.permanent_address,IFNULL(students.category_id, 0) as `category_id`,IFNULL(categories.category, "") as `category`, students.cast', FALSE)->from('offline_fees_payments');
+        $this->db->select('offline_fees_payments.*,fee_groups_feetype.due_date,feetype.type,feetype.code,feetype.is_system,fee_groups.name as `fee_group_name`,transport_feemaster.month,transport_feemaster.due_date as `transport_feemaster_due_date`,pickup_point.name as `pickup_point`,transport_route.route_title,academic_class.id AS `class_id`,enrolment.id as student_session_id,students.id as `student_id`,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" AS `section_id`,"" as `section`,students.admission_no, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.image, students.mobileno, students.email,students.state, students.city, students.pincode, students.religion, students.dob,students.current_address, students.permanent_address,IFNULL(students.category_id, 0) as `category_id`,IFNULL(categories.category, "") as `category`, students.cast', FALSE)->from('offline_fees_payments');
         $this->db->join('fee_groups_feetype', 'offline_fees_payments.fee_groups_feetype_id = fee_groups_feetype.id', 'left');
         $this->db->join('fee_groups', 'fee_groups_feetype.fee_groups_id = fee_groups.id', 'left');
         $this->db->join('feetype', 'fee_groups_feetype.feetype_id = feetype.id', 'left');
@@ -24,10 +25,9 @@ class OfflinePayment_model extends MY_Model
         $this->db->join('route_pickup_point', 'student_transport_fees.route_pickup_point_id = route_pickup_point.id', 'left');
         $this->db->join('pickup_point', 'route_pickup_point.pickup_point_id = pickup_point.id', 'left');
         $this->db->join('transport_route', 'route_pickup_point.transport_route_id = transport_route.id', 'left');
-        $this->db->join('student_session', 'student_session.id = offline_fees_payments.student_session_id');
-        $this->db->join('students', 'student_session.student_id = students.id');
-        $this->db->join('classes', 'student_session.class_id = classes.id');
-        $this->db->join('sections', 'sections.id = student_session.section_id');
+        $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = offline_fees_payments.student_session_id');
+        $this->db->join('students', 'enrolment.student_id = students.id');
+        $this->db->join('academic_class', 'enrolment.class_id = academic_class.id');
         $this->db->join('categories', 'students.category_id = categories.id', 'left');
         if ($id != null) {
             $this->db->where('offline_fees_payments.id', $id);
@@ -53,10 +53,11 @@ class OfflinePayment_model extends MY_Model
         }
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getPaymentlistByUser($student_session_id)
     {
         $this->datatables
-            ->select('offline_fees_payments.*,student_fees_master.id as `student_fees_master_id`,fee_groups_feetype.due_date,feetype.type,feetype.code,fee_groups.name as `fee_group_name`,transport_feemaster.month,transport_feemaster.due_date as `transport_feemaster_due_date`,pickup_point.name as `pickup_point`,transport_route.route_title,classes.id AS `class_id`,student_session.id as student_session_id,students.id as `student_id`,classes.class,sections.id AS `section_id`,sections.section,students.admission_no , students.roll_no,students.admission_date,students.firstname,students.middlename,  students.lastname,students.image,    students.mobileno, students.email ,students.state ,   students.city , students.pincode ,     students.religion,     students.dob ,students.current_address,    students.permanent_address,IFNULL(students.category_id, 0) as `category_id`,IFNULL(categories.category, "") as `category`, students.cast', FALSE)
+            ->select('offline_fees_payments.*,student_fees_master.id as `student_fees_master_id`,fee_groups_feetype.due_date,feetype.type,feetype.code,fee_groups.name as `fee_group_name`,transport_feemaster.month,transport_feemaster.due_date as `transport_feemaster_due_date`,pickup_point.name as `pickup_point`,transport_route.route_title,academic_class.id AS `class_id`,enrolment.id as student_session_id,students.id as `student_id`,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" AS `section_id`,"" as `section`,students.admission_no, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.image, students.mobileno, students.email,students.state, students.city, students.pincode, students.religion, students.dob,students.current_address, students.permanent_address,IFNULL(students.category_id, 0) as `category_id`,IFNULL(categories.category, "") as `category`, students.cast', FALSE)
             ->join("student_fees_master", "student_fees_master.id=offline_fees_payments.student_fees_master_id", "left")
             ->join("fee_groups_feetype", "fee_groups_feetype.id=offline_fees_payments.fee_groups_feetype_id", "left")
             ->join("student_transport_fees", "student_transport_fees.id=offline_fees_payments.student_transport_fee_id", "left")
@@ -66,10 +67,9 @@ class OfflinePayment_model extends MY_Model
             ->join('route_pickup_point', 'student_transport_fees.route_pickup_point_id = route_pickup_point.id', 'left')
             ->join('pickup_point', 'route_pickup_point.pickup_point_id = pickup_point.id', 'left')
             ->join('transport_route', 'route_pickup_point.transport_route_id = transport_route.id', 'left')
-            ->join('student_session', 'student_session.id = offline_fees_payments.student_session_id')
-            ->join('students', 'student_session.student_id = students.id')
-            ->join('classes', 'student_session.class_id = classes.id')
-            ->join('sections', 'sections.id = student_session.section_id')
+            ->join('academic_class_enrolment as enrolment', 'enrolment.id = offline_fees_payments.student_session_id')
+            ->join('students', 'enrolment.student_id = students.id')
+            ->join('academic_class', 'enrolment.class_id = academic_class.id')
             ->join('categories', 'students.category_id = categories.id', 'left')
             ->where('offline_fees_payments.student_session_id', $student_session_id)
             ->searchable('offline_fees_payments.id,offline_fees_payments.payment_date,offline_fees_payments.bank_from,offline_fees_payments.bank_account_transferred,offline_fees_payments.reference,offline_fees_payments.amount,offline_fees_payments.submit_date,offline_fees_payments.approve_date')
@@ -79,10 +79,11 @@ class OfflinePayment_model extends MY_Model
         return $this->datatables->generate('json');
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getPaymentlist()
     {
         $this->datatables
-            ->select('offline_fees_payments.*,student_fees_master.id as `student_fees_master_id`,fee_groups_feetype.due_date,feetype.type,feetype.code,fee_groups.name as `fee_group_name`,transport_feemaster.month,transport_feemaster.due_date as `transport_feemaster_due_date`,pickup_point.name as `pickup_point`,transport_route.route_title,classes.id AS `class_id`,student_session.id as student_session_id,students.id as `student_id`,classes.class,sections.id AS `section_id`,sections.section,students.admission_no , students.roll_no,students.admission_date,students.firstname,students.middlename,  students.lastname,students.image,    students.mobileno, students.email ,students.state ,   students.city , students.pincode ,     students.religion,     students.dob ,students.current_address,    students.permanent_address,IFNULL(students.category_id, 0) as `category_id`,IFNULL(categories.category, "") as `category`, students.cast', FALSE)
+            ->select('offline_fees_payments.*,student_fees_master.id as `student_fees_master_id`,fee_groups_feetype.due_date,feetype.type,feetype.code,fee_groups.name as `fee_group_name`,transport_feemaster.month,transport_feemaster.due_date as `transport_feemaster_due_date`,pickup_point.name as `pickup_point`,transport_route.route_title,academic_class.id AS `class_id`,enrolment.id as student_session_id,students.id as `student_id`,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" AS `section_id`,"" as `section`,students.admission_no, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.image, students.mobileno, students.email,students.state, students.city, students.pincode, students.religion, students.dob,students.current_address, students.permanent_address,IFNULL(students.category_id, 0) as `category_id`,IFNULL(categories.category, "") as `category`, students.cast', FALSE)
             ->join("student_fees_master", "student_fees_master.id=offline_fees_payments.student_fees_master_id", "left")
             ->join("fee_groups_feetype", "fee_groups_feetype.id=offline_fees_payments.fee_groups_feetype_id", "left")
             ->join("student_transport_fees", "student_transport_fees.id=offline_fees_payments.student_transport_fee_id", "left")
@@ -92,14 +93,13 @@ class OfflinePayment_model extends MY_Model
             ->join('route_pickup_point', 'student_transport_fees.route_pickup_point_id = route_pickup_point.id', 'left')
             ->join('pickup_point', 'route_pickup_point.pickup_point_id = pickup_point.id', 'left')
             ->join('transport_route', 'route_pickup_point.transport_route_id = transport_route.id', 'left')
-            ->join('student_session', 'student_session.id = offline_fees_payments.student_session_id')
-            ->join('students', 'student_session.student_id = students.id')
-            ->join('classes', 'student_session.class_id = classes.id')
-            ->join('sections', 'sections.id = student_session.section_id')
+            ->join('academic_class_enrolment as enrolment', 'enrolment.id = offline_fees_payments.student_session_id')
+            ->join('students', 'enrolment.student_id = students.id')
+            ->join('academic_class', 'enrolment.class_id = academic_class.id')
             ->join('categories', 'students.category_id = categories.id', 'left')
 
-            ->searchable('offline_fees_payments.id,students.admission_no,students.firstname,classes.class,offline_fees_payments.payment_date,offline_fees_payments.submit_date,offline_fees_payments.amount,offline_fees_payments.is_active,offline_fees_payments.approve_date,offline_fees_payments.invoice_id,offline_fees_payments.id')
-            ->orderable('offline_fees_payments.id,students.admission_no,students.firstname,classes.class,offline_fees_payments.payment_date,offline_fees_payments.submit_date,offline_fees_payments.amount,offline_fees_payments.is_active,offline_fees_payments.approve_date,offline_fees_payments.invoice_id,offline_fees_payments.id')
+            ->searchable('offline_fees_payments.id,students.admission_no,students.firstname,academic_class.class_code,offline_fees_payments.payment_date,offline_fees_payments.submit_date,offline_fees_payments.amount,offline_fees_payments.is_active,offline_fees_payments.approve_date,offline_fees_payments.invoice_id,offline_fees_payments.id')
+            ->orderable('offline_fees_payments.id,students.admission_no,students.firstname,academic_class.class_code,offline_fees_payments.payment_date,offline_fees_payments.submit_date,offline_fees_payments.amount,offline_fees_payments.is_active,offline_fees_payments.approve_date,offline_fees_payments.invoice_id,offline_fees_payments.id')
             ->sort('offline_fees_payments.submit_date', 'desc')
             ->from('offline_fees_payments');
         return $this->datatables->generate('json');

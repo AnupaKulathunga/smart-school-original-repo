@@ -225,11 +225,7 @@ if (isset($resultlist)) {
                     <div  style="text-align: left;">
                         <b>
                             <?php echo $this->lang->line('class'); ?>: <?php echo $class['class']; ?></b><br/>
-                        <?php if (isset($section)) {
-                            ?>
-                            <b> <?php echo $this->lang->line('section'); ?>: <?php echo $section[0]['section']; ?></b><br/>
-                        <?php }
-                        ?>
+                        <?php /* TVET: Section removed */ ?>
                         <?php if (isset($category)) {
                             ?>
                             <b> <?php echo $this->lang->line('category'); ?>: <?php echo $category['category']; ?></b><br/>
@@ -252,7 +248,6 @@ if (isset($resultlist)) {
                     <table>
                         <thead>
                             <tr>
-                                <th class="no">  <?php echo $this->lang->line('section'); ?></th>
                                 <th class="no">  <?php echo $this->lang->line('admission_no'); ?></th>
                                 <th class="no">  <?php echo $this->lang->line('student_name'); ?></th>
                                 <th class="no">  <?php echo $this->lang->line('father_name'); ?></th>
@@ -268,7 +263,6 @@ if (isset($resultlist)) {
                         foreach ($resultlist as $key => $student) {
                             ?>
                             <tr>
-                                <td class="desc" style="font-size: 11px;"><h3><?php echo $student['section']; ?></h3></td>
                                 <td class="desc" style="font-size: 11px;"><h3><?php echo $student['admission_no']; ?></h3></td>
                                 <td class="qty" style="text-align: left;font-size: 11px;"><?php echo $student['firstname'] . " " . $student['lastname']; ?></td>
                                 <td class="qty"  style="text-align: left;font-size: 11px;"><?php echo $student['father_name']; ?></td>

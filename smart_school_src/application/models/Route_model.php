@@ -139,17 +139,14 @@ class Route_model extends MY_Model
             foreach ($class_section_array as $class_sectionkey => $class_sectionvalue) {
                 $query_string = "";
                 foreach ($class_sectionvalue as $class_sectionvaluekey => $class_sectionvaluevalue) {
-                    $query_string = "( student_session.class_id=" . $class_sectionkey . " and student_session.section_id=" . $class_sectionvaluevalue . " )";
+                    $query_string = "( e.class_id=" . $class_sectionkey . " )";
                     $this->db->or_where($query_string);
                 }
             }
             $this->db->group_end();
         }
         if (!empty($class_id)) {
-            $this->db->where('student_session.class_id', $class_id);
-        }
-        if (!empty($section_id)) {
-            $this->db->where('student_session.section_id', $section_id);
+            $this->db->where('e.class_id', $class_id);
         }
 
         if (!empty($transport_route_id)) {
@@ -165,18 +162,17 @@ class Route_model extends MY_Model
         }
 
         $this->db->where('students.is_active', 'yes');
-        $query = $this->db->select('students.firstname,students.middlename,students.id,students.admission_no,students.father_name,students.mother_name, students.father_phone,students.mother_phone,classes.class,sections.section,students.lastname,students.mobileno,student_session.route_pickup_point_id,pickup_point.name as `pickup_name`,transport_route.route_title,route_pickup_point.fees,route_pickup_point.destination_distance,route_pickup_point.pickup_time,vehicles.vehicle_no,vehicles.vehicle_model,vehicles.driver_name,vehicles.driver_contact')
-            ->join('student_session', 'students.id = student_session.student_id')
-            ->join('sections', 'sections.id = student_session.section_id')
-            ->join('classes', 'classes.id = student_session.class_id')
-            ->join('route_pickup_point', 'student_session.route_pickup_point_id= route_pickup_point.id')
-            ->join('transport_route', 'transport_route.id= route_pickup_point.transport_route_id')
-            ->join('pickup_point', 'pickup_point.id=route_pickup_point.pickup_point_id')
-            ->join("vehicle_routes", "student_session.vehroute_id = vehicle_routes.id")
+        $query = $this->db->select('students.firstname,students.middlename,students.id,students.admission_no,students.father_name,students.mother_name, students.father_phone,students.mother_phone,ac.class_code as class,ac.cohort_name as section,students.lastname,students.mobileno,e.route_pickup_point_id,pickup_point.name as `pickup_name`,transport_route.route_title,route_pickup_point.fees,route_pickup_point.destination_distance,route_pickup_point.pickup_time,vehicles.vehicle_no,vehicles.vehicle_model,vehicles.driver_name,vehicles.driver_contact', FALSE)
+            ->join('academic_class_enrolment e', 'students.id = e.student_id AND e.status = "Active"')
+            ->join('academic_class ac', 'ac.id = e.class_id')
+            ->join('route_pickup_point', 'e.route_pickup_point_id = route_pickup_point.id')
+            ->join('transport_route', 'transport_route.id = route_pickup_point.transport_route_id')
+            ->join('pickup_point', 'pickup_point.id = route_pickup_point.pickup_point_id')
+            ->join("vehicle_routes", "e.vehroute_id = vehicle_routes.id")
             ->join("vehicles", "vehicle_routes.vehicle_id = vehicles.id")
-            ->order_by("classes.class", 'asc')
-            ->order_by("sections.section", 'asc')
-            ->where('student_session.session_id', $this->current_session)->get("students");
+            ->order_by("ac.class_code", 'asc')
+            ->order_by("ac.cohort_name", 'asc')
+            ->where('ac.session_id', $this->current_session)->get("students");
 
         $result = $query->result_array();
         if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes") && (empty($class_section_array))) {
@@ -187,13 +183,13 @@ class Route_model extends MY_Model
 
     public function getClass($student_id)
     {
-        $query = $this->db->query("SELECT  classes.class, classes.id  FROM  `classes`  where id in ( SELECT max(class_id) from student_session WHERE student_id = $student_id) ");
+        $query = $this->db->query("SELECT ac.class_code as class, ac.id FROM `academic_class` ac INNER JOIN academic_class_enrolment e ON e.class_id = ac.id WHERE e.student_id = " . $this->db->escape($student_id) . " AND e.status = 'Active' ORDER BY ac.id DESC LIMIT 1");
         return $query->row_array();
     }
 
     public function getSection($student_id, $class_id)
     {
-        $query = $this->db->query("SELECT  sections.section  FROM  `sections` join student_session on student_session.section_id = sections.id where student_session.class_id = " . $class_id . " and student_session.student_id = " . $student_id);
+        $query = $this->db->query("SELECT ac.cohort_name as section FROM `academic_class` ac INNER JOIN academic_class_enrolment e ON e.class_id = ac.id WHERE e.class_id = " . $this->db->escape($class_id) . " AND e.student_id = " . $this->db->escape($student_id) . " AND e.status = 'Active' LIMIT 1");
         return $query->row_array();
     }
 

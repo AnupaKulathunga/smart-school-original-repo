@@ -71,16 +71,11 @@
                                                 'show_section_row' => false
                                             ]);
                                             ?>
+                                            <!-- TVET: Removed section list - class is self-contained -->
                                             <div class="dual-list list-right">
                                                 <div class="well minheight260">
                                                     <div class="wellscroll row">
-
-                                                        <div class="col-md-2">
-                                                            <b><?php echo $this->lang->line('section'); ?></b>
-                                                            <ul class="list-group section_list listcheckbox"></ul>
-                                                        </div>
-
-                                                        <div class="col-md-10 ">
+                                                        <div class="col-md-12">
                                                             <?php
                                                             if($send_to==null){
                                                                 $send_to_user=[];
@@ -88,7 +83,7 @@
                                                                  $send_to_user=json_decode($send_to);
                                                             }  ?>
                                                             <b><?php echo $this->lang->line('send_to'); ?></b>
-                                                            <ul class="list-group listcheckbox hide"  id="send_to">
+                                                            <ul class="list-group listcheckbox"  id="send_to">
                                                                 <li class="checkbox"><a href="#" class="small"><label>
                                                                     <input class="reset_checkbox" type="checkbox" name="send_to[]" <?php if(in_array('student',($send_to_user)) && $send_to!=null){ echo "checked"; } ?> value="student"/><?php echo $this->lang->line('students'); ?></label></a></li>
                                                                 <?php if ($sch_setting->guardian_name) {?>
@@ -97,7 +92,6 @@
                                                                 <?php } ?>
                                                             </ul>
                                                         </div>
-
                                                     </div>
                                                 </div>
                                             </div>
@@ -130,81 +124,25 @@
 </div>
 
 <script type="text/javascript">
+// TVET: Removed section loading AJAX - class is self-contained
 $(document).ready(function(){
-
-    $('.section_list').html("");
     var class_id = '<?php echo $messagelist['schedule_class']; ?>';
-    var selected_section = '<?php echo $selected_section; ?>';
-    var base_url = '<?php echo base_url() ?>';
-    var url = "<?php
-$userdata = $this->customlib->getUserData();
-if (($userdata["role_id"] == 2)) {
-    echo "getClassTeacherSection";
-} else {
-    echo "getByClass";
-}
-?>";
-    var div_data = '';
-    $.ajax({
-        type: "GET",
-        url: base_url + "sections/getByClass",
-        data: {'class_id': class_id},
-        dataType: "json",
-        success: function (data) {
-            $.each(data, function (i, obj)
-            {
-                var selected_checked = '';
-                $.each(JSON.parse(selected_section), function (index, value)
-                {
-                    if(obj.section_id == value){
-                        selected_checked = 'checked';
-                    }
-                });
-
-                div_data += '<li class="checkbox"><a href="#" class="small"><label><input type="checkbox" name="user[]" value ="' + obj.section_id +'"'+ selected_checked +'/>' + obj.section + '</label></a></li>';
-
-            });
-
-            $('.section_list').append(div_data);
-
-            if(class_id!=""){
-                $("#send_to").addClass("show");
-                $("#send_to").removeClass("hide");
-            }else{
-                $("#send_to").addClass("hide");
-                $("#send_to").removeClass("show");
-            }
-        }
-    });
+    if(class_id!=""){
+        $("#send_to").addClass("show");
+        $("#send_to").removeClass("hide");
+    }
 })
 
+// TVET: Class change handler - no section dropdown needed
 $(document).on('change', '#class_id', function (e) {
-    $('.section_list').html("");
     var class_id = $(this).val();
-    var base_url = '<?php echo base_url() ?>';
-    var url = "<?php
-$userdata = $this->customlib->getUserData();
-if (($userdata["role_id"] == 2)) {
-    echo "getClassTeacherSection";
-} else {
-    echo "getByClass";
-}
-?>";
-    var div_data = '';
-    $.ajax({
-        type: "GET",
-        url: base_url + "sections/getByClass",
-        data: {'class_id': class_id},
-        dataType: "json",
-        success: function (data) {
-            $.each(data, function (i, obj)
-            {
-                div_data += '<li class="checkbox"><a href="#" class="small"><label><input type="checkbox" name="user[]" value ="' + obj.section_id + '"/>' + obj.section + '</label></a></li>';
-
-            });
-            $('.section_list').append(div_data);
-        }
-    });
+    if(class_id!=""){
+        $("#send_to").addClass("show");
+        $("#send_to").removeClass("hide");
+    }else{
+        $("#send_to").addClass("hide");
+        $("#send_to").removeClass("show");
+    }
 });
 
 $("#class_form").submit(function (event) {
@@ -252,7 +190,7 @@ $("#class_form").submit(function (event) {
                 for (instance in CKEDITOR.instances) {
                     CKEDITOR.instances[instance].setData(" ");
                 }
-                $('.section_list').html("");
+                // TVET: Removed section_list clear
                 $("#send_to").addClass("hide");
                 $("#send_to").removeClass("show");
                 successMsg(data.msg);

@@ -92,7 +92,7 @@ echo $tm_kue->subject_name;
                     echo " (" . $tm_kue->subject_code . ")";
                 }
                 ?></div>
-                                        <div class="relative attachment-left-space-blue"><i class="fa fa-clock-o"></i><?php echo $this->lang->line('class') ?>: <?php echo $tm_kue->class . "(" . $tm_kue->section . ")"; ?>
+                                        <div class="relative attachment-left-space-blue"><i class="fa fa-clock-o"></i><?php echo $this->lang->line('class') ?>: <?php echo $tm_kue->class; ?>
                                         <strong class="text-blue-light"><?php echo $tm_kue->time_from ?></strong>
                                         <b class="text text-center">-</b>
                                         <strong class="text-blue-light"><?php echo $tm_kue->time_to; ?></strong>

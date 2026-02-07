@@ -27,7 +27,7 @@
                                 <thead>
                                     <tr class="white-space-nowrap">
                                         <th><?php echo $this->lang->line('event_title'); ?></th>
-                                        <th><?php echo $this->lang->line('class') .' <br>'. $this->lang->line('section'); ?></th>
+                                        <th><?php echo $this->lang->line('class'); ?></th>
                                         <th><?php echo $this->lang->line('pass_out_session'); ?></th>
                                         <th><?php echo $this->lang->line('from'); ?></th>
                                         <th><?php echo $this->lang->line('to'); ?></th>
@@ -49,24 +49,7 @@ if ($value['event_for'] == 'class') {
         echo $this->lang->line($value['event_for']);
     }
     ?>
-                                            <br><?php
-if ($value['event_for'] == 'class') {
-        $sl = '';
-        foreach ($eventsection[$key] as $eventsection_value) {
-
-            $json_array = json_decode($value['section']);
-            if (in_array($eventsection_value['id'], $json_array)) {
-                $sl++;
-
-                echo $eventsection_value['section'];
-                if (count($json_array) > $sl) {
-                    echo ", ";
-                }
-            }
-        }
-    }
-    ?>
-
+                                            <!-- TVET: Removed section display - class is self-contained -->
                                             </td>
                                             <td><?php
 if ($value['event_for'] == 'class') {
@@ -287,38 +270,9 @@ foreach ($sessionlist as $sessions) {
     }
 </script>
 <script >
+    // TVET: Removed getsectionlist function - class is self-contained
     function getsectionlist(newsection) {
-        $('#section_list').html("");
-        var class_id = $('#class_id').val();
-        var base_url = '<?php echo base_url() ?>';
-        var url = "<?php
-$userdata = $this->customlib->getUserData();
-if (($userdata["role_id"] == 2)) {
-    echo "getClassTeacherSection";
-} else {
-    echo "getByClass";
-}
-?>";
-        var div_data = '';
-        $.ajax({
-            type: "GET",
-            url: base_url + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += '<li class="checkbox"><a href="#" class="small"><label><input type="checkbox" name="user[]" value ="' + obj.section_id + '"/>' + obj.section + '</label></a></li>';
-                });
-
-                $('#section_list').append(div_data);
-                var JSONObject = JSON.parse(newsection);
-                for (var i = 0, l = JSONObject.length; i < l; i++) {
-                    $('input[name="user[]"][value="' + JSONObject[i] + '"]').prop("checked", true);
-                }
-
-            }
-        });
+        // No-op: sections not used in TVET model
     }
 </script>
 <script type="application/javascript">  

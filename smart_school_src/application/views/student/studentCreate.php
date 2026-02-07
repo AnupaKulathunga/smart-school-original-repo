@@ -1111,7 +1111,7 @@ echo set_value('rte') == "no" ? "checked" : "";
     $(document).ready(function () {
         var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';
         var class_id = $('#class_id').val();
-        var section_id = '<?php echo set_value('section_id', 0) ?>';
+        // TVET: section_id removed - using single class selector
         var hostel_id = $('#hostel_id').val();
         var hostel_room_id = '<?php echo set_value('hostel_room_id', 0) ?>';
         var vehroute_id = '<?php echo set_value('vehroute_id', 0) ?>';
@@ -1265,57 +1265,30 @@ echo set_value('rte') == "no" ? "checked" : "";
 
 <script type="text/javascript">
 
+    // TVET: Load students by class when sibling class changes (no section needed)
     $(document).on('change', '#sibiling_class_id', function (e) {
-        $('#sibiling_section_id').html("");
-        var class_id = $(this).val();
-        var base_url = '<?php echo base_url() ?>';
-        var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-        $.ajax({
-            type: "GET",
-            url: base_url + "sections/getByClass",
-            data: {'class_id': class_id},
-            dataType: "json",
-            success: function (data) {
-                $.each(data, function (i, obj)
-                {
-                    div_data += "<option value=" + obj.section_id + ">" + obj.section + "</option>";
-                });
-                $('#sibiling_section_id').append(div_data);
-            }
-        });
+        getStudentsByClass();
     });
 
-    $(document).on('change', '#sibiling_section_id', function (e) {
-        getStudentsByClassAndSection();
-    });
-
-    function getStudentsByClassAndSection() {
-
+    function getStudentsByClass() {
         $('#sibiling_student_id').html("");
         var class_id = $('#sibiling_class_id').val();
-        var section_id = $('#sibiling_section_id').val();
         var student_id = '<?php echo set_value('student_id') ?>';
         var base_url = '<?php echo base_url() ?>';
         var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
         $.ajax({
             type: "GET",
             url: base_url + "student/getByClassAndSection",
-            data: {'class_id': class_id, 'section_id': section_id},
+            data: {'class_id': class_id, 'section_id': class_id},
             dataType: "json",
             success: function (data) {
                 $.each(data, function (i, obj)
                 {
-                    var sel = "";
-                    if (section_id == obj.section_id) {
-                        sel = "selected=selected";
-                    }
-
                     if (obj.admission_no == null) {
                         div_data += "<option value=" + obj.id + ">" + obj.full_name +  "</option>";
                     } else {
                         div_data += "<option value=" + obj.id + ">" + obj.full_name +  " (" + obj.admission_no + ") " + "</option>";
                     }
-
                 });
                 $('#sibiling_student_id').append(div_data);
             }

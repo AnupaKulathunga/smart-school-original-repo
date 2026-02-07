@@ -6,32 +6,15 @@
 <div class="col-lg-12 col-md-12 col-sm-12">
     <div class="row">
         <div class="col-sm-6">
-            <div class="form-group">
-                <label><?php echo $this->lang->line('class'); ?></label> <small class="req"> *</small>
-                <select autofocus="" id="edit_class_id" name="class_id" class="form-control" >
-                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                    <?php
-                        foreach ($classlist as $classlist_value) {
-                    ?>
-                            <option value="<?php echo $classlist_value['id']; ?>" <?php if ($classlist_value['id'] == $classid['class_id']) {echo "selected";}?> ><?php echo $classlist_value['class']; ?></option>
-
-                    <?php
-                        }
-                    ?>
-                </select>
-                <span class="text-danger" id="error_class_id"></span>
-            </div>
-        </div>
-
-        <div class="col-sm-6">
-            <div class="form-group select2-container-3">
-                <label><?php echo $this->lang->line('section'); ?></label><small class="req"> *</small>
-
-                <select  id="edit_section_id" name="edit_section_id[]" class="form-control select2" multiple="multiple">
-                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                </select>
-                <span class="text-danger" id="error_edit_section_id"></span>
-            </div>
+            <?php
+            // TVET: Single class selector (no section needed)
+            $this->load->view('admin/_partials/class_selector', [
+                'selected_class_id' => isset($classid['class_id']) ? $classid['class_id'] : '',
+                'classlist' => $classlist,
+                'id' => 'edit_class_id',
+                'name' => 'class_id'
+            ]);
+            ?>
         </div>
     </div>
 

@@ -122,6 +122,33 @@ class Examresult_model extends CI_Model
         return $query->result_array();
     }
 
+    // ========================================================================
+    // TVET METHODS - Uses academic_class (no sections)
+    // ========================================================================
+
+    /**
+     * Check if exam results are prepared for a given exam and class (TVET)
+     * Replaces checkexamresultpreparebyexam() - no section_id needed
+     *
+     * @param int $exam_id Exam ID
+     * @param int $class_id Academic class ID (academic_class.id)
+     * @return bool True if results exist
+     */
+    public function checkexamresultpreparebyexamTVET($exam_id, $class_id)
+    {
+        $this->db->select('COUNT(*) as counter', FALSE)
+            ->from('exam_results')
+            ->join('exam_schedules', 'exam_results.exam_schedule_id = exam_schedules.id')
+            ->join('teacher_subjects', 'exam_schedules.teacher_subject_id = teacher_subjects.id')
+            ->where('teacher_subjects.class_id', $class_id)
+            ->where('exam_schedules.session_id', $this->current_session)
+            ->where('exam_schedules.exam_id', $exam_id);
+
+        $query = $this->db->get();
+        $row = $query->row();
+        return ($row && $row->counter > 0);
+    }
+
     public function getStudentExamResultByStudent($exam_id, $student_id, $exam_schedule)
     {
         $sql = "SELECT exam_schedules.id as `exam_schedules_id`,exam_results.id as `exam_results_id`,exam_schedules.exam_id,exam_schedules.date_of_exam,exam_schedules.full_marks,exam_schedules.passing_marks,exam_results.student_id,exam_results.get_marks,students.firstname,students.middlename,students.lastname,students.guardian_phone,students.email ,exams.name as `exam_name` FROM `exam_schedules` INNER JOIN exams on exams.id=exam_schedules.exam_id INNER JOIN exam_results ON exam_results.exam_schedule_id=exam_schedules.id INNER JOIN students on students.id=exam_results.student_id WHERE exam_schedules.session_id =" . $this->db->escape($this->current_session) . " and exam_schedules.exam_id =" . $this->db->escape($exam_id) . " and exam_results.student_id =" . $this->db->escape($student_id) . " and exam_schedules.id in (" . $exam_schedule . ") ORDER BY `exam_results`.`id` ASC";

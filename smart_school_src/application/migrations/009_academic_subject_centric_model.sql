@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `academic_subject` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_subject_code_programme` (`code`, `programme_id`),
   KEY `idx_programme` (`programme_id`),
-  CONSTRAINT `fk_subject_programme` FOREIGN KEY (`programme_id`)
+  CONSTRAINT `fk_academic_subject_programme` FOREIGN KEY (`programme_id`)
     REFERENCES `academic_programme`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -79,9 +79,9 @@ CREATE TABLE IF NOT EXISTS `academic_subject_level` (
   UNIQUE KEY `uk_subject_level` (`subject_id`, `level_id`),
   KEY `idx_subject` (`subject_id`),
   KEY `idx_level` (`level_id`),
-  CONSTRAINT `fk_sl_subject` FOREIGN KEY (`subject_id`)
+  CONSTRAINT `fk_academic_sl_subject` FOREIGN KEY (`subject_id`)
     REFERENCES `academic_subject`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_sl_level` FOREIGN KEY (`level_id`)
+  CONSTRAINT `fk_academic_sl_level` FOREIGN KEY (`level_id`)
     REFERENCES `academic_level`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -113,11 +113,11 @@ CREATE TABLE IF NOT EXISTS `academic_class` (
   KEY `idx_subject_level` (`subject_level_id`),
   KEY `idx_session` (`session_id`),
   KEY `idx_lecturer` (`primary_lecturer_id`),
-  CONSTRAINT `fk_class_subject_level` FOREIGN KEY (`subject_level_id`)
+  CONSTRAINT `fk_academic_class_subject_level` FOREIGN KEY (`subject_level_id`)
     REFERENCES `academic_subject_level`(`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_class_session` FOREIGN KEY (`session_id`)
+  CONSTRAINT `fk_academic_class_session` FOREIGN KEY (`session_id`)
     REFERENCES `sessions`(`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_class_lecturer` FOREIGN KEY (`primary_lecturer_id`)
+  CONSTRAINT `fk_academic_class_lecturer` FOREIGN KEY (`primary_lecturer_id`)
     REFERENCES `staff`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -142,9 +142,9 @@ CREATE TABLE IF NOT EXISTS `academic_class_enrolment` (
   KEY `idx_student` (`student_id`),
   KEY `idx_class` (`class_id`),
   KEY `idx_status` (`status`),
-  CONSTRAINT `fk_enrol_student` FOREIGN KEY (`student_id`)
+  CONSTRAINT `fk_academic_enrol_student` FOREIGN KEY (`student_id`)
     REFERENCES `students`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_enrol_class` FOREIGN KEY (`class_id`)
+  CONSTRAINT `fk_academic_enrol_class` FOREIGN KEY (`class_id`)
     REFERENCES `academic_class`(`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -163,9 +163,9 @@ CREATE TABLE IF NOT EXISTS `academic_class_lecturer` (
   UNIQUE KEY `uk_class_lecturer` (`class_id`, `staff_id`),
   KEY `idx_class` (`class_id`),
   KEY `idx_staff` (`staff_id`),
-  CONSTRAINT `fk_cl_class` FOREIGN KEY (`class_id`)
+  CONSTRAINT `fk_academic_cl_class` FOREIGN KEY (`class_id`)
     REFERENCES `academic_class`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_cl_staff` FOREIGN KEY (`staff_id`)
+  CONSTRAINT `fk_academic_cl_staff` FOREIGN KEY (`staff_id`)
     REFERENCES `staff`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -188,9 +188,9 @@ CREATE TABLE IF NOT EXISTS `academic_attendance` (
   KEY `idx_class` (`class_id`),
   KEY `idx_enrolment` (`enrolment_id`),
   KEY `idx_date` (`date`),
-  CONSTRAINT `fk_att_class` FOREIGN KEY (`class_id`)
+  CONSTRAINT `fk_academic_att_class` FOREIGN KEY (`class_id`)
     REFERENCES `academic_class`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_att_enrol` FOREIGN KEY (`enrolment_id`)
+  CONSTRAINT `fk_academic_att_enrol` FOREIGN KEY (`enrolment_id`)
     REFERENCES `academic_class_enrolment`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -211,7 +211,7 @@ CREATE TABLE IF NOT EXISTS `academic_timetable` (
   PRIMARY KEY (`id`),
   KEY `idx_class` (`class_id`),
   KEY `idx_day` (`day_of_week`),
-  CONSTRAINT `fk_tt_class` FOREIGN KEY (`class_id`)
+  CONSTRAINT `fk_academic_tt_class` FOREIGN KEY (`class_id`)
     REFERENCES `academic_class`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -242,11 +242,11 @@ CREATE TABLE IF NOT EXISTS `academic_assessment` (
   KEY `idx_class` (`class_id`),
   KEY `idx_type` (`assessment_type`),
   KEY `idx_status` (`moderation_status`),
-  CONSTRAINT `fk_assess_class` FOREIGN KEY (`class_id`)
+  CONSTRAINT `fk_academic_assess_class` FOREIGN KEY (`class_id`)
     REFERENCES `academic_class`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_assess_moderator` FOREIGN KEY (`moderator_id`)
+  CONSTRAINT `fk_academic_assess_moderator` FOREIGN KEY (`moderator_id`)
     REFERENCES `staff`(`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_assess_creator` FOREIGN KEY (`created_by`)
+  CONSTRAINT `fk_academic_assess_creator` FOREIGN KEY (`created_by`)
     REFERENCES `staff`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -272,9 +272,9 @@ CREATE TABLE IF NOT EXISTS `academic_assessment_marks` (
   UNIQUE KEY `uk_assess_enrol` (`assessment_id`, `enrolment_id`),
   KEY `idx_assessment` (`assessment_id`),
   KEY `idx_enrolment` (`enrolment_id`),
-  CONSTRAINT `fk_marks_assessment` FOREIGN KEY (`assessment_id`)
+  CONSTRAINT `fk_academic_marks_assessment` FOREIGN KEY (`assessment_id`)
     REFERENCES `academic_assessment`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_marks_enrolment` FOREIGN KEY (`enrolment_id`)
+  CONSTRAINT `fk_academic_marks_enrolment` FOREIGN KEY (`enrolment_id`)
     REFERENCES `academic_class_enrolment`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -294,7 +294,7 @@ CREATE TABLE IF NOT EXISTS `academic_moderation_log` (
   PRIMARY KEY (`id`),
   KEY `idx_assessment` (`assessment_id`),
   KEY `idx_moderator` (`moderator_id`),
-  CONSTRAINT `fk_mod_assessment` FOREIGN KEY (`assessment_id`)
+  CONSTRAINT `fk_academic_mod_assessment` FOREIGN KEY (`assessment_id`)
     REFERENCES `academic_assessment`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -319,7 +319,7 @@ CREATE TABLE IF NOT EXISTS `academic_poe_item` (
   PRIMARY KEY (`id`),
   KEY `idx_enrolment` (`enrolment_id`),
   KEY `idx_status` (`status`),
-  CONSTRAINT `fk_poe_enrolment` FOREIGN KEY (`enrolment_id`)
+  CONSTRAINT `fk_academic_poe_enrolment` FOREIGN KEY (`enrolment_id`)
     REFERENCES `academic_class_enrolment`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -340,9 +340,28 @@ CREATE TABLE IF NOT EXISTS `academic_icass_config` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_icass_config` (`class_id`, `component`),
   KEY `idx_class` (`class_id`),
-  CONSTRAINT `fk_icass_class` FOREIGN KEY (`class_id`)
+  CONSTRAINT `fk_academic_icass_class` FOREIGN KEY (`class_id`)
     REFERENCES `academic_class`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ============================================================================
+-- 14.5 ALTER EXISTING TABLES FOR TVET COMPATIBILITY
+-- ============================================================================
+
+-- Online Admissions: Add class_id for TVET (replaces class_section_id)
+ALTER TABLE `online_admissions`
+ADD COLUMN IF NOT EXISTS `class_id` INT(11) NULL AFTER `class_section_id`,
+ADD KEY IF NOT EXISTS `idx_online_admissions_class` (`class_id`);
+
+-- Student Fees Discounts: Add enrolment_id for TVET (replaces student_session_id)
+ALTER TABLE `student_fees_discounts`
+ADD COLUMN IF NOT EXISTS `enrolment_id` INT(11) NULL AFTER `student_session_id`,
+ADD KEY IF NOT EXISTS `idx_student_fees_discounts_enrolment` (`enrolment_id`);
+
+-- Online Exam Students: Add enrolment_id for TVET (replaces student_session_id)
+ALTER TABLE `onlineexam_students`
+ADD COLUMN IF NOT EXISTS `enrolment_id` INT(11) NULL AFTER `student_session_id`,
+ADD KEY IF NOT EXISTS `idx_onlineexam_students_enrolment` (`enrolment_id`);
 
 -- ============================================================================
 -- 15. PERMISSIONS
@@ -412,105 +431,105 @@ INSERT INTO `permission_category` (`perm_group_id`, `name`, `short_code`, `enabl
 SELECT @perm_group_id, 'Academic Reports', 'academic_reports', 1, 0, 0, 0, NOW()
 WHERE NOT EXISTS (SELECT 1 FROM `permission_category` WHERE `short_code` = 'academic_reports');
 
--- ============================================================================
--- 16. SIDEBAR MENU
--- ============================================================================
-
--- Insert main Academic Management menu
-INSERT INTO `sidebar_menus` (`menu`, `key`, `lang_key`, `url`, `icon`, `is_active`, `display_order`, `level`, `system_level`, `sidebar_display`)
-SELECT 'Academic Management', NULL, 'academic_management', '#', 'fa fa-graduation-cap', 1, 5, 'admin', 0, 1
-WHERE NOT EXISTS (SELECT 1 FROM `sidebar_menus` WHERE `lang_key` = 'academic_management');
-
--- Get Academic Management menu ID
-SET @academic_menu_id = (SELECT id FROM `sidebar_menus` WHERE `lang_key` = 'academic_management' LIMIT 1);
-
--- Insert submenus
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Dashboard', NULL, 'dashboard', 'admin/academic', 1, '(\'academic_dashboard\', \'can_view\')', NULL, 'academic', 'index', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic' AND `sidebar_menu_id` = @academic_menu_id);
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Programmes', NULL, 'programmes', 'admin/academic/programmes', 2, '(\'academic_programmes\', \'can_view\')', NULL, 'academic', 'programmes,programme_add,programme_edit', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/programmes');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Subjects', NULL, 'subjects', 'admin/academic/subjects', 3, '(\'academic_subjects\', \'can_view\')', NULL, 'academic', 'subjects,subject_add,subject_edit', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/subjects');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Levels', NULL, 'levels', 'admin/academic/levels', 4, '(\'academic_levels\', \'can_view\')', NULL, 'academic', 'levels,level_add,level_edit', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/levels');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Subject-Level Mapping', NULL, 'subject_level_mapping', 'admin/academic/subject_levels', 5, '(\'academic_subjects\', \'can_view\')', NULL, 'academic', 'subject_levels,subject_level_add', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/subject_levels');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Classes', NULL, 'classes', 'admin/academic/classes', 6, '(\'academic_classes\', \'can_view\')', NULL, 'academic', 'classes,class_add,class_edit,class_roster', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/classes');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Student Enrolment', NULL, 'student_enrolment', 'admin/academic/enrolment', 7, '(\'academic_enrolment\', \'can_view\')', NULL, 'academic', 'enrolment,enrol_student,bulk_enrolment', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/enrolment');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Attendance', NULL, 'attendance', 'admin/academic/attendance', 8, '(\'academic_attendance\', \'can_view\')', NULL, 'academic', 'attendance,mark_attendance', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/attendance');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Timetable', NULL, 'timetable', 'admin/academic/timetable', 9, '(\'academic_classes\', \'can_view\')', NULL, 'academic', 'timetable', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/timetable');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Assessments', NULL, 'assessments', 'admin/academic/assessments', 10, '(\'academic_assessments\', \'can_view\')', NULL, 'academic', 'assessments,assessment_add,assessment_edit,marks_entry', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/assessments');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Moderation', NULL, 'moderation', 'admin/academic/moderation', 11, '(\'academic_moderation\', \'can_view\')', NULL, 'academic', 'moderation', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/moderation');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'ICASS', NULL, 'icass', 'admin/academic/icass', 12, '(\'academic_icass\', \'can_view\')', NULL, 'academic', 'icass,icass_config', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/icass');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'POE', NULL, 'poe', 'admin/academic/poe', 13, '(\'academic_poe\', \'can_view\')', NULL, 'academic', 'poe', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/poe');
-
-INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
-SELECT @academic_menu_id, 'Reports', NULL, 'reports', 'admin/academic/reports', 14, '(\'academic_reports\', \'can_view\')', NULL, 'academic', 'reports', 1, NOW()
-WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/reports');
-
--- ============================================================================
--- 17. GRANT PERMISSIONS TO ADMIN ROLES
--- ============================================================================
-
--- Grant permissions to Admin role (id=1)
-INSERT INTO roles_permissions (role_id, perm_cat_id, can_view, can_add, can_edit, can_delete)
-SELECT 1, pc.id, pc.enable_view, pc.enable_add, pc.enable_edit, pc.enable_delete
-FROM permission_category pc
-WHERE pc.short_code LIKE 'academic_%'
-AND NOT EXISTS (SELECT 1 FROM roles_permissions rp WHERE rp.role_id = 1 AND rp.perm_cat_id = pc.id);
-
--- Grant permissions to Super Admin role (id=7)
-INSERT INTO roles_permissions (role_id, perm_cat_id, can_view, can_add, can_edit, can_delete)
-SELECT 7, pc.id, pc.enable_view, pc.enable_add, pc.enable_edit, pc.enable_delete
-FROM permission_category pc
-WHERE pc.short_code LIKE 'academic_%'
-AND NOT EXISTS (SELECT 1 FROM roles_permissions rp WHERE rp.role_id = 7 AND rp.perm_cat_id = pc.id);
-
--- ============================================================================
--- 18. DEACTIVATE OLD MENUS
--- ============================================================================
-
--- Deactivate old Academics menu (traditional high school)
-UPDATE `sidebar_menus` SET `is_active` = 0 WHERE `lang_key` = 'academics' AND `lang_key` != 'academic_management';
-
--- Deactivate old TVET Management menu (replaced by Academic Management)
-UPDATE `sidebar_menus` SET `is_active` = 0 WHERE `lang_key` = 'tvet_management';
-
-SET FOREIGN_KEY_CHECKS = 1;
-
--- ============================================================================
--- END OF MIGRATION
--- ============================================================================
+-- DISABLED: -- ============================================================================
+-- DISABLED: -- 16. SIDEBAR MENU
+-- DISABLED: -- ============================================================================
+-- DISABLED: 
+-- DISABLED: -- Insert main Academic Management menu
+-- DISABLED: INSERT INTO `sidebar_menus` (`menu`, `lang_key`, `url`, `icon`, `is_active`, `display_order`, `level`, `system_level`, `sidebar_display`)
+-- DISABLED: SELECT 'Academic Management', 'academic_management', '#', 'fa fa-graduation-cap', 1, 5, 'admin', 0, 1
+-- DISABLED: WHERE NOT EXISTS (SELECT 1 FROM `sidebar_menus` WHERE `lang_key` = 'academic_management');
+-- DISABLED: 
+-- DISABLED: -- Get Academic Management menu ID
+-- DISABLED: SET @academic_menu_id = (SELECT id FROM `sidebar_menus` WHERE `lang_key` = 'academic_management' LIMIT 1);
+-- DISABLED: 
+-- DISABLED: -- Insert submenus
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Dashboard', NULL, 'dashboard', 'admin/academic', 1, '(\'academic_dashboard\', \'can_view\')', NULL, 'academic', 'index', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic' AND `sidebar_menu_id` = @academic_menu_id);
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Programmes', NULL, 'programmes', 'admin/academic/programmes', 2, '(\'academic_programmes\', \'can_view\')', NULL, 'academic', 'programmes,programme_add,programme_edit', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/programmes');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Subjects', NULL, 'subjects', 'admin/academic/subjects', 3, '(\'academic_subjects\', \'can_view\')', NULL, 'academic', 'subjects,subject_add,subject_edit', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/subjects');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Levels', NULL, 'levels', 'admin/academic/levels', 4, '(\'academic_levels\', \'can_view\')', NULL, 'academic', 'levels,level_add,level_edit', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/levels');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Subject-Level Mapping', NULL, 'subject_level_mapping', 'admin/academic/subject_levels', 5, '(\'academic_subjects\', \'can_view\')', NULL, 'academic', 'subject_levels,subject_level_add', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/subject_levels');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Classes', NULL, 'classes', 'admin/academic/classes', 6, '(\'academic_classes\', \'can_view\')', NULL, 'academic', 'classes,class_add,class_edit,class_roster', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/classes');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Student Enrolment', NULL, 'student_enrolment', 'admin/academic/enrolment', 7, '(\'academic_enrolment\', \'can_view\')', NULL, 'academic', 'enrolment,enrol_student,bulk_enrolment', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/enrolment');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Attendance', NULL, 'attendance', 'admin/academic/attendance', 8, '(\'academic_attendance\', \'can_view\')', NULL, 'academic', 'attendance,mark_attendance', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/attendance');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Timetable', NULL, 'timetable', 'admin/academic/timetable', 9, '(\'academic_classes\', \'can_view\')', NULL, 'academic', 'timetable', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/timetable');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Assessments', NULL, 'assessments', 'admin/academic/assessments', 10, '(\'academic_assessments\', \'can_view\')', NULL, 'academic', 'assessments,assessment_add,assessment_edit,marks_entry', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/assessments');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Moderation', NULL, 'moderation', 'admin/academic/moderation', 11, '(\'academic_moderation\', \'can_view\')', NULL, 'academic', 'moderation', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/moderation');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'ICASS', NULL, 'icass', 'admin/academic/icass', 12, '(\'academic_icass\', \'can_view\')', NULL, 'academic', 'icass,icass_config', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/icass');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'POE', NULL, 'poe', 'admin/academic/poe', 13, '(\'academic_poe\', \'can_view\')', NULL, 'academic', 'poe', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/poe');
+-- DISABLED: 
+-- DISABLED: INSERT INTO `sidebar_sub_menus` (`sidebar_menu_id`, `menu`, `key`, `lang_key`, `url`, `level`, `access_permissions`, `permission_group_id`, `activate_controller`, `activate_methods`, `is_active`, `created_at`)
+-- DISABLED: SELECT @academic_menu_id, 'Reports', NULL, 'reports', 'admin/academic/reports', 14, '(\'academic_reports\', \'can_view\')', NULL, 'academic', 'reports', 1, NOW()
+-- DISABLED: WHERE @academic_menu_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM `sidebar_sub_menus` WHERE `url` = 'admin/academic/reports');
+-- DISABLED: 
+-- DISABLED: -- ============================================================================
+-- DISABLED: -- 17. GRANT PERMISSIONS TO ADMIN ROLES
+-- DISABLED: -- ============================================================================
+-- DISABLED: 
+-- DISABLED: -- Grant permissions to Admin role (id=1)
+-- DISABLED: INSERT INTO roles_permissions (role_id, perm_cat_id, can_view, can_add, can_edit, can_delete)
+-- DISABLED: SELECT 1, pc.id, pc.enable_view, pc.enable_add, pc.enable_edit, pc.enable_delete
+-- DISABLED: FROM permission_category pc
+-- DISABLED: WHERE pc.short_code LIKE 'academic_%'
+-- DISABLED: AND NOT EXISTS (SELECT 1 FROM roles_permissions rp WHERE rp.role_id = 1 AND rp.perm_cat_id = pc.id);
+-- DISABLED: 
+-- DISABLED: -- Grant permissions to Super Admin role (id=7)
+-- DISABLED: INSERT INTO roles_permissions (role_id, perm_cat_id, can_view, can_add, can_edit, can_delete)
+-- DISABLED: SELECT 7, pc.id, pc.enable_view, pc.enable_add, pc.enable_edit, pc.enable_delete
+-- DISABLED: FROM permission_category pc
+-- DISABLED: WHERE pc.short_code LIKE 'academic_%'
+-- DISABLED: AND NOT EXISTS (SELECT 1 FROM roles_permissions rp WHERE rp.role_id = 7 AND rp.perm_cat_id = pc.id);
+-- DISABLED: 
+-- DISABLED: -- ============================================================================
+-- DISABLED: -- 18. DEACTIVATE OLD MENUS
+-- DISABLED: -- ============================================================================
+-- DISABLED: 
+-- DISABLED: -- Deactivate old Academics menu (traditional high school)
+-- DISABLED: UPDATE `sidebar_menus` SET `is_active` = 0 WHERE `lang_key` = 'academics' AND `lang_key` != 'academic_management';
+-- DISABLED: 
+-- DISABLED: -- Deactivate old TVET Management menu (replaced by Academic Management)
+-- DISABLED: UPDATE `sidebar_menus` SET `is_active` = 0 WHERE `lang_key` = 'tvet_management';
+-- DISABLED: 
+-- DISABLED: SET FOREIGN_KEY_CHECKS = 1;
+-- DISABLED: 
+-- DISABLED: -- ============================================================================
+-- DISABLED: -- END OF MIGRATION
+-- DISABLED: -- ============================================================================

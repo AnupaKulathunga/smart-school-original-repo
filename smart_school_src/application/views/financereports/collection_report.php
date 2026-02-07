@@ -206,7 +206,7 @@ if (empty($results)) {
                             <td><?php echo date($this->customlib->getSchoolDateFormat(), $this->customlib->dateyyyymmddTodateformat($collect['date'])); ?></td>                
                             <td><?php echo $collect['admission_no']; ?></td>                
                             <td><?php echo $this->customlib->getFullName($collect['firstname'], $collect['middlename'], $collect['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?></td>                
-                            <td><?php echo $collect['class'] . " (" . $collect['section'] . ")";    ?></td>                
+                            <td><?php echo $collect['class'];    ?></td>                
                             
                             <td>
                                 <?php

@@ -85,7 +85,6 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
 
                                         <tr>
                                             <th><?php echo $this->lang->line('class'); ?></th>
-                                            <th><?php echo $this->lang->line('section'); ?></th>
 
                                             <th><?php echo $this->lang->line('admission_no'); ?></th>
 
@@ -172,7 +171,6 @@ $(document).on('submit','.class_search_form',function(e){
     function resetFields(search_type){
         if(search_type == "keyword_search"){
             $('#class_id').prop('selectedIndex',0);
-            $('#section_id').find('option').not(':first').remove();
         }else if (search_type == "class_search") {
             
              $('#search_text').val("");

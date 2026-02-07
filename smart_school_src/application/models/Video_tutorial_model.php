@@ -13,15 +13,18 @@ class Video_tutorial_model extends MY_Model
         $this->current_session = $this->setting_model->getCurrentSession();
     }
 
+    // TVET: Replaced class_sections/classes/sections joins with academic_class
+    // video_tutorial_class_sections.class_section_id now stores academic_class.id
     public function get($id = null)
-    {       
-        $this->db->select('video_tutorial.*,class_sections.class_id,class_sections.section_id,classes.class,sections.section')
+    {
+        $this->db->select('video_tutorial.*, academic_class.id as class_id, academic_class.class_code, academic_class.cohort_name, academic_subject.name as subject_name, academic_level.name as level_name', FALSE)
             ->join('video_tutorial_class_sections', 'video_tutorial_class_sections.video_tutorial_id=video_tutorial.id')
-            ->join('class_sections', 'class_sections.id=video_tutorial_class_sections.class_section_id')
-            ->join('classes', 'classes.id=class_sections.class_id')
-            ->join('sections', 'sections.id=class_sections.section_id')
+            ->join('academic_class', 'academic_class.id=video_tutorial_class_sections.class_section_id')
+            ->join('academic_subject_level', 'academic_subject_level.id=academic_class.subject_level_id', 'left')
+            ->join('academic_subject', 'academic_subject.id=academic_subject_level.subject_id', 'left')
+            ->join('academic_level', 'academic_level.id=academic_subject_level.level_id', 'left')
             ->from('video_tutorial');
-            
+
         if ($id != null) {
             $this->db->where('video_tutorial.id', $id);
         } else {
@@ -105,73 +108,63 @@ class Video_tutorial_model extends MY_Model
         }
     }
 
+    // TVET: Replaced class_sections joins with academic_class
+    // $class_section_id now represents academic_class.id
     public function count_all($keyword = null, $class_id = null, $class_section_id = null)
     {
         $this->db->join('video_tutorial_class_sections', 'video_tutorial_class_sections.video_tutorial_id=video_tutorial.id');
-        $this->db->join('class_sections', 'class_sections.id=video_tutorial_class_sections.class_section_id');
+        $this->db->join('academic_class', 'academic_class.id=video_tutorial_class_sections.class_section_id');
         $this->db->like('video_tutorial.title', $keyword);
         $this->db->like('video_tutorial_class_sections.class_section_id', $class_section_id);
-        $this->db->like('class_sections.class_id', $class_id);
+        if ($class_id != null) {
+            $this->db->like('academic_class.id', $class_id);
+        }
         $this->db->group_by('video_tutorial_class_sections.video_tutorial_id');
         $query = $this->db->get("video_tutorial");
         return $query->num_rows();
     }
 
+    // TVET: Replaced class_sections/classes/sections joins with academic_class
+    // section_id filtering removed (no sections in TVET)
     public function fetch_details($limit, $start, $keyword = null, $class_id = null, $class_section_id = null)
     {
         $userdata        = $this->customlib->getUserData();
         $staff_id        = $userdata['id'];
-        
-        if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes") && (empty($class_id))) {
-            $class_section_array = $this->customlib->get_myClassSection();
-        }
-        
+
         $output = '';
-        $this->db->select("video_tutorial.*,class_sections.class_id,class_sections.section_id,classes.class,sections.section, staff.name as staff_name, staff.surname as staff_surname, staff.employee_id as staff_employee_id");
+        $this->db->select("video_tutorial.*, academic_class.id as class_id, academic_class.class_code, academic_class.cohort_name, academic_subject.name as subject_name, academic_level.name as level_name, staff.name as staff_name, staff.surname as staff_surname, staff.employee_id as staff_employee_id", FALSE);
         $this->db->join('staff', 'staff.id=video_tutorial.created_by', 'left');
         $this->db->join('video_tutorial_class_sections', 'video_tutorial_class_sections.video_tutorial_id=video_tutorial.id');
-        $this->db->join('class_sections', 'class_sections.id=video_tutorial_class_sections.class_section_id');
-        $this->db->join('classes', 'classes.id=class_sections.class_id');
-        $this->db->join('sections', 'sections.id=class_sections.section_id');
-        
+        $this->db->join('academic_class', 'academic_class.id=video_tutorial_class_sections.class_section_id');
+        $this->db->join('academic_subject_level', 'academic_subject_level.id=academic_class.subject_level_id', 'left');
+        $this->db->join('academic_subject', 'academic_subject.id=academic_subject_level.subject_id', 'left');
+        $this->db->join('academic_level', 'academic_level.id=academic_subject_level.level_id', 'left');
+
+        // TVET: For class teacher restriction, filter by lecturer's assigned classes
         if(!empty($class_id)){
             if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-                if (!empty($class_id)) {
-                    $this->db->where_in("class_sections.class_id", $class_id);
-                    
-                    $sections = $this->teacher_model->get_teacherrestricted_modeallsections($staff_id);
-                    foreach ($sections as $key => $value) {
-                        $sections_id[] = $value['section_id'];
-                    }
-                    $this->db->where_in("class_sections.section_id", $sections_id);
-                    
-                } else {
-                    $this->db->where_in("class_sections.class_id", $class_id);
+                $this->db->where_in("academic_class.id", $class_id);
+            } else {
+                $this->db->where_in("academic_class.id", $class_id);
+            }
+        } else {
+            // TVET: If class teacher with no class selected, filter by their assigned classes
+            if (($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+                $my_classes = $this->classmodel_model->getClassesByStaff($staff_id);
+                if (!empty($my_classes)) {
+                    $class_ids = array_column($my_classes, 'id');
+                    $this->db->where_in('academic_class.id', $class_ids);
                 }
-            } 
-        }else{
-        
-            if (!empty($class_section_array)) {
-                $this->datatables->group_start();
-                foreach ($class_section_array as $class_sectionkey => $class_sectionvalue) {
-                    foreach ($class_sectionvalue as $class_sectionvaluekey => $class_sectionvaluevalue) {
-                        $this->datatables->or_group_start();
-                        $this->datatables->where('class_sections.class_id', $class_sectionkey);
-                        $this->datatables->where('class_sections.section_id', $class_sectionvaluevalue);
-                        $this->datatables->group_end();    
-                    }
-                }
-                $this->datatables->group_end();
             }
         }
-        
+
         $this->db->like('video_tutorial.title', $keyword);
-        
+
         if ($class_section_id != null) {
             $this->db->like('video_tutorial_class_sections.class_section_id', $class_section_id);
         }
         if ($class_id != null) {
-            $this->db->like('class_sections.class_id', $class_id);
+            $this->db->like('academic_class.id', $class_id);
         }
         $this->db->from("video_tutorial");
         $this->db->order_by("id", "DESC");
@@ -181,18 +174,21 @@ class Video_tutorial_model extends MY_Model
         return $query->result();
     }
 
-    public function getvideotutorial($limit, $start, $class_id, $section_id)
+    // TVET: Replaced class_sections/classes/sections joins with academic_class
+    // $section_id param kept for compatibility but not used
+    public function getvideotutorial($limit, $start, $class_id, $section_id = null)
     {
-        $this->db->select('video_tutorial.*,class_sections.class_id,class_sections.section_id,classes.class,sections.section, staff.name as staff_name, staff.surname as staff_surname, staff.employee_id as staff_employee_id,staff_roles.role_id')
+        $this->db->select('video_tutorial.*, academic_class.id as class_id, academic_class.class_code, academic_class.cohort_name, academic_subject.name as subject_name, academic_level.name as level_name, staff.name as staff_name, staff.surname as staff_surname, staff.employee_id as staff_employee_id, staff_roles.role_id', FALSE)
             ->join('staff', 'staff.id=video_tutorial.created_by', 'left')
             ->join('staff_roles', 'staff.id=staff_roles.staff_id')
             ->join('video_tutorial_class_sections', 'video_tutorial_class_sections.video_tutorial_id=video_tutorial.id')
-            ->join('class_sections', 'class_sections.id=video_tutorial_class_sections.class_section_id')
-            ->join('classes', 'classes.id=class_sections.class_id')
-            ->join('sections', 'sections.id=class_sections.section_id')
+            ->join('academic_class', 'academic_class.id=video_tutorial_class_sections.class_section_id')
+            ->join('academic_subject_level', 'academic_subject_level.id=academic_class.subject_level_id', 'left')
+            ->join('academic_subject', 'academic_subject.id=academic_subject_level.subject_id', 'left')
+            ->join('academic_level', 'academic_level.id=academic_subject_level.level_id', 'left')
             ->from('video_tutorial');
-        $this->db->where('class_sections.class_id', $class_id);
-        $this->db->where('class_sections.section_id', $section_id);
+        // TVET: class_id now = academic_class.id, no section filtering
+        $this->db->where('academic_class.id', $class_id);
         if ($limit != '' && $start != '') {
             $this->db->limit($limit, $start);
         }
@@ -236,22 +232,25 @@ class Video_tutorial_model extends MY_Model
         }
     }
 
+    // TVET: Replaced class_sections/sections joins with academic_class
+    // Returns academic_class info instead of section info
     public function selectedsection($video_tutorial_id)
     {
-        $this->db->select('video_tutorial_class_sections.class_section_id,sections.section')->from('video_tutorial_class_sections');
-        $this->db->join('class_sections', 'class_sections.id = video_tutorial_class_sections.class_section_id');
-        $this->db->join('sections', 'sections.id = class_sections.section_id', 'left');
+        $this->db->select('video_tutorial_class_sections.class_section_id, academic_class.class_code, academic_class.cohort_name', FALSE)->from('video_tutorial_class_sections');
+        $this->db->join('academic_class', 'academic_class.id = video_tutorial_class_sections.class_section_id');
         $this->db->where('video_tutorial_class_sections.video_tutorial_id', $video_tutorial_id);
         $query = $this->db->get();
         return $query->result_array();
     }
 
+    // TVET: Replaced class_sections join with academic_class
+    // Returns academic_class.id as class_id
     public function getclassid($video_tutorial_id)
     {
-        $this->db->select('class_sections.class_id')->from('video_tutorial_class_sections');
-        $this->db->join('class_sections', 'class_sections.id = video_tutorial_class_sections.class_section_id');
+        $this->db->select('academic_class.id as class_id', FALSE)->from('video_tutorial_class_sections');
+        $this->db->join('academic_class', 'academic_class.id = video_tutorial_class_sections.class_section_id');
         $this->db->where('video_tutorial_class_sections.video_tutorial_id', $video_tutorial_id);
-        $this->db->group_by('class_sections.class_id');
+        $this->db->group_by('academic_class.id');
         $query = $this->db->get();
         return $query->row_array();
     }
@@ -276,7 +275,7 @@ class Video_tutorial_model extends MY_Model
             $this->db->trans_rollback();
             return false;
         } else {
-            
+
         }
     }
 

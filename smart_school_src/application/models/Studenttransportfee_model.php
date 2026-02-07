@@ -4,6 +4,8 @@ if (!defined('BASEPATH')) {
     exit('No direct script access allowed');
 }
 
+// TVET: student_session_id in student_transport_fees table stores academic_class_enrolment.id
+// All methods accept/use enrolment_id as the student_session_id parameter
 class Studenttransportfee_model extends MY_Model
 {
 
@@ -13,6 +15,7 @@ class Studenttransportfee_model extends MY_Model
         $this->current_session = $this->setting_model->getCurrentSession();
     }
 
+    // TVET: $student_session_id is actually enrolment_id (academic_class_enrolment.id)
     public function add($data_insert, $student_session_id, $remove_ids, $route_pickup_point_id)
     {
 
@@ -46,6 +49,7 @@ class Studenttransportfee_model extends MY_Model
         }
     }
 
+    // TVET: $student_session_id is actually enrolment_id (academic_class_enrolment.id)
     public function update($data_insert, $student_session_id)
     {
 
@@ -88,6 +92,7 @@ class Studenttransportfee_model extends MY_Model
         }
     }
 
+    // TVET: $student_session_id is actually enrolment_id (academic_class_enrolment.id)
     public function getTransportFeeByStudentSession($student_session_id, $route_pickup_point_id)
     {
 
@@ -104,6 +109,7 @@ class Studenttransportfee_model extends MY_Model
 
     }
 
+     // TVET: $student_session_id is actually enrolment_id (academic_class_enrolment.id)
      public function getTransportFeeByMonthStudentSession($student_session_id, $route_pickup_point_id,$month)
     {
 

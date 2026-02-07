@@ -123,7 +123,6 @@ class Disabilitytype extends Admin_Controller
         $button = $this->input->post('search');
         if ($this->input->server('REQUEST_METHOD') == "POST") {
             $class              = $this->input->post('class_id');
-            $section            = $this->input->post('section_id');
             $disability_type_id = $this->input->post('disability_type_id');
             $search             = $this->input->post('search');
             $search_text        = $this->input->post('search_text');
@@ -132,9 +131,9 @@ class Disabilitytype extends Admin_Controller
                 if ($search == 'search_filter') {
                     $data['searchby']            = "filter";
                     $data['class_id']            = $class;
-                    $data['section_id']          = $section;
                     $data['disability_type_id']  = $disability_type_id;
-                    $resultlist                  = $this->student_model->getDisabledStudentsByClassSection($class, $section, $disability_type_id);
+                    // TVET: section parameter removed - using academic_class_id only
+                    $resultlist                  = $this->student_model->getDisabledStudentsByClassSection($class, null, $disability_type_id);
                     $data['resultlist']          = $resultlist;
                 } else if ($search == 'search_full') {
                     $data['searchby']    = "text";

@@ -16,30 +16,38 @@ class syllabus_model extends MY_Model
         $this->superadmin_visible   = $this->setting_model->get();
     }
 
-    public function getmysubjects($class_id, $section_id)
+    // TVET: Replaced class_sections/subject_group_class_sections join with academic_class
+    // $class_id = academic_class.id, $section_id kept for compatibility but not used
+    public function getmysubjects($class_id, $section_id = null)
     {
-        $sql   = "SELECT subject_group_subjects.id as subject_group_subjects_id,subject_group_class_sections.id as subject_group_class_sections_id,subjects.name,subjects.code,subjects.id as subject_id FROM `class_sections` join subject_group_class_sections on subject_group_class_sections.class_section_id=class_sections.id join subject_group_subjects on subject_group_subjects.subject_group_id=subject_group_class_sections.subject_group_id join subjects on subject_group_subjects.subject_id=subjects.id WHERE subject_group_class_sections.session_id=" . $this->current_session . " and class_sections.class_id=" . $this->db->escape($class_id) . " and class_sections.section_id=" . $this->db->escape($section_id);
+        $sql   = "SELECT subject_group_subjects.id as subject_group_subjects_id, lesson.academic_class_id as subject_group_class_sections_id, subjects.name, subjects.code, subjects.id as subject_id FROM `academic_class` ac JOIN lesson on lesson.academic_class_id = ac.id JOIN subject_group_subjects on subject_group_subjects.id = lesson.subject_group_subject_id join subjects on subject_group_subjects.subject_id = subjects.id WHERE ac.session_id=" . $this->current_session . " and ac.id=" . $this->db->escape($class_id) . " GROUP BY subject_group_subjects.id";
         $query = $this->db->query($sql);
         return $query->result();
     }
 
     public function get_subjectstatus($id, $subject_group_class_sections_id)
     {
-        $sql   = "SELECT COUNT(CASE WHEN topic.status = 0 then 1 ELSE NULL END) as 'incomplete', COUNT(CASE WHEN topic.status = 1 then 1 ELSE NULL END) as 'complete',count('*') as total FROM `lesson` inner join topic on lesson.id=topic.lesson_id WHERE lesson.subject_group_class_sections_id=" . $this->db->escape($subject_group_class_sections_id) . " and `subject_group_subject_id`=" . $this->db->escape($id);
+        // TVET: subject_group_class_sections_id now = academic_class_id
+        $sql   = "SELECT COUNT(CASE WHEN topic.status = 0 then 1 ELSE NULL END) as 'incomplete', COUNT(CASE WHEN topic.status = 1 then 1 ELSE NULL END) as 'complete',count('*') as total FROM `lesson` inner join topic on lesson.id=topic.lesson_id WHERE lesson.academic_class_id=" . $this->db->escape($subject_group_class_sections_id) . " and `subject_group_subject_id`=" . $this->db->escape($id);
         $query = $this->db->query($sql);
         return $query->result();
     }
 
+    // TVET: Replaced class_sections/subject_group_class_sections with academic_class
+    // $data should have class_id (= academic_class.id)
     public function get_studentsyllabus($data)
     {
-        $sql   = "SELECT class_sections.id as class_section_id,subject_group_class_sections.id as subject_group_class_section_id FROM `class_sections` inner join subject_group_class_sections on subject_group_class_sections.class_section_id=class_sections.id WHERE `subject_group_class_sections`.`session_id`=" . $this->current_session . " and  `class_id`=" . $this->db->escape($data->class_id) . " and `section_id`=" . $this->db->escape($data->section_id);
+        $class_id = isset($data->class_id) ? $data->class_id : $data->academic_class_id;
+        $sql   = "SELECT ac.id as class_section_id, ac.id as subject_group_class_section_id FROM `academic_class` ac inner join lesson on lesson.academic_class_id=ac.id WHERE ac.session_id=" . $this->current_session . " and ac.id=" . $this->db->escape($class_id) . " GROUP BY ac.id";
         $query = $this->db->query($sql);
         return $query->result();
     }
 
+    // TVET: Replaced class_sections/sections/classes joins with academic_class
+    // subject_group_class_sections join replaced with academic_class via lesson.academic_class_id
     public function get_subject_syllabus($data, $staff_id)
     {
-        $this->db->select('subject_syllabus.*,subject_groups.name as sgname,subjects.name as subname,subjects.code as scode,sections.section as sname,classes.class as cname,lesson.name as lessonname,topic.name as topic_name')->from('subject_syllabus');
+        $this->db->select('subject_syllabus.*, subject_groups.name as sgname, subjects.name as subname, subjects.code as scode, ac.cohort_name as sname, ac.class_code as cname, lesson.name as lessonname, topic.name as topic_name', FALSE)->from('subject_syllabus');
         $this->db->where("subject_syllabus.id", $data['id']);
         if ($data['role_id'] != 7) {
             $this->db->where('subject_syllabus.created_for', $staff_id);
@@ -50,28 +58,25 @@ class syllabus_model extends MY_Model
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id");
         $this->db->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
-        $this->db->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner');
-        $this->db->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id");
-        $this->db->join("sections", "sections.id = class_sections.section_id");
-        $this->db->join("classes", "classes.id = class_sections.class_id");
+        // TVET: Join academic_class instead of subject_group_class_sections/class_sections/sections/classes
+        $this->db->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner');
         $this->db->group_by("lesson.subject_group_subject_id");
         $this->db->group_by("topic.lesson_id");
         $query = $this->db->get();
         return $query->result_array();
     }
 
+    // TVET: Replaced class_sections/sections/classes joins with academic_class
     public function get_subject_syllabus_student($data)
     {
-        $this->db->select('subject_syllabus.*,subject_groups.name as sgname,subjects.name as subname,subjects.code as scode,sections.section as sname,classes.class as cname,lesson.name as lessonname,topic.name as topic_name')->from('subject_syllabus');
+        $this->db->select('subject_syllabus.*, subject_groups.name as sgname, subjects.name as subname, subjects.code as scode, ac.cohort_name as sname, ac.class_code as cname, lesson.name as lessonname, topic.name as topic_name', FALSE)->from('subject_syllabus');
         $this->db->join("topic", "topic.id = subject_syllabus.topic_id");
         $this->db->join("lesson", "lesson.id = topic.lesson_id");
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id");
         $this->db->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
-        $this->db->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner');
-        $this->db->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id");
-        $this->db->join("sections", "sections.id = class_sections.section_id");
-        $this->db->join("classes", "classes.id = class_sections.class_id");
+        // TVET: Join academic_class instead of subject_group_class_sections/class_sections/sections/classes
+        $this->db->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner');
         $this->db->where('subject_syllabus.id', $data['subject_syllabus_id']);
         $this->db->where('subject_syllabus.session_id', $this->current_session);
         $this->db->group_by("subject_syllabus.id");
@@ -79,20 +84,20 @@ class syllabus_model extends MY_Model
         return $query->row_array();
     }
 
+    // TVET: Replaced class_sections/sections/classes joins with academic_class
     public function check_subject_syllabus_student($data)
     {
-        $this->db->select('subject_syllabus.*,subject_groups.name as sgname,subjects.name as subname,subjects.code as scode,sections.section as sname,classes.class as cname,lesson.name as lessonname,topic.name as topic_name')->from('subject_syllabus');
+        $this->db->select('subject_syllabus.*, subject_groups.name as sgname, subjects.name as subname, subjects.code as scode, ac.cohort_name as sname, ac.class_code as cname, lesson.name as lessonname, topic.name as topic_name', FALSE)->from('subject_syllabus');
         $this->db->join("topic", "topic.id = subject_syllabus.topic_id");
         $this->db->join("lesson", "lesson.id = topic.lesson_id");
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id");
         $this->db->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
-        $this->db->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner');
-        $this->db->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id");
-        $this->db->join("sections", "sections.id = class_sections.section_id");
-        $this->db->join("classes", "classes.id = class_sections.class_id");
+        // TVET: Join academic_class instead of subject_group_class_sections/class_sections/sections/classes
+        $this->db->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner');
         $this->db->where("lesson.subject_group_subject_id", $data['subject_group_subject_id']);
-        $this->db->where("lesson.subject_group_class_sections_id", $data['subject_group_class_section_id']);
+        // TVET: subject_group_class_section_id now = academic_class_id
+        $this->db->where("lesson.academic_class_id", $data['subject_group_class_section_id']);
         $this->db->where('subject_syllabus.date', $data['subject_syllabus_id']);
         $this->db->where('subject_syllabus.time_from', $data['time_from']);
         $this->db->where('subject_syllabus.time_to', $data['time_to']);
@@ -102,19 +107,19 @@ class syllabus_model extends MY_Model
         return $query->row_array();
     }
 
+    // TVET: Replaced class_sections/sections/classes joins with academic_class
     public function get_subject_syllabus_student_byDate($data)
     {
-        $this->db->select('subject_syllabus.*,subject_groups.name as sgname,subjects.name as subname,subjects.code as scode,sections.section as sname,classes.class as cname,lesson.name as lessonname,topic.name as topic_name')->from('subject_syllabus');
+        $this->db->select('subject_syllabus.*, subject_groups.name as sgname, subjects.name as subname, subjects.code as scode, ac.cohort_name as sname, ac.class_code as cname, lesson.name as lessonname, topic.name as topic_name', FALSE)->from('subject_syllabus');
         $this->db->join("topic", "topic.id = subject_syllabus.topic_id");
         $this->db->join("lesson", "lesson.id = topic.lesson_id");
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = lesson.subject_group_subject_id");
         $this->db->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
-        $this->db->join("subject_group_class_sections", "subject_group_class_sections.id = lesson.subject_group_class_sections_id", 'inner');
-        $this->db->join("class_sections", "class_sections.id = subject_group_class_sections.class_section_id");
-        $this->db->join("sections", "sections.id = class_sections.section_id");
-        $this->db->join("classes", "classes.id = class_sections.class_id");
-        $this->db->where("lesson.subject_group_class_sections_id", $data['subject_group_class_section_id']);
+        // TVET: Join academic_class instead of subject_group_class_sections/class_sections/sections/classes
+        $this->db->join("academic_class ac", "ac.id = lesson.academic_class_id", 'inner');
+        // TVET: subject_group_class_section_id now = academic_class_id
+        $this->db->where("lesson.academic_class_id", $data['subject_group_class_section_id']);
         $this->db->where('subject_syllabus.date', $data['date']);
         $this->db->where('subject_syllabus.session_id', $this->current_session);
         $this->db->group_by("subject_syllabus.id");
@@ -122,30 +127,36 @@ class syllabus_model extends MY_Model
         return $query->result_array();
     }
 
+    // TVET: Updated to use academic_class_id column in lesson table
     public function get_subject_syllabusdatabyid($id)
     {
-        $this->db->select('subject_syllabus.*,lesson.subject_group_subject_id as subject_group_subject_id,lesson.subject_group_class_sections_id,lesson.id as lesson_id')->from('subject_syllabus')->join('topic', 'topic.id=subject_syllabus.topic_id')->join('lesson', 'lesson.id=topic.lesson_id');
+        $this->db->select('subject_syllabus.*, lesson.subject_group_subject_id as subject_group_subject_id, lesson.academic_class_id as subject_group_class_sections_id, lesson.id as lesson_id', FALSE)->from('subject_syllabus')->join('topic', 'topic.id=subject_syllabus.topic_id')->join('lesson', 'lesson.id=topic.lesson_id');
         $this->db->where("subject_syllabus.id", $id);
         $query = $this->db->get();
         return $query->row_array();
     }
 
+    // TVET: Updated to use academic_class_id column in lesson table
+    // $subject_group_class_sections_id now = academic_class_id
     public function get_subject_syllabusdata($subject_group_subject_id, $date, $role_id, $staff_id, $time_from, $time_to, $subject_group_class_sections_id)
     {
-        $this->db->select('count(*) as total,subject_syllabus.id')
+        $this->db->select('count(*) as total,subject_syllabus.id', FALSE)
             ->from('subject_syllabus')->join('topic', 'topic.id=subject_syllabus.topic_id', 'inner')
             ->join('lesson', 'topic.lesson_id=lesson.id', 'inner')
             ->where("lesson.subject_group_subject_id", $subject_group_subject_id)
             ->where("subject_syllabus.date", $date)
             ->where("subject_syllabus.time_from", $time_from)
             ->where("subject_syllabus.time_to", $time_to)
-            ->where('lesson.subject_group_class_sections_id', $subject_group_class_sections_id);
+            // TVET: Use academic_class_id instead of subject_group_class_sections_id
+            ->where('lesson.academic_class_id', $subject_group_class_sections_id);
 
         $this->db->where('subject_syllabus.created_for', $staff_id);
         $query = $this->db->get();
         return $query->result_array();
     }
 
+    // TVET: Updated to use academic_class_id column in lesson table
+    // $subject_group_class_sections_id now = academic_class_id
     public function get_subjectteachersreport($subject_group_subject_id, $subject_group_class_sections_id)
     {
         $this->db->select('GROUP_CONCAT(subject_syllabus.id) as subject_syllabus_id,CONCAT_WS(" ",staff.name,staff.surname,"(",staff.employee_id,")") as name,count(subject_syllabus.id) as total_priodes,subjects.name as subject_name,subjects.code', FALSE)
@@ -155,15 +166,18 @@ class syllabus_model extends MY_Model
         $this->db->join("subject_groups", "subject_groups.id = subject_group_subjects.subject_group_id");
         $this->db->join("subjects", "subjects.id = subject_group_subjects.subject_id");
         $this->db->where("lesson.subject_group_subject_id", $subject_group_subject_id)
-            ->where("lesson.subject_group_class_sections_id", $subject_group_class_sections_id);
+            // TVET: Use academic_class_id instead of subject_group_class_sections_id
+            ->where("lesson.academic_class_id", $subject_group_class_sections_id);
         $this->db->group_by("subject_syllabus.created_for");
         $query = $this->db->get();
         return $query->result_array();
     }
 
+    // TVET: Updated to use academic_class_id column in lesson table
+    // $subject_group_class_sections_id now = academic_class_id
     public function get_subjectsyllabussreport($subject_group_subject_id, $subject_group_class_sections_id)
     {
-        return $this->db->select('id,name')->from('lesson')->where('subject_group_subject_id', $subject_group_subject_id)->where('subject_group_class_sections_id', $subject_group_class_sections_id)->get()->result_array();
+        return $this->db->select('id,name')->from('lesson')->where('subject_group_subject_id', $subject_group_subject_id)->where('academic_class_id', $subject_group_class_sections_id)->get()->result_array();
     }
 
     public function get_topicbylessonid($lesson_id)
@@ -282,7 +296,7 @@ class syllabus_model extends MY_Model
         return $result1;
 
     }
-    
+
     public function deletemessage($id)
     {
         $this->db->where("id", $id)->delete('lesson_plan_forum');

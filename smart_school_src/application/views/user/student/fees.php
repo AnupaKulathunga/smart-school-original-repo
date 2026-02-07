@@ -54,8 +54,8 @@ if (!empty($student['image'])) {
                                                     <tr>
                                                         <th class="bozero"><?php echo $this->lang->line('name'); ?></th>
                                                         <td class="bozero"><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?></td>
-                                                        <th class="bozero"><?php echo $this->lang->line('class_section'); ?></th>
-                                                        <td class="bozero"><?php echo $student['class'] . " (" . $student['section'] . ")" ?> </td>
+                                                        <th class="bozero"><?php echo $this->lang->line('class'); ?></th>
+                                                        <td class="bozero"><?php echo $student['class']; ?> </td>
                                                     </tr>
                                                     <tr>
                                                         <?php if ($sch_setting->father_name) {?>

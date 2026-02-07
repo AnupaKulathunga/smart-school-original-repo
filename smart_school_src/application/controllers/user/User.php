@@ -54,12 +54,13 @@ class User extends Student_Controller
 
             if (empty($data['student_lists'])) {
                 //if student not belong to current session find it for old session
-                // TVET: Get most recent enrolment for any session
-                $this->db->select('enrolment.*, sessions.session, sessions.id as session_id');
-                $this->db->from('enrolment');
-                $this->db->join('sessions', 'enrolment.session_id = sessions.id');
-                $this->db->where('enrolment.student_id', $student_id);
-                $this->db->order_by('enrolment.session_id', 'DESC');
+                // TVET: Get most recent enrolment for any session via academic_class_enrolment
+                $this->db->select('e.*, e.id as student_session_id, e.id as enrolment_id, ac.session_id, sessions.session, sessions.id as session_id, ac.id as class_id', FALSE);
+                $this->db->from('academic_class_enrolment e');
+                $this->db->join('academic_class ac', 'ac.id = e.class_id');
+                $this->db->join('sessions', 'sessions.id = ac.session_id');
+                $this->db->where('e.student_id', $student_id);
+                $this->db->order_by('ac.session_id', 'DESC');
                 $this->db->limit(10);
                 $data['student_lists'] = $this->db->get()->result();
 
@@ -83,7 +84,8 @@ class User extends Student_Controller
 
                 if ($data['student_lists'][0]->default_login) {
                     $default_login_student_id = $data['student_lists'][0]->id;
-                    $student_current_class    = array('session_id' => $data['student_lists'][0]->session_id, 'class_id' => $data['student_lists'][0]->class_id, 'section_id' => $data['student_lists'][0]->section_id, 'student_session_id' => $data['student_lists'][0]->student_session_id);
+                    // TVET: section_id = class_id in TVET; student_session_id maps to enrolment_id
+                    $student_current_class    = array('session_id' => $data['student_lists'][0]->session_id, 'class_id' => $data['student_lists'][0]->class_id, 'section_id' => $data['student_lists'][0]->class_id, 'student_session_id' => $data['student_lists'][0]->student_session_id);
                 }
             }
         }
@@ -107,7 +109,8 @@ class User extends Student_Controller
             $this->session->set_userdata('student', $logged_In_User);
             // TVET: Use enrolment_model to update default_login flag
             $this->enrolment_model->update($student_session_id, array('default_login' => 1));
-            $student_current_class = array('class_id' => $student['class_id'], 'section_id' => $student['section_id'], 'student_session_id' => $student['student_session_id']);
+            // TVET: section_id = class_id in TVET model
+            $student_current_class = array('class_id' => $student['class_id'], 'section_id' => $student['class_id'], 'student_session_id' => $student['student_session_id']);
             $this->session->set_userdata('current_class', $student_current_class);
             redirect('user/user/dashboard');
         }
@@ -138,9 +141,9 @@ class User extends Student_Controller
             }
 
             $student_id      = $id;
-            $student         = $this->student_model->getStudentByClassSectionID($student_current_class->class_id, $student_current_class->section_id, $student_id);
+            // TVET: Use getByEnrolment instead of getStudentByClassSectionID
+            $student         = $this->student_model->getByEnrolment($student_current_class->student_session_id);
             $class_id        = $student_current_class->class_id;
-            $section_id      = $student_current_class->section_id;
             $data['title']   = 'Student Details';
             $student_due_fee = $this->studentfeemaster_model->getDueFeesByStudent($student_current_class->student_session_id, $date);
 
@@ -234,8 +237,9 @@ class User extends Student_Controller
         $student_id            = $this->customlib->getStudentSessionUserID();
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $marks_division        = $this->marksdivision_model->get();
-        $student               = $this->student_model->getStudentByClassSectionID($student_current_class->class_id, $student_current_class->section_id, $student_id);
-        
+        // TVET: Use getByEnrolment instead of getStudentByClassSectionID
+        $student               = $this->student_model->getByEnrolment($student_current_class->student_session_id);
+
         $superadmin_visible =    $this->Setting_model->get();      
 
         $data                   = array();
@@ -520,8 +524,8 @@ class User extends Student_Controller
         $checkIsMember = $this->librarymember_model->checkIsMember($member_type, $student_id);
         $data['bookList'] = $checkIsMember;             
         $class_id     = $student_current_class->class_id;
-        $section_id   = $student_current_class->section_id;
-        $homeworklist = $this->homework_model->getStudentHomeworkWithStatus($class_id, $section_id, $student_current_class->student_session_id);
+        // TVET: Call model method without section_id parameter
+        $homeworklist = $this->homework_model->getStudentHomeworkWithStatus($class_id, $student_current_class->student_session_id);
         foreach ($homeworklist as $key => $homeworklist_value) {
             $homeworklist[$key]['status'] = '';
             $checkstatus                  = $this->homework_model->checkstatus($homeworklist_value['id'], $student_id);
@@ -552,7 +556,8 @@ class User extends Student_Controller
         // end
 
         // your progress start
-        $subjects = $this->syllabus_model->getmysubjects($student_current_class->class_id, $student_current_class->section_id);
+        // TVET: section_id = class_id in TVET model
+        $subjects = $this->syllabus_model->getmysubjects($student_current_class->class_id, $student_current_class->class_id);
 
         foreach ($subjects as $key => $value) {
             $show_status     = 0;
@@ -599,7 +604,8 @@ class User extends Student_Controller
         $days        = $this->customlib->getDaysname();
         $days_record = array();
         foreach ($days as $day_key => $day_value) {
-            $days_record[$day_key] = $this->subjecttimetable_model->getparentSubjectByClassandSectionDay($student_current_class->class_id, $student_current_class->section_id, $day_key);
+            // TVET: Use getTimetableByClassDay (no section_id)
+            $days_record[$day_key] = $this->subjecttimetable_model->getTimetableByClassDay($student_current_class->class_id, $day_key);
         }
         $data['timetable'] = $days_record;
         $data['attendence_percentage'] = $attendence_percentage;
@@ -611,7 +617,8 @@ class User extends Student_Controller
         $setting_data                 = $this->setting_model->get();
         $data['low_attendance_limit']     = $setting_data[0]['low_attendance_limit'];
         $data['teachers']   = $teachers   = array();
-        $student_teacher = $this->subjecttimetable_model->getTeacherByClassandSection($student_current_class->class_id, $student_current_class->section_id); 
+        // TVET: Pass class_id for both params (section_id = class_id in TVET)
+        $student_teacher = $this->subjecttimetable_model->getTeacherByClassandSection($student_current_class->class_id, $student_current_class->class_id);
         
         foreach ($student_teacher as $value) {
             $teachers[$value->staff_id][] = $value;
@@ -794,11 +801,13 @@ class User extends Student_Controller
     {
         $data['title']           = 'Student Details';
         $student                 = $this->student_model->get($id);
-        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($student['class_id'], $student['section_id'], $id);
+        // TVET: Pass class_id for both params (section_id = class_id in TVET)
+        $student_due_fee         = $this->studentfee_model->getDueFeeBystudent($student['class_id'], $student['class_id'], $id);
         $data['student_due_fee'] = $student_due_fee;
         $transport_fee           = $this->studenttransportfee_model->getTransportFeeByStudent($student['student_session_id']);
         $data['transport_fee']   = $transport_fee;
-        $examList                = $this->examschedule_model->getExamByClassandSection($student['class_id'], $student['section_id']);
+        // TVET: Use getExamByClass (no section_id needed)
+        $examList                = $this->examschedule_model->getExamByClass($student['class_id']);
         $data['examSchedule']    = array();
         if (!empty($examList)) {
             $new_array = array();
@@ -847,10 +856,10 @@ class User extends Student_Controller
         }
 
         $student_id = $id;
-        $student    = $this->student_model->getStudentByClassSectionID($student_current_class->class_id, $student_current_class->section_id, $student_id);
+        // TVET: Use getByEnrolment instead of getStudentByClassSectionID
+        $student    = $this->student_model->getByEnrolment($student_current_class->student_session_id);
 
         $class_id                     = $student_current_class->class_id;
-        $section_id                   = $student_current_class->section_id;
         $data['title']                = 'Student Details';
         $student_due_fee              = $this->studentfeemaster_model->getStudentFees($student_current_class->student_session_id);
         $student_discount_fee         = $this->feediscount_model->getStudentFeesDiscount($student_current_class->student_session_id);
@@ -1116,10 +1125,10 @@ class User extends Student_Controller
         }
 
         $student_id   = $id;
-        $student      = $this->student_model->getStudentByClassSectionID($student_current_class->class_id, $student_current_class->section_id, $student_id);
+        // TVET: Use getByEnrolment instead of getStudentByClassSectionID
+        $student      = $this->student_model->getByEnrolment($student_current_class->student_session_id);
 
         $class_id                     = $student_current_class->class_id;
-        $section_id                   = $student_current_class->section_id;
         $data['title']                = 'Student Details';
         $student_due_fee              = $this->studentfeemaster_model->getStudentProcessingFees($student_current_class->student_session_id);
         $student_discount_fee         = $this->feediscount_model->getStudentFeesDiscount($student_current_class->student_session_id);
@@ -1733,7 +1742,8 @@ class User extends Student_Controller
         $student_id            = $this->customlib->getStudentSessionUserID();
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
         $marks_division        = $this->marksdivision_model->get();
-        $data['student']       = $this->student_model->getStudentByClassSectionID($student_current_class->class_id, $student_current_class->section_id, $student_id);
+        // TVET: Use getByEnrolment instead of getStudentByClassSectionID
+        $data['student']       = $this->student_model->getByEnrolment($student_current_class->student_session_id);
 		$data['sch_setting']                   =    $this->sch_setting_detail;
 		$data['category_list']  = $this->category_model->get();
         $html   =    $this->load->view('print/printStudentDetails', $data, true);  

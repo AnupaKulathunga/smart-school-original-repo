@@ -242,7 +242,8 @@ class Onlinestudent extends Admin_Controller
                 $data['measurement_date'] = $this->customlib->dateFormatToYYYYMMDD($this->input->post('measure_date'));
             }
 
-            $response = $this->onlinestudent_model->update($data, $fee_session_group_id, $transport_feemaster_id,$discount_id, $this->input->post('save'));
+            // TVET: Use updateTVET for TVET enrollment structure
+            $response = $this->onlinestudent_model->updateTVET($data, $fee_session_group_id, $transport_feemaster_id,$discount_id, $this->input->post('save'));
 
             if ($response) {
                 $response = json_decode($response);
@@ -462,7 +463,8 @@ class Onlinestudent extends Admin_Controller
             }
         }
 
-        $student_result = $this->onlinestudent_model->getstudentlist($carray, null);
+        // TVET: Use getstudentlistTVET for TVET class structure
+        $student_result = $this->onlinestudent_model->getstudentlistTVET($carray, null);
 
         $m               = json_decode($student_result);
         $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
@@ -530,7 +532,8 @@ class Onlinestudent extends Admin_Controller
                 $row   = array();
                 $row[] = $value->reference_no;
                 $row[] = $value->firstname . " " . $middlename. " " . $last_name;
-                $row[] = $value->class . "(" . $value->section . ")";
+                // TVET: Use class_code + cohort_name instead of class + section
+                $row[] = $value->class_code . "(" . $value->cohort_name . ")";
 
                 if ($sch_setting->father_name) {
                     $row[] = $value->father_name;

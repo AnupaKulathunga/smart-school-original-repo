@@ -311,8 +311,8 @@ class Welcome extends Front_Controller
 
             $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
             $this->form_validation->set_rules('firstname', $this->lang->line('first_name'), 'trim|required|xss_clean');
-            $this->form_validation->set_rules('dob', $this->lang->line('date_of_birth'), 'trim|required|xss_clean');          
-            $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+            $this->form_validation->set_rules('dob', $this->lang->line('date_of_birth'), 'trim|required|xss_clean');
+            // TVET: section_id validation removed - class_id is self-contained
             $this->form_validation->set_rules('gender', $this->lang->line('gender'), 'trim|required|xss_clean');
 
             //remove script from other fields
@@ -409,14 +409,14 @@ class Welcome extends Front_Controller
 
                 if ($document_validate) {
 
-                    $class_id   = $this->input->post('class_id');
-                    $section_id = $this->input->post('section_id');
+                    $class_id = $this->input->post('class_id');
+                    // TVET: section_id removed - class_id is self-contained
 
                     $data = array(
-                        'firstname'        => $this->input->post('firstname'),
-                        'class_section_id' => $this->input->post('section_id'),
-                        'dob'              => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('dob'))),
-                        'gender'           => $this->input->post('gender'),
+                        'firstname' => $this->input->post('firstname'),
+                        'class_id'  => $class_id, // TVET: Use class_id directly instead of class_section_id
+                        'dob'       => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('dob'))),
+                        'gender'    => $this->input->post('gender'),
                     );
                     // for inserting system fields
 
@@ -603,14 +603,13 @@ class Welcome extends Front_Controller
                     }
 
                     $this->data['class_id']            = $class_id;
-                    $this->data['section_id']          = $section_id;
+                    // TVET: section_id removed - class_id is self-contained
                     $this->data['roll_no']             = $this->input->post('roll_no');
                     $this->data['mobileno']            = $this->input->post('mobileno');
                     $this->data['email']               = $this->input->post('email');
                     $this->data['firstname']           = $this->input->post('firstname');
                     $this->data['lastname']            = $this->input->post('lastname');
                     $this->data['mobileno']            = $this->input->post('mobileno');
-                    $this->data['class_section_id']    = $this->input->post('section_id');
                     $this->data['guardian_is']         = $this->input->post('guardian_is');
                     $this->data['dob']                 = date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('dob')));
                     $this->data['ifsc_code']           = $this->input->post('ifsc_code');
@@ -684,11 +683,12 @@ class Welcome extends Front_Controller
             $category                       = $this->category_model->get();
             $this->data['categorylist']     = $category;
             $result                         = $this->onlinestudent_model->get($id);
-            $classresult                    = $this->onlinestudent_model->getclassbyclasssectionid($result['class_section_id']);
+            // TVET: Use class_id directly instead of class_section_id
+            $classresult                    = $this->onlinestudent_model->getClassByIdTVET($result['class_id']);
             $class_id                       = $classresult['class_id'];
-            $class_name                     = $classresult['class'];
+            $class_name                     = $classresult['class_code'] . ' (' . $classresult['cohort_name'] . ')';
             $this->data['class_name']       = $class_name;
-            $this->data['class_section_id'] = $result['section_id'];
+            $this->data['class_id']         = $class_id;
             $this->data['firstname']        = $result['firstname'];
             $this->data['middlename']       = $result['middlename'];
             $this->data['lastname']         = $result['lastname'];
@@ -807,7 +807,7 @@ class Welcome extends Front_Controller
             $category                     = $this->category_model->get();
             $this->data['categorylist']   = $category;
             $class_id                     = $this->input->post('class_id');
-            $section_id                   = $this->input->post('section_id');
+            // TVET: section_id removed - class_id is self-contained
             $this->data['form_admission'] = $this->setting_model->getOnlineAdmissionStatus();
             $genderList                   = $this->customlib->getGender();
             $this->data['genderList']     = $genderList;
@@ -825,15 +825,14 @@ class Welcome extends Front_Controller
             $houses                       = $this->student_model->gethouselist();
             $this->data['houses']         = $houses;
             $result                       = $this->onlinestudent_model->get($id);
-            $classresult                  = $this->onlinestudent_model->getclassbyclasssectionid($result['class_section_id']);
-            $class_section_id             = $classresult['class_id'];
-            $class                        = $classresult['class'];
+            // TVET: Use class_id directly instead of class_section_id
+            $classresult                  = $this->onlinestudent_model->getClassByIdTVET($result['class_id']);
+            $class_id                     = $classresult['class_id'];
+            $class                        = $classresult['class_code'] . ' (' . $classresult['cohort_name'] . ')';
             $custom_fields                = $this->customfield_model->getByBelong('students');
             //-------------------------------------
-            $this->data['class_id'] = $class_section_id;
-            $this->data['class_section_id'] = $result['section_id'];
-            $this->data['class_name']       = $class;
-            $this->data['section_id']       = $section_id;
+            $this->data['class_id']   = $class_id;
+            $this->data['class_name'] = $class;
             $this->data['firstname']  = $result['firstname'];
             $this->data['middlename'] = $result['middlename'];
             $this->data['lastname']   = $result['lastname'];
@@ -892,7 +891,7 @@ class Welcome extends Front_Controller
                 $this->form_validation->set_rules('gender', $this->lang->line('gender'), 'trim|required|xss_clean');
                 $this->form_validation->set_rules('dob', $this->lang->line('date_of_birth'), 'trim|required|xss_clean');
                 $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-                $this->form_validation->set_rules('section_id', $this->lang->line('section'), 'trim|required|xss_clean');
+                // TVET: section_id validation removed - class_id is self-contained
 
                 if ($this->customlib->getfieldstatus('if_guardian_is')) {
                     $this->form_validation->set_rules('guardian_is', $this->lang->line('guardian'), 'trim|required|xss_clean');
@@ -955,15 +954,15 @@ class Welcome extends Front_Controller
                     }
                     if ($document_validate) {
 
-                        $class_id   = $this->input->post('class_id');
-                        $section_id = $this->input->post('section_id');
+                        $class_id = $this->input->post('class_id');
+                        // TVET: section_id removed - class_id is self-contained
 
                         $data = array(
-                            'id'               => $id,
-                            'firstname'        => $this->input->post('firstname'),
-                            'class_section_id' => $this->input->post('section_id'),
-                            'dob'              => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('dob'))),
-                            'gender'           => $this->input->post('gender'),
+                            'id'        => $id,
+                            'firstname' => $this->input->post('firstname'),
+                            'class_id'  => $class_id, // TVET: Use class_id directly instead of class_section_id
+                            'dob'       => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('dob'))),
+                            'gender'    => $this->input->post('gender'),
                         );
 
                         if ($this->customlib->getfieldstatus('if_guardian_is')) {

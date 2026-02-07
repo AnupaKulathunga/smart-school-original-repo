@@ -89,6 +89,7 @@ class Calendar_model extends CI_Model
         return $query->result_array();
     }
 
+    // TVET: Replaced student_session with academic_class_enrolment + academic_class for session filtering
     public function getstaffandstudentemail()
     {
         $this->db->select("email");
@@ -100,9 +101,10 @@ class Calendar_model extends CI_Model
         $this->db->select("email");
         $this->db->distinct();
         $this->db->from("students");
-        $this->db->join('student_session', 'student_session.student_id = students.id');
-        $this->db->where('student_session.session_id', $this->current_session);
-        $this->db->where('students.is_active', 'yes');
+        $this->db->join('academic_class_enrolment e', 'e.student_id = students.id');
+        $this->db->join('academic_class ac', 'ac.id = e.class_id');
+        $this->db->where('ac.session_id', $this->current_session);
+        $this->db->where('e.status', 'Active');
         $this->db->get();
         $query2 = $this->db->last_query();
         $query = $this->db->query($query1 . " UNION " . $query2);

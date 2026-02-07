@@ -18,11 +18,11 @@ class Subjectgroup_model extends MY_Model {
      * @return mixed
      */
     public function get($classid = null) {
-        $this->db->select('class_sections.id,class_sections.section_id,sections.section');
-        $this->db->from('class_sections');
-        $this->db->join('sections', 'sections.id = class_sections.section_id');
-        $this->db->where('class_sections.class_id', $classid);
-        $this->db->order_by('class_sections.id');
+        // TVET: Return academic class details instead of class_sections
+        $this->db->select('ac.id, ac.class_code, ac.cohort_name');
+        $this->db->from('academic_class ac');
+        $this->db->where('ac.id', $classid);
+        $this->db->order_by('ac.id');
         $query = $this->db->get();
         return $query->result_array();
     }
@@ -194,14 +194,14 @@ class Subjectgroup_model extends MY_Model {
         $this->db->insert_batch('subject_group_class_sections', $section_group_array);
     }
 
-    public function getDetailbyClassSection($class_id, $section_id) {
-        $this->db->select('class_sections.*,subject_group_subjects.class,sections.section')->from('class_sections');
-        $this->db->where('class_id', $class_id);
-        $this->db->where('section_id', $section_id);
-        $this->db->join('subject_group_subjects', 'subject_group_subjects.id = class_sections.class_id');
-        $this->db->where('class_sections.class_id', $class_id);
-        $this->db->join('sections', 'sections.id = class_sections.section_id');
-        $this->db->where('class_sections.section_id', $section_id);
+    public function getDetailbyClassSection($class_id, $section_id = null) {
+        // TVET: Return academic class details instead of class_section details
+        $this->db->select('ac.id, ac.class_code, ac.cohort_name, asub.name as subject_name, al.code as level_code', FALSE);
+        $this->db->from('academic_class ac');
+        $this->db->join('academic_subject_level asl', 'asl.id = ac.subject_level_id');
+        $this->db->join('academic_subject asub', 'asub.id = asl.subject_id');
+        $this->db->join('academic_level al', 'al.id = asl.level_id');
+        $this->db->where('ac.id', $class_id);
         $query = $this->db->get();
         return $query->row_array();
     }
@@ -228,8 +228,12 @@ class Subjectgroup_model extends MY_Model {
     }
 
     public function getClassSectionByGroup($subject_group_id) {
-
-        $sql = "SELECT subject_group_class_sections.*,classes.id as `class_id`,classes.class,sections.id as `section_id`,sections.section FROM `subject_group_class_sections` INNER JOIN class_sections on class_sections.id=subject_group_class_sections.class_section_id INNER JOIN classes on classes.id=class_sections.class_id INNER join sections on sections.id=class_sections.section_id WHERE subject_group_class_sections.session_id=" . $this->db->escape($this->current_session) . " and subject_group_id=" . $this->db->escape($subject_group_id);
+        // TVET: Join to academic_class instead of class_sections/classes/sections
+        $sql = "SELECT subject_group_class_sections.*, ac.id as `class_id`, ac.class_code as `class`, '' as `section_id`, '' as `section`
+                FROM `subject_group_class_sections`
+                INNER JOIN academic_class ac ON ac.id = subject_group_class_sections.class_section_id
+                WHERE subject_group_class_sections.session_id=" . $this->db->escape($this->current_session) . "
+                AND subject_group_id=" . $this->db->escape($subject_group_id);
         $query = $this->db->query($sql);
         return $query->result();
     }
@@ -295,7 +299,7 @@ class Subjectgroup_model extends MY_Model {
 
 
 
-    public function getGroupByClassandSection($class_id, $section_id,$session_id=NULL) {
+    public function getGroupByClassandSection($class_id, $section_id = null, $session_id=NULL) {
         $return = true;
         $userdata = $this->customlib->getUserData();
         $role_id = $userdata["role_id"];
@@ -327,7 +331,14 @@ class Subjectgroup_model extends MY_Model {
         }
 
         if ($return) {
-            $sql = "SELECT subject_groups.name, subject_group_class_sections.* from subject_group_class_sections INNER JOIN class_sections on class_sections.id=subject_group_class_sections.class_section_id INNER JOIN subject_groups on subject_groups.id=subject_group_class_sections.subject_group_id WHERE class_sections.class_id=" . $this->db->escape($class_id) . " and class_sections.section_id=" . $this->db->escape($section_id) . " and subject_groups.session_id=" . $this->db->escape($session_id) . " " . $subject_groupid_condition . " ORDER by subject_groups.id DESC";
+            // TVET: Join to academic_class instead of class_sections
+            $sql = "SELECT subject_groups.name, subject_group_class_sections.*
+                    FROM subject_group_class_sections
+                    INNER JOIN academic_class ac ON ac.id = subject_group_class_sections.class_section_id
+                    INNER JOIN subject_groups ON subject_groups.id = subject_group_class_sections.subject_group_id
+                    WHERE ac.id=" . $this->db->escape($class_id) . "
+                    AND subject_groups.session_id=" . $this->db->escape($session_id) . " " . $subject_groupid_condition . "
+                    ORDER by subject_groups.id DESC";
             $query = $this->db->query($sql);
 
             return $query->result_array();
@@ -336,9 +347,17 @@ class Subjectgroup_model extends MY_Model {
         }
     }
 
-    public function getClassandSectionTimetable($class_id, $section_id) {
-
-        $sql = "SELECT subject_group_class_sections.*,subject_group_subjects.id as `subject_group_id`,subject_group_subjects.subject_id,subjects.name,subjects.code,subject_timetable.day,subject_timetable.staff_id,subject_timetable.time_from,subject_timetable.time_to,subject_timetable.room_no,staff.name as `staff_name`,staff.surname FROM `class_sections` INNER JOIN subject_group_class_sections on subject_group_class_sections.class_section_id=class_sections.id INNER JOIN subject_group_subjects on subject_group_subjects.subject_group_id=subject_group_class_sections.subject_group_id INNER JOIN subjects on subjects.id=subject_group_subjects.subject_id INNER JOIN subject_timetable on subject_timetable.subject_group_subject_id=subject_group_subjects.id inner JOIN staff on staff.id= subject_timetable.staff_id WHERE class_sections.class_id=" . $this->db->escape($class_id) . " and class_sections.section_id=" . $this->db->escape($section_id) . " and subject_group_class_sections.session_id=" . $this->db->escape($this->current_session);
+    public function getClassandSectionTimetable($class_id, $section_id = null) {
+        // TVET: Join to academic_class instead of class_sections
+        $sql = "SELECT subject_group_class_sections.*, subject_group_subjects.id as `subject_group_id`, subject_group_subjects.subject_id, subjects.name, subjects.code, subject_timetable.day, subject_timetable.staff_id, subject_timetable.time_from, subject_timetable.time_to, subject_timetable.room_no, staff.name as `staff_name`, staff.surname
+                FROM `academic_class` ac
+                INNER JOIN subject_group_class_sections ON subject_group_class_sections.class_section_id = ac.id
+                INNER JOIN subject_group_subjects ON subject_group_subjects.subject_group_id = subject_group_class_sections.subject_group_id
+                INNER JOIN subjects ON subjects.id = subject_group_subjects.subject_id
+                INNER JOIN subject_timetable ON subject_timetable.subject_group_subject_id = subject_group_subjects.id
+                INNER JOIN staff ON staff.id = subject_timetable.staff_id
+                WHERE ac.id=" . $this->db->escape($class_id) . "
+                AND subject_group_class_sections.session_id=" . $this->db->escape($this->current_session);
 
         $query = $this->db->query($sql);
         return $query->result();
@@ -377,22 +396,195 @@ class Subjectgroup_model extends MY_Model {
         }
     }
     
-    public function getsubject($class_id,$section_id) {
+    public function getsubject($class_id, $section_id = null) {
         return $this->db->select('subject_group_subjects.id,subjects.name,subjects.code')
         ->from('subject_timetable')
         ->join("subject_group_subjects", "subject_group_subjects.subject_group_id = subject_timetable.subject_group_id")
         ->join("subjects", "subjects.id = subject_group_subjects.subject_id")
         ->where('subject_timetable.class_id', $class_id)
-        ->where('subject_timetable.section_id', $section_id)
         ->group_by('subjects.id')
         ->get()->result_array();
     }
 
-    public function getAllsubjectByClassSection($class_id,$section_id){
-        $sql = "SELECT subject_group_class_sections.*,subject_groups.name as subject_group_name,subject_group_subjects.id as subject_group_subject_id,subjects.id as subject_id,subjects.name as subject_name,subjects.code as subject_code FROM `subject_group_class_sections` INNER JOIN class_sections on subject_group_class_sections.class_section_id=class_sections.id INNER JOIN subject_groups on subject_groups.id=subject_group_class_sections.subject_group_id  INNER JOIN subject_group_subjects on subject_group_subjects.subject_group_id=subject_groups.id INNER JOIN subjects on subjects.id=subject_group_subjects.subject_id WHERE  class_sections.class_id=" . $this->db->escape($class_id) . " and class_sections.section_id=" . $this->db->escape($section_id) . " and subject_group_class_sections.session_id=" . $this->db->escape($this->current_session);
+    public function getAllsubjectByClassSection($class_id, $section_id = null){
+        // TVET: Join to academic_class instead of class_sections
+        $sql = "SELECT subject_group_class_sections.*, subject_groups.name as subject_group_name, subject_group_subjects.id as subject_group_subject_id, subjects.id as subject_id, subjects.name as subject_name, subjects.code as subject_code
+                FROM `subject_group_class_sections`
+                INNER JOIN academic_class ac ON subject_group_class_sections.class_section_id = ac.id
+                INNER JOIN subject_groups ON subject_groups.id = subject_group_class_sections.subject_group_id
+                INNER JOIN subject_group_subjects ON subject_group_subjects.subject_group_id = subject_groups.id
+                INNER JOIN subjects ON subjects.id = subject_group_subjects.subject_id
+                WHERE ac.id=" . $this->db->escape($class_id) . "
+                AND subject_group_class_sections.session_id=" . $this->db->escape($this->current_session);
 
         $query = $this->db->query($sql);
         return $query->result();
+    }
+
+    // ============================================================================
+    // TVET METHODS - Use academic_class instead of class_sections
+    // No section_id - class_id refers to academic_class.id
+    // ============================================================================
+
+    /**
+     * Get subject groups by class only (TVET)
+     * Replaces getGroupByClassandSection() - no section_id parameter
+     * In TVET, class = subject + level + cohort, so subject group is simpler
+     *
+     * @param int $class_id academic_class.id
+     * @param int $session_id Session ID (optional)
+     * @return array List of subject groups for the class
+     */
+    public function getGroupByClass($class_id, $session_id = null)
+    {
+        $session_id = empty($session_id) ? $this->current_session : $session_id;
+
+        $userdata = $this->customlib->getUserData();
+        $role_id = $userdata["role_id"];
+        $subject_groupid_condition = "";
+        $return = true;
+
+        if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
+            $subject_groupid = $this->subjectgroup_model->getSubjectgroupbyTeacherid($userdata['id']);
+            $my_classes = $this->teacher_model->my_classes($userdata['id']);
+
+            if (in_array($class_id, $my_classes)) {
+                $subject_groupid_condition = "";
+            } else {
+                if (!empty($subject_groupid)) {
+                    $subject_groupid_condition = " AND subject_groups.id IN(" . $subject_groupid[0]['subject_group_ids'] . ")";
+                } else {
+                    $return = false;
+                }
+            }
+        }
+
+        if ($return) {
+            // TVET: Query subject groups linked to this academic class
+            // In TVET, subject_group_class_sections maps to academic_class instead of class_sections
+            $sql = "SELECT subject_groups.name, subject_group_class_sections.*,
+                           ac.class_code, ac.cohort_name
+                    FROM subject_group_class_sections
+                    INNER JOIN academic_class ac ON ac.id = subject_group_class_sections.class_section_id
+                    INNER JOIN subject_groups ON subject_groups.id = subject_group_class_sections.subject_group_id
+                    WHERE ac.id = " . $this->db->escape($class_id) . "
+                      AND ac.session_id = " . $this->db->escape($session_id) . " " . $subject_groupid_condition . "
+                    ORDER BY subject_groups.id DESC";
+            $query = $this->db->query($sql);
+            return $query->result_array();
+        } else {
+            return array();
+        }
+    }
+
+    /**
+     * Get class timetable (TVET)
+     * Replaces getClassandSectionTimetable() - no section_id parameter
+     *
+     * @param int $class_id academic_class.id
+     * @return array Timetable entries for the class
+     */
+    public function getClassTimetable($class_id)
+    {
+        // TVET: Use academic_timetable for TVET classes
+        $sql = "SELECT at.*, asub.name as subject_name, asub.code as subject_code,
+                       staff.name as staff_name, staff.surname,
+                       ac.class_code, ac.cohort_name, al.code as level_code
+                FROM academic_timetable at
+                INNER JOIN academic_class ac ON ac.id = at.class_id
+                INNER JOIN academic_subject_level asl ON asl.id = ac.subject_level_id
+                INNER JOIN academic_subject asub ON asub.id = asl.subject_id
+                INNER JOIN academic_level al ON al.id = asl.level_id
+                LEFT JOIN staff ON staff.id = at.staff_id
+                WHERE at.class_id = " . $this->db->escape($class_id) . "
+                ORDER BY at.day_of_week, at.start_time";
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    /**
+     * Get all subjects for a class (TVET)
+     * Replaces getAllsubjectByClassSection() - no section_id parameter
+     * In TVET, a class IS a subject, so this returns the class's subject info
+     *
+     * @param int $class_id academic_class.id
+     * @return array Subject information for the class
+     */
+    public function getAllSubjectByClass($class_id)
+    {
+        // TVET: A class represents one subject-level combination
+        $sql = "SELECT ac.id as class_id, ac.class_code, ac.cohort_name,
+                       asl.id as subject_level_id, asub.id as subject_id,
+                       asub.name as subject_name, asub.code as subject_code,
+                       al.id as level_id, al.code as level_code, al.name as level_name
+                FROM academic_class ac
+                INNER JOIN academic_subject_level asl ON asl.id = ac.subject_level_id
+                INNER JOIN academic_subject asub ON asub.id = asl.subject_id
+                INNER JOIN academic_level al ON al.id = asl.level_id
+                WHERE ac.id = " . $this->db->escape($class_id) . "
+                  AND ac.session_id = " . $this->db->escape($this->current_session);
+
+        $query = $this->db->query($sql);
+        return $query->result();
+    }
+
+    /**
+     * Get subjects from timetable for a class (TVET)
+     * Replaces getsubject() - no section_id parameter
+     *
+     * @param int $class_id academic_class.id
+     * @return array Subjects with timetable entries
+     */
+    public function getSubjectByClass($class_id)
+    {
+        // TVET: In TVET model, class = subject, so return the class's subject
+        $this->db->select('asub.id, asub.name, asub.code', FALSE)
+            ->from('academic_class ac')
+            ->join('academic_subject_level asl', 'asl.id = ac.subject_level_id')
+            ->join('academic_subject asub', 'asub.id = asl.subject_id')
+            ->where('ac.id', $class_id);
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Get classes by academic class (TVET)
+     * Replaces get() which returns sections for a class
+     * In TVET, returns cohorts for a subject-level
+     *
+     * @param int $subject_level_id academic_subject_level.id
+     * @return array List of classes (cohorts) for this subject-level
+     */
+    public function getClassesBySubjectLevel($subject_level_id)
+    {
+        $this->db->select('ac.id, ac.class_code, ac.cohort_name, ac.session_id')
+            ->from('academic_class ac')
+            ->where('ac.subject_level_id', $subject_level_id)
+            ->where('ac.session_id', $this->current_session)
+            ->order_by('ac.class_code');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Check if class has subject group assignment (TVET)
+     * Replaces check_section_exists validation
+     *
+     * @param int $class_id academic_class.id
+     * @param int $exclude_id Exclude this subject group ID from check
+     * @return bool True if class already has assignment
+     */
+    public function checkClassExists($class_id, $exclude_id = 0)
+    {
+        $this->db->where('session_id', $this->current_session);
+        $this->db->where('class_section_id', $class_id); // In TVET, stores academic_class.id
+        if ($exclude_id > 0) {
+            $this->db->where('subject_group_id !=', $exclude_id);
+        }
+
+        $query = $this->db->get('subject_group_class_sections');
+        return $query->num_rows() > 0;
     }
 
 }

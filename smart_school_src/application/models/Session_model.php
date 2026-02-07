@@ -37,11 +37,13 @@ class Session_model extends MY_Model {
         return $query->row();
     }
 
+    // TVET: Replaced student_session with academic_class_enrolment + academic_class for session lookup
     public function getStudentAcademicSession($student_id = null) {
         $this->db->select('sessions.*')->from('sessions');
-        $this->db->join('student_session', 'sessions.id = student_session.session_id');
-        $this->db->where('student_session.student_id', $student_id);
-        $this->db->group_by('student_session.session_id');
+        $this->db->join('academic_class ac', 'sessions.id = ac.session_id');
+        $this->db->join('academic_class_enrolment e', 'e.class_id = ac.id');
+        $this->db->where('e.student_id', $student_id);
+        $this->db->group_by('ac.session_id');
         $this->db->order_by('sessions.id');
         $query = $this->db->get();
         return $query->result_array();

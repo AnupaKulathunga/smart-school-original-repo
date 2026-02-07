@@ -190,29 +190,23 @@ $complete_percent   = $value['complete'];
     });
 </script>
 <script>
+    // TVET: Initialize subject groups and subjects by class (no section)
     $(document).ready(function (e) {
-        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id')
-        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
+        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id')
+        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
     });
 
-    $(document).on('change', '#secid', function () {
-        var class_id = $('#searchclassid').val();
-        var section_id = $(this).val();
-        getSubjectGroup(class_id, section_id, 0, 'subject_group_id');
-    });
-
-    function getSubjectGroup(class_id, section_id, subjectgroup_id, subject_group_target) {
-        if (class_id != "" && section_id != "") {
+    function getSubjectGroup(class_id, subjectgroup_id, subject_group_target) {
+        if (class_id != "") {
 
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
             $.ajax({
                 type: 'POST',
                 url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
-                data: {'class_id': class_id, 'section_id': section_id},
+                data: {'class_id': class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
-                    // setting a timeout
                     $('#' + subject_group_target).html("").addClass('dropdownloading');
                 },
                 success: function (data) {
@@ -227,7 +221,7 @@ $complete_percent   = $value['complete'];
                     });
                     $('#' + subject_group_target).append(div_data);
                 },
-                error: function (xhr) { // if error occured
+                error: function (xhr) {
                     alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
                 },
@@ -240,13 +234,12 @@ $complete_percent   = $value['complete'];
 
     $(document).on('change', '#subject_group_id', function () {
         var class_id = $('#searchclassid').val();
-        var section_id = $('#secid').val();
         var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, 0, 'subid');
+        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subid');
     });
 
-    function getsubjectBySubjectGroup(class_id, section_id, subject_group_id, subject_group_subject_id, subject_target) {
-        if (class_id != "" && section_id != "" && subject_group_id != "") {
+    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target) {
+        if (class_id != "" && subject_group_id != "") {
 
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
@@ -256,7 +249,6 @@ $complete_percent   = $value['complete'];
                 data: {'subject_group_id': subject_group_id},
                 dataType: 'JSON',
                 beforeSend: function () {
-                    // setting a timeout
                     $('#' + subject_target).html("").addClass('dropdownloading');
                 },
                 success: function (data) {
@@ -271,7 +263,7 @@ $complete_percent   = $value['complete'];
                     });
                     $('#' + subject_target).append(div_data);
                 },
-                error: function (xhr) { // if error occured
+                error: function (xhr) {
                     alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
                 },

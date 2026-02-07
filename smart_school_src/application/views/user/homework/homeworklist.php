@@ -43,7 +43,6 @@
                                 <thead>
                                     <tr>
                                         <th><?php echo $this->lang->line('class') ?></th>
-                                        <th><?php echo $this->lang->line('section') ?></th>
                                         <th><?php echo $this->lang->line('subject') ?></th>
                                         <th><?php echo $this->lang->line('homework_date'); ?></th>
                                         <th><?php echo $this->lang->line('submission_date'); ?></th>
@@ -68,7 +67,6 @@ foreach ($homeworklist as $key => $homework) {
     ?>
                                         <tr>
                                             <td><?php echo $homework["class"] ?></td>
-                                            <td><?php echo $homework["section"] ?></td>
                                             <td><?php echo $homework['subject_name']; ?> <?php if($homework['subject_code']){ echo '('.$homework['subject_code'].')'; } ?> </td>
                                             <td><?php echo $this->customlib->dateformat($homework['homework_date']); ?></td>
                                             <td><?php echo $this->customlib->dateformat($homework['submit_date']); ?></td>
@@ -121,7 +119,6 @@ $evl_date = "";
                                 <thead>
                                     <tr>
                                         <th><?php echo $this->lang->line('class') ?></th>
-                                        <th><?php echo $this->lang->line('section') ?></th>
                                         <th><?php echo $this->lang->line('subject') ?></th>
                                         <th><?php echo $this->lang->line('homework_date'); ?></th>
                                         <th><?php echo $this->lang->line('submission_date'); ?></th>
@@ -146,7 +143,6 @@ foreach ($closedhomeworklist as $key => $closedhomework) {
     ?>
                                         <tr>
                                             <td><?php echo $closedhomework["class"] ?></td>
-                                            <td><?php echo $closedhomework["section"] ?></td>
                                             <td><?php echo $closedhomework['subject_name']; ?> <?php if($closedhomework['subject_code']){ echo '('.$closedhomework['subject_code'].')'; } ?></td>
                                             <td><?php echo $this->customlib->dateformat($closedhomework['homework_date']); ?></td>
                                             <td><?php echo $this->customlib->dateformat($closedhomework['submit_date']); ?></td>
@@ -243,7 +239,7 @@ $evl_date = "";
 
             success: function (res)
             {
-                getSubjectByClassandSection(res.class_id, res.section_id, res.subject_id);
+                // TVET: section_id no longer needed
                 $("#homeworkdate").val(new Date(res.homework_date).toString("MM/dd/yyyy"));
                 $("#submitdate").val(new Date(res.submit_date).toString("MM/dd/yyyy"));
                 $("#desc-textarea").text(res.description);
@@ -256,31 +252,7 @@ $evl_date = "";
     }
 
 
-    function getSubjectByClassandSection(class_id, section_id, subject_id) {
-        if (class_id != "" && section_id != "" && subject_id != "") {
-            $('#subjectid,#subid').html("");
-            var base_url = '<?php echo base_url() ?>';
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: "POST",
-                url: base_url + "admin/teacher/getSubjctByClassandSection",
-                data: {'class_id': class_id, 'section_id': section_id},
-                dataType: "json",
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (subject_id == obj.subject_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.subject_id + " " + sel + ">" + obj.name + " (" + obj.type + ")" + "</option>";
-                    });
-
-                    $('#subjectid,#subid').append(div_data);
-                }
-            });
-        }
-    }
+    // TVET: Removed getSubjectByClassandSection - section no longer used
 
     function evaluation(id, status) {
 

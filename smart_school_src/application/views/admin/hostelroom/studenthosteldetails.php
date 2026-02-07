@@ -134,7 +134,7 @@ $this->customlib->get_postmessage();
 ?>" data-target="parent-list">
                                     <thead>
                                         <tr>
-                                            <th><?php echo $this->lang->line('class_section'); ?></th>
+                                            <th><?php echo $this->lang->line('class'); ?></th>
                                             <th><?php echo $this->lang->line('admission_no'); ?></th>
                                             <th><?php echo $this->lang->line('student_name'); ?></th>
                                             <th><?php echo $this->lang->line('mobile_number'); ?></th>

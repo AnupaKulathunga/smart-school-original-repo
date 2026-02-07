@@ -156,14 +156,14 @@
                                     <div class="row">  
 
                                         <div class="col-sm-12 col-lg-12 col-md-12">
-                                        <?php 
+                                        <?php
+                                        // TVET: Sections map 1-to-1 with classes, display simplified
                                         if(!empty($class_value['sections'])){
-foreach ($class_value['sections'] as $section_key => $section_value) {   
+foreach ($class_value['sections'] as $section_key => $section_value) {
  ?>
-<div class="row">    
+<div class="row">
      <div class="form-group col-md-6">
-    <label class="control-label col-sm-2" for="time"><?php echo $section_value->section ?></label>
-    <div class="col-sm-10">
+    <div class="col-sm-12">
         <div class="input-group">
                                           <input type="text" class="form-control datetimepicker" name="class_section_id[<?php echo $section_value->id;?>]" value
       ="<?php echo ($section_value->time !=0) ? $section_value->time :"" ?>" id="time" placeholder="Enter time">
@@ -173,7 +173,7 @@ foreach ($class_value['sections'] as $section_key => $section_value) {
                                         </div>
                                     </div>
         <input type="hidden" name="row[]" value="<?php echo $count; ?>">
-        <input type="hidden" name="prev_record_id[<?php echo $section_value->id;?>]" value="<?php echo $section_value->class_section_times_id; ?>">  
+        <input type="hidden" name="prev_record_id[<?php echo $section_value->id;?>]" value="<?php echo $section_value->class_section_times_id; ?>">
     </div>
   </div>
 </div>
@@ -184,7 +184,7 @@ foreach ($class_value['sections'] as $section_key => $section_value) {
 }else{
     ?>
 <div class="alert alert-info">
-  <?php echo $this->lang->line('no_section_found'); ?>
+  <?php echo $this->lang->line('no_record_found'); ?>
 </div>
     <?php
 }
@@ -361,8 +361,12 @@ foreach ($class_value['sections'] as $section_key => $section_value) {
                                         <select autofocus="" id="class_id" name="class_id" class="form-control" onchange="this.form.submit()">
                                         <option value=""><?php echo $this->lang->line('all_classes'); ?></option>
                                         <?php
-                                        foreach ($classlist as $class) {  ?>
-                                        <option value="<?php echo $class['id'] ?>" <?php echo set_select('class_id', $class['id']); ?>><?php echo $class['class'] ?></option>
+                                        foreach ($classlist as $class) {
+                                            // TVET: Handle both array and object format
+                                            $cid = is_array($class) ? $class['id'] : $class->id;
+                                            $cname = is_array($class) ? $class['class'] : ($class->subject_name . ' - ' . $class->level_name . ' (' . $class->cohort_name . ')');
+                                        ?>
+                                        <option value="<?php echo $cid ?>" <?php echo set_select('class_id', $cid); ?>><?php echo $cname ?></option>
                                         <?php } ?>
                                         </select>
                                         </div>
@@ -404,7 +408,7 @@ foreach ($class_value['sections'] as $section_key => $section_value) {
                                                             foreach ($list_value['sections'] as $student_session_key => $student_session_value) { ?>
                                                                 <div class="row">
                                                                     <div class="col-md-12">																	
-																		<h4><center><?php echo $this->lang->line('section'); ?>: <?php echo $student_session_value['section']; ?></center></h4>
+																		<!-- TVET: Removed section header display -->
 																		
 																		    <div class="row">													
 																				<div class="col-sm-3 col-lg-3 col-md-3">

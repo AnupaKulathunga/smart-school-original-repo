@@ -13,58 +13,40 @@ $currency_symbol = $admin_session['currency_symbol'];
                     <!-- Create the tabs -->
                     <div class="studentsidetopfixed">
                         <p class="classtap"><?php echo $student["class"]; ?> <a href="#" data-toggle="control-sidebar" class="studentsideclose"><i class="fa fa-times"></i></a></p>
-                        <ul class="nav nav-justified studenttaps">
-                            <?php foreach ($class_section as $skey => $svalue) {
-                            ?>
-                                <li <?php
-                                    if ($student["section_id"] == $svalue["section_id"]) {
-                                        echo "class='active'";
-                                    }
-                                    ?>><a href="#section<?php echo $svalue["section_id"] ?>" data-toggle="tab"><?php print_r($svalue["section"]); ?></a></li>
-                            <?php } ?>
-                        </ul>
                     </div>
-                    <!-- Tab panes -->
+                    <!-- TVET: Single class list (no section tabs) -->
                     <div class="tab-content pb20">
-                        <?php foreach ($class_section as $skey => $snvalue) {
-                        ?>
-                            <div class="tab-pane <?php
-                                                    if ($student["section_id"] == $snvalue["section_id"]) {
-                                                        echo "active";
-                                                    }
-                                                    ?>" id="section<?php echo $snvalue["section_id"]; ?>">
-                                <?php
+                        <div class="tab-pane active" id="classStudents">
+                            <?php
+                            if (!empty($studentlistbysection)) {
                                 foreach ($studentlistbysection as $stkey => $stvalue) {
-                                    if ($stvalue['section_id'] == $snvalue["section_id"]) {
-
-                                ?>
-                                        <div class="studentname">
-                                            <a class="" href="<?php echo base_url() . "student/view/" . $stvalue["id"] ?>">
-                                                <div class="icon">
-                                                    <?php if ($sch_setting->student_photo) {
-                                                    ?>
-                                                        <img src="<?php
-                                                                    if (!empty($stvalue["image"])) {
-                                                                        echo $this->media_storage->getImageURL($stvalue["image"]);
-                                                                    } else {
-                                                                        if ($student['gender'] == 'Female') {
-                                                                            echo $this->media_storage->getImageURL("uploads/student_images/default_female.jpg");
-                                                                        } elseif ($student['gender'] == 'Male') {
-                                                                            echo $this->media_storage->getImageURL("uploads/student_images/default_male.jpg");
-                                                                        }
+                            ?>
+                                    <div class="studentname">
+                                        <a class="" href="<?php echo base_url() . "student/view/" . $stvalue["id"] ?>">
+                                            <div class="icon">
+                                                <?php if ($sch_setting->student_photo) {
+                                                ?>
+                                                    <img src="<?php
+                                                                if (!empty($stvalue["image"])) {
+                                                                    echo $this->media_storage->getImageURL($stvalue["image"]);
+                                                                } else {
+                                                                    if ($student['gender'] == 'Female') {
+                                                                        echo $this->media_storage->getImageURL("uploads/student_images/default_female.jpg");
+                                                                    } elseif ($student['gender'] == 'Male') {
+                                                                        echo $this->media_storage->getImageURL("uploads/student_images/default_male.jpg");
                                                                     }
-                                                                    ?>" alt="">
-                                                    <?php } ?>
-                                                </div>
-                                                <div class="student-tittle"><?php echo $this->customlib->getFullName($stvalue['firstname'], $stvalue['middlename'], $stvalue['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?></div>
-                                            </a>
-                                        </div>
-                                <?php
-                                    }
+                                                                }
+                                                                ?>" alt="">
+                                                <?php } ?>
+                                            </div>
+                                            <div class="student-tittle"><?php echo $this->customlib->getFullName($stvalue['firstname'], $stvalue['middlename'], $stvalue['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?></div>
+                                        </a>
+                                    </div>
+                            <?php
                                 }
-                                ?>
-                            </div>
-                        <?php } ?>
+                            }
+                            ?>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -196,9 +178,6 @@ $currency_symbol = $admin_session['currency_symbol'];
                             <li class="list-group-item listnoback border0">
                                 <b><?php echo $this->lang->line('class'); ?></b> <a class="pull-right text-aqua"><?php echo $student['class'] . " (" . $session . ")"; ?></a>
                             </li>
-                            <li class="list-group-item listnoback">
-                                <b><?php echo $this->lang->line('section'); ?></b> <a class="pull-right text-aqua"><?php echo $student['section']; ?></a>
-                            </li>
 							<li class="list-group-item listnoback">
                                 <b><?php echo $this->lang->line('gender'); ?></b> <a class="pull-right text-aqua"><?php echo $this->lang->line(strtolower((string) $student['gender'])); ?></a>
                             </li>
@@ -281,9 +260,6 @@ $currency_symbol = $admin_session['currency_symbol'];
                                         <ul class="list-group list-group-unbordered">
                                             <li class="list-group-item">
                                                 <b><?php echo $this->lang->line('class'); ?></b> <a class="pull-right text-aqua"><?php echo $sibling_value->class; ?></a>
-                                            </li>
-                                            <li class="list-group-item">
-                                                <b><?php echo $this->lang->line('section'); ?></b> <a class="pull-right text-aqua"><?php echo $sibling_value->section; ?></a>
                                             </li>
 											<li class="list-group-item listnoback">
                                                 <b><?php echo $this->lang->line('gender'); ?></b> <a class="pull-right text-aqua"><?php echo $this->lang->line(strtolower($sibling_value->gender)); ?></a>

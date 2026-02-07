@@ -16,47 +16,22 @@ $language_name   = $language["short_code"];
                     <!-- Create the tabs -->
                     <div class="studentsidetopfixed">
                         <p class="classtap"><?php echo $student["class"]; ?><a href="#" data-toggle="control-sidebar" class="studentsideclose"><i class="fa fa-times"></i></a></p>
-                        <ul class="nav nav-justified studenttaps">
-                            <?php foreach ($class_section as $skey => $svalue) { ?>
-                                <li <?php
-if ($student["section_id"] == $svalue["section_id"]) {
-        echo "class='active'";
-    }
-    ?> ><a href="#section<?php echo $svalue["section_id"] ?>" data-toggle="tab"><?php print_r($svalue["section"]);?></a></li>
-                                <?php }?>
-                        </ul>
                     </div>
-                    <!-- Tab panes -->
+                    <!-- TVET: Single class list (no section tabs) -->
                     <div class="tab-content">
-                        <?php foreach ($class_section as $skey => $snvalue) {
-    ?>
-                            <div class="tab-pane <?php
-if ($student["section_id"] == $snvalue["section_id"]) {
-        echo "active";
-    }
-    ?>" id="section<?php echo $snvalue["section_id"]; ?>">
-                                 <?php
-foreach ($studentlistbysection as $stkey => $stvalue) {
-        if ($stvalue['section_id'] == $snvalue["section_id"]) { ?>
-                                        <div class="studentname">
-                                            <a class="" href="<?php echo base_url() . "studentfee/addfee/" . $stvalue["student_session_id"] ?>">
-                                                <div class="icon"><img src="<?php echo base_url() . $stvalue["image"] . img_time(); ?>" alt="User Image"></div>
-                                                <div class="student-tittle"><?php echo $stvalue["firstname"] . " " . $stvalue["lastname"]; ?></div></a>
-                                        </div>
-                                        <?php
-}
-    }
-    ?>
-                            </div>
-                        <?php }?>
-                        <div class="tab-pane" id="sectionB">
-                            <h3 class="control-sidebar-heading">Recent Activity 2</h3>
-                        </div>
-                        <div class="tab-pane" id="sectionC">
-                            <h3 class="control-sidebar-heading">Recent Activity 3</h3>
-                        </div>
-                        <div class="tab-pane" id="sectionD">
-                            <h3 class="control-sidebar-heading">Recent Activity 3</h3>
+                        <div class="tab-pane active" id="classStudents">
+                            <?php
+                            if (!empty($studentlistbysection)) {
+                                foreach ($studentlistbysection as $stkey => $stvalue) { ?>
+                                    <div class="studentname">
+                                        <a class="" href="<?php echo base_url() . "studentfee/addfee/" . $stvalue["student_session_id"] ?>">
+                                            <div class="icon"><img src="<?php echo base_url() . $stvalue["image"] . img_time(); ?>" alt="User Image"></div>
+                                            <div class="student-tittle"><?php echo $stvalue["firstname"] . " " . $stvalue["lastname"]; ?></div></a>
+                                    </div>
+                            <?php
+                                }
+                            }
+                            ?>
                         </div>
                     </div>
                 </div>
@@ -106,8 +81,8 @@ if (!empty($student["image"])) {
                                                     <tr>
                                                         <th class="bozero"><?php echo $this->lang->line('name'); ?></th>
                                                         <td class="bozero"><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?></td>
-                                                        <th class="bozero"><?php echo $this->lang->line('class_section'); ?></th>
-                                                        <td class="bozero"><?php echo $student['class'] . " (" . $student['section'] . ")" ?> </td>
+                                                        <th class="bozero"><?php echo $this->lang->line('class'); ?></th>
+                                                        <td class="bozero"><?php echo $student['class'] ?> </td>
                                                     </tr>
                                                     <tr>
                                                         <th><?php echo $this->lang->line('father_name'); ?></th>

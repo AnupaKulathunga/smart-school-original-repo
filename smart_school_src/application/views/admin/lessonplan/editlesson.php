@@ -84,7 +84,6 @@
                                     </tr>
                                 <tr>
                                     <th><?php echo $this->lang->line('class'); ?></th>
-                                    <th><?php echo $this->lang->line('section'); ?></th>
                                     <th><?php echo $this->lang->line('subject_group'); ?></th>
                                     <th><?php echo $this->lang->line('subject'); ?></th>
                                     <th><?php echo $this->lang->line('lesson'); ?></th>

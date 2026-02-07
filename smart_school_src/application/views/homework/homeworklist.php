@@ -86,7 +86,6 @@ $language_name = $language["short_code"];
                                         <thead>
                                             <tr>
                                                 <th><?php echo $this->lang->line('class') ?></th>
-                                                <th><?php echo $this->lang->line('section') ?></th>
                                                 <th><?php echo $this->lang->line('subject_group'); ?></th>
                                                 <th><?php echo $this->lang->line('subject') ?></th>
                                                 <th><?php echo $this->lang->line('homework_date'); ?></th>
@@ -120,7 +119,6 @@ $language_name = $language["short_code"];
                                             <tr>
                                                 <th>#</th>
                                                 <th><?php echo $this->lang->line('class') ?></th>
-                                                <th><?php echo $this->lang->line('section') ?></th>
                                                 <th><?php echo $this->lang->line('subject_group'); ?></th>
                                                 <th><?php echo $this->lang->line('subject') ?></th>
                                                 <th><?php echo $this->lang->line('homework_date'); ?></th>
@@ -331,9 +329,8 @@ $language_name = $language["short_code"];
     }
     
     function addform() {
-        $('#modal_class_id').val(''); 
-        $('#modal_section_id').val(''); 
-        $('#modal_subject_group_id').val(''); 
+        $('#modal_class_id').val('');
+        $('#modal_subject_group_id').val('');
         $('#modal_subject_id').val(''); 
         $('#homework_marks').val(''); 
         $('#compose-textarea').val('');         
@@ -453,7 +450,7 @@ $(document).on('submit','form#evaluation_data',function(e){
             $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
             $.ajax({
                 type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClass',
+                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
                 data: {'class_id': class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
@@ -503,13 +500,6 @@ $(document).on('submit','form#evaluation_data',function(e){
     $(document).on('change', '#modal_class_id', function () {
         var class_id = $(this).val();
         getSubjectGroup(class_id, 0, 'modal_subject_group_id');
-    });
-
-    // TVET: Load subject groups when search class changes (handled by onchange in component)
-    $(document).on('change', '#subject_group_id', function () {
-        var class_id = $('#searchclassid').val();
-        var subject_group_id = $(this).val();
-        getSubjectGroup(class_id, section_id, 0, 'subject_group_id');
     });
 
     $(document).on('change', '#modal_subject_group_id', function () {
@@ -567,8 +557,6 @@ $(document).on('submit','form#evaluation_data',function(e){
         });
     }));
 
-    // TVET: Removed modal_class_id change handler - using onchange in component
-
     function getSubjectGroup(class_id, subjectgroup_id, subject_group_target) {
         if (class_id != "") {
 
@@ -576,7 +564,7 @@ $(document).on('submit','form#evaluation_data',function(e){
 
             $.ajax({
                 type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClass',
+                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
                 data: {'class_id': class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
@@ -738,8 +726,7 @@ $(document).on('submit','.assign_teacher_form',function(e){
     function resetFields(search_type){
         if(search_type == "keyword_search"){
             $('#class_id').prop('selectedIndex',0);
-            $('#section_id').find('option').not(':first').remove();
-        }else if (search_type == "class_search") {            
+        }else if (search_type == "class_search") {
              $('#search_text').val("");
         }
     }

@@ -151,9 +151,10 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                                 $count = 1;
                                                                 foreach ($resultlist as $student) {
                                                                     ?>
-                                                                <input type="hidden" name="student_list[]" value="<?php echo $student['student_session_id'] ?>">
+                                                                <!-- TVET: Use enrolment_id instead of student_session_id -->
+                                                                <input type="hidden" name="student_list[]" value="<?php echo $student['enrolment_id'] ?>">
                                                                 <tr>
-                                                                    <td> 
+                                                                    <td>
                                                                         <?php
                                                                         if ($student['student_fees_discount_id'] != 0) {
                                                                             $sel = "checked='checked'";
@@ -161,11 +162,12 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                                                             $sel = "";
                                                                         }
                                                                         ?>
-                                                                        <input class="checkbox" type="checkbox" name="student_session_id[]"  value="<?php echo $student['student_session_id']; ?>" <?php echo $sel; ?>/>
+                                                                        <input class="checkbox" type="checkbox" name="enrolment_id[]"  value="<?php echo $student['enrolment_id']; ?>" <?php echo $sel; ?>/>
                                                                     </td>
                                                                     <td><?php echo $student['admission_no']; ?></td>
                                                                     <td><?php echo $this->customlib->getFullName($student['firstname'],$student['middlename'],$student['lastname'],$sch_setting->middlename,$sch_setting->lastname); ?></td>
-                                                                    <td><?php echo $student['class'] . "(" . $student['section'] . ")" ?></td>
+                                                                    <!-- TVET: Use class_code + cohort_name instead of class + section -->
+                                                                    <td><?php echo $student['class_code'] . "(" . $student['cohort_name'] . ")" ?></td>
                                                                     <td><?php echo $student['father_name']; ?></td>
                                                                     <td><?php echo $student['category']; ?></td>
                                                                     <td><?php echo $this->lang->line(strtolower($student['gender'])); ?></td>

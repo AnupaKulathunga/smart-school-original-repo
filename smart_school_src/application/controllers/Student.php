@@ -782,11 +782,11 @@ class Student extends Admin_Controller
 							$this->customfield_model->insertRecord($custom_value_array, $insert_id);
 						}
 
+						// TVET: session_id and section_id removed — academic_class_enrolment
+						// derives session from academic_class.session_id via class_id
 						$data_new = array(
 							'student_id'            => $insert_id,
 							'class_id'              => $class_id,
-							// TVET: section_id removed
-							'session_id'            => $session,
 							'fees_discount'         => $fees_discount,
 							'route_pickup_point_id' => $route_pickup_point_id,
 							'vehroute_id'           => $vehroute_id,
@@ -1540,11 +1540,11 @@ class Student extends Admin_Controller
              $data['created_by'] = $this->session->userdata['admin']['id'];
 
             $this->student_model->add($data);
+            // TVET: session_id and section_id removed — academic_class_enrolment
+            // derives session from academic_class.session_id via class_id
             $data_new = array(
                 'student_id'            => $id,
                 'class_id'              => $class_id,
-                // TVET: section_id removed
-                'session_id'            => $session,
                 'fees_discount'         => $fees_discount,
                 'route_pickup_point_id' => $route_pickup_point_id,
                 'vehroute_id'           => $vehroute_id,
@@ -1943,11 +1943,11 @@ class Student extends Admin_Controller
             $duplicate_array     = array();
             foreach ($rowcount as $key_rowcount => $value_rowcount) {
 
+                // TVET: session_id and section_id removed — academic_class_enrolment
+                // derives session from academic_class.session_id via class_id
                 $array = array(
                     'class_id'   => $this->input->post('class_id_' . $value_rowcount),
-                    'session_id' => $this->setting_model->getCurrentSession(),
                     'student_id' => $this->input->post('student_id'),
-                    // TVET: section_id removed
                 );
 
                 $class_section_array[] = $array;
@@ -2619,32 +2619,44 @@ class Student extends Admin_Controller
         // subject_code, level_code, cohort_name, academic_year,
         // qualification_name, campus_name, enrolment_date, status, notes
 
-        // Skip header row (index 0)
+        // Process each row (CSVReader returns 1-indexed associative array)
         for ($i = 1; $i <= count($csv_data); $i++) {
-            if (!isset($csv_data[$i]) || count($csv_data[$i]) < 17) {
+            if (!isset($csv_data[$i])) {
+                continue; // Skip missing rows
+            }
+
+            // Validate required columns exist
+            $required_columns = ['admission_no', 'firstname', 'lastname', 'subject_code', 'level_code', 'academic_year'];
+            $missing_columns = [];
+            foreach ($required_columns as $col) {
+                if (!isset($csv_data[$i][$col])) {
+                    $missing_columns[] = $col;
+                }
+            }
+            if (!empty($missing_columns)) {
                 $stats['errors']++;
-                $stats['messages'][] = "Row $i: Invalid CSV format (expected 17 columns, got " . (isset($csv_data[$i]) ? count($csv_data[$i]) : 0) . ")";
+                $stats['messages'][] = "Row $i: Missing required columns: " . implode(', ', $missing_columns);
                 continue;
             }
 
             $row = [
-                'admission_no' => trim($this->encoding_lib->toUTF8($csv_data[$i][0])),
-                'firstname' => trim($this->encoding_lib->toUTF8($csv_data[$i][1])),
-                'lastname' => trim($this->encoding_lib->toUTF8($csv_data[$i][2])),
-                'id_number' => trim($csv_data[$i][3]) ?: null,
-                'dob' => trim($csv_data[$i][4]) ?: null,
-                'gender' => trim($csv_data[$i][5]) ?: null,
-                'mobileno' => trim($csv_data[$i][6]) ?: null,
-                'email' => trim($csv_data[$i][7]) ?: null,
-                'subject_code' => $this->encoding_lib->toUTF8($csv_data[$i][8]),
-                'level_code' => $this->encoding_lib->toUTF8($csv_data[$i][9]),
-                'cohort_name' => $this->encoding_lib->toUTF8($csv_data[$i][10]) ?: 'A',
-                'academic_year' => intval($csv_data[$i][11]) ?: date('Y'),
-                'qualification_name' => $this->encoding_lib->toUTF8($csv_data[$i][12]) ?: null,
-                'campus_name' => $this->encoding_lib->toUTF8($csv_data[$i][13]) ?: null,
-                'enrolment_date' => trim($csv_data[$i][14]) ?: date('Y-m-d'),
-                'status' => trim($csv_data[$i][15]) ?: 'Active',
-                'notes' => $this->encoding_lib->toUTF8($csv_data[$i][16]) ?: ''
+                'admission_no' => trim($this->encoding_lib->toUTF8($csv_data[$i]['admission_no'])),
+                'firstname' => trim($this->encoding_lib->toUTF8($csv_data[$i]['firstname'])),
+                'lastname' => trim($this->encoding_lib->toUTF8($csv_data[$i]['lastname'])),
+                'id_number' => trim($csv_data[$i]['id_number']) ?: null,
+                'dob' => trim($csv_data[$i]['dob']) ?: null,
+                'gender' => trim($csv_data[$i]['gender']) ?: null,
+                'mobileno' => trim($csv_data[$i]['mobileno']) ?: null,
+                'email' => trim($csv_data[$i]['email']) ?: null,
+                'subject_code' => $this->encoding_lib->toUTF8($csv_data[$i]['subject_code']),
+                'level_code' => $this->encoding_lib->toUTF8($csv_data[$i]['level_code']),
+                'cohort_name' => $this->encoding_lib->toUTF8($csv_data[$i]['cohort_name']) ?: 'A',
+                'academic_year' => intval($csv_data[$i]['academic_year']) ?: date('Y'),
+                'qualification_name' => $this->encoding_lib->toUTF8($csv_data[$i]['qualification_name']) ?: null,
+                'campus_name' => $this->encoding_lib->toUTF8($csv_data[$i]['campus_name']) ?: null,
+                'enrolment_date' => trim($csv_data[$i]['enrolment_date']) ?: date('Y-m-d'),
+                'status' => trim($csv_data[$i]['status']) ?: 'Active',
+                'notes' => $this->encoding_lib->toUTF8($csv_data[$i]['notes']) ?: ''
             ];
 
             $stats['total']++;
@@ -2716,8 +2728,9 @@ class Student extends Admin_Controller
         $student = $this->student_model->getStudentByAdmission($admission_no);
 
         if (!$student) {
-            // Create new student
+            // Create new student with all required NOT NULL fields
             $student_data = [
+                'parent_id' => 0,  // Required: 0 = no parent record
                 'admission_no' => $admission_no,
                 'firstname' => $data['firstname'],
                 'lastname' => $data['lastname'],
@@ -2725,24 +2738,51 @@ class Student extends Admin_Controller
                 'email' => $data['email'],
                 'gender' => $data['gender'] ?: 'Male',
                 'is_active' => 'yes',
-                'admission_date' => date('Y-m-d')
+                'admission_date' => date('Y-m-d'),
+                // Required NOT NULL fields with defaults
+                'blood_group' => '',
+                'guardian_is' => 'father',
+                'guardian_occupation' => '',
+                'father_pic' => '',
+                'mother_pic' => '',
+                'guardian_pic' => '',
+                'height' => '',
+                'weight' => '',
+                'dis_reason' => 0,
+                'dis_note' => ''
             ];
 
             // Optional fields
             if ($data['id_number']) {
-                $student_data['identification_number'] = $data['id_number'];
+                $student_data['adhar_no'] = $data['id_number'];
             }
             if ($data['dob']) {
                 $student_data['dob'] = $data['dob'];
             }
 
-            $student_id = $this->student_model->add($student_data);
+            // Prepare data_setting parameter required by student_model->add()
+            $data_setting = [
+                'adm_auto_insert' => $this->sch_setting_detail->adm_auto_insert,
+                'adm_prefix' => $this->sch_setting_detail->adm_prefix,
+                'adm_no_digit' => $this->sch_setting_detail->adm_no_digit,
+                'adm_start_from' => $this->sch_setting_detail->adm_start_from,
+                'adm_update_status' => $this->sch_setting_detail->adm_update_status
+            ];
+
+            $student_id = $this->student_model->add($student_data, $data_setting);
             if (!$student_id) {
-                $result['message'] = "Failed to create student: {$admission_no}";
+                // Get database error for debugging
+                $db_error = $this->db->error();
+                $result['message'] = "Failed to create student: {$admission_no} - DB Error: " . $db_error['message'];
                 return $result;
             }
 
-            $student = $this->student_model->get($student_id);
+            // Fetch student record directly (without session join)
+            $student = $this->db->where('id', $student_id)->get('students')->row_array();
+            if (!$student) {
+                $result['message'] = "Failed to retrieve created student: {$admission_no}";
+                return $result;
+            }
             $result['student_created'] = true;
 
         } else {

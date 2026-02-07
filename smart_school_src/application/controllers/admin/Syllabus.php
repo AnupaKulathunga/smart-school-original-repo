@@ -63,14 +63,11 @@ class Syllabus extends Admin_Controller
         // TVET: Get TVET classes instead of class_sections
         $class_ids = array();
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-            // For teachers, get their assigned TVET classes
+            // TVET: For teachers, get their assigned academic classes
             $session_id = $this->setting_model->getCurrentSession();
-            $my_classes = $this->classmodel_model->getClassesBySession($session_id);
+            $my_classes = $this->academic_class_model->getByLecturer($staff_id, $session_id);
             foreach ($my_classes as $class) {
-                // Filter by lecturer if available
-                if (isset($class->lecturer_id) && $class->lecturer_id == $staff_id) {
-                    $class_ids[] = $class->id;
-                }
+                $class_ids[] = $class->id;
             }
         }
 
@@ -296,9 +293,9 @@ class Syllabus extends Admin_Controller
         $data                     = array();
         $data['no_record']        = '0';
 
-        // TVET: Use TVET classes
+        // TVET: Load academic classes for current session
         $session_id               = $this->setting_model->getCurrentSession();
-        $classlist                = $this->classmodel_model->getClassesBySession($session_id);
+        $classlist                = $this->academic_class_model->getAll(array('session_id' => $session_id, 'is_active' => 1));
         $data['classlist']        = $classlist;
         $data['class_id']         = "";
         $data['subject_group_id'] = "";
@@ -306,7 +303,7 @@ class Syllabus extends Admin_Controller
         $data['subject_name']     = "";
         $data['lessons']          = array();
 
-        // TVET: Removed section_id validation
+        // TVET: Removed section_id validation - class_id now refers to academic_class.id
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
@@ -314,12 +311,13 @@ class Syllabus extends Admin_Controller
         if ($this->form_validation->run() == false) {
 
         } else {
+            // TVET: academic_class_id from form
             $data['class_id']         = $_POST['class_id'];
             $data['subject_group_id'] = $_POST['subject_group_id'];
             $data['subject_id']       = $_POST['subject_id'];
             $subject_details          = $this->lessonplan_model->get_subjectNameBySubjectGroupSubjectId($_POST['subject_id']);
 
-            // TVET: Use class_id only (no section_id)
+            // TVET: Use academic_class_id only (no section_id)
             $subject_group_class_sectionsId = $this->lessonplan_model->getsubject_group_class_sectionsId($_POST['class_id'], null, $_POST['subject_group_id']);
 
             if ($subject_details['code'] == '') {

@@ -151,7 +151,7 @@ $target_amount   = "0";
                                 <div class="row no-print">
                                     <div class="col-xs-12">
                                         <a href="<?php echo base_url(); ?>studentfee/addfee/<?php echo $st_detail['id']; ?>" class="btn btn-primary pull-right"><i class="fa fa-credit-card"></i> <?php echo $this->lang->line('collect_fees'); ?></button>
-                                            <a href="<?php echo base_url(); ?>report/pdfStudentFeeRecord/<?php echo $class_id; ?>/<?php echo $section_id ?>/<?php echo $st_detail['id']; ?>" class="btn bg-orange pull-right" style="margin-right: 5px;"><i class="fa fa-download"></i> <?php echo $this->lang->line('download_pdf'); ?></a>
+                                            <a href="<?php echo base_url(); ?>report/pdfStudentFeeRecord/<?php echo $class_id; ?>/0/<?php echo $st_detail['id']; ?>" class="btn bg-orange pull-right" style="margin-right: 5px;"><i class="fa fa-download"></i> <?php echo $this->lang->line('download_pdf'); ?></a>
                                     </div>
                                 </div>
                             </section>

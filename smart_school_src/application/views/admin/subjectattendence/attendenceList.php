@@ -397,7 +397,8 @@ $language_name1 = $language1["short_code"];
                 var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
                 $.ajax({
                     type: "POST",
-                    url: baseurl + "admin/subjectgroup/getSubjectByClassDate",
+                    // TVET: Use controller's AJAX endpoint (no section_id needed)
+                    url: baseurl + "admin/subjectattendence/getSubjectByClassDate",
                     data: {
                         'class_id': class_id,
                         'date': date

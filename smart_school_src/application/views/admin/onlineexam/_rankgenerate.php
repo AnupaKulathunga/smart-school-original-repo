@@ -128,7 +128,7 @@ if (!empty($student_data)) {
                     <tr>
                         <td><?php echo $student['admission_no']; ?></td>
                         <td><?php echo $this->customlib->getFullName($student['firstname'], $student['middlename'], $student['lastname'], $sch_setting->middlename, $sch_setting->lastname); ?></td>
-                        <td><?php echo $student['class'] . " (" . $student['section'] . ")"; ?></td><?php if ($sch_setting->father_name) { ?>
+                        <td><?php echo $student['class']; ?></td><?php if ($sch_setting->father_name) { ?>
                             <td><?php echo $student['father_name']; ?></td>
                         <?php }
                                                                                                     if ($sch_setting->category) { ?>

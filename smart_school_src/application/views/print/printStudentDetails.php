@@ -59,10 +59,6 @@
 			<td valign="top" align="center" rowspan="3" width="120"><?php if ($sch_setting->student_barcode == 1) { ?><img src="<?php echo $this->media_storage->getImageURL('uploads/student_id_card/qrcode/' . $student['id'] . '.png'); ?>" style="width:65px; height: 65px;" /><?php } ?></td>
           </tr>
 		  <tr>
-            <th valign="top" width="30%"><?php echo $this->lang->line('section'); ?></th>
-            <td valign="top" width="60%"><?php echo $student['section']; ?></td>
-          </tr>
-		  <tr>
             <th valign="top" width="30%"><?php echo $this->lang->line('gender'); ?></th>
             <td valign="top" width="60%"><?php echo $this->lang->line(strtolower((string) $student['gender'])); ?></td>
           </tr>

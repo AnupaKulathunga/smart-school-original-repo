@@ -185,7 +185,7 @@ if ($student['student_subject_group_id'] != 0) {
                                                                     </td>
                                                                     <td><?php echo $student['admission_no']; ?></td>
                                                                     <td><?php echo $student['firstname'] . " " . $student['lastname']; ?></td>
-                                                                    <td><?php echo $student['class'] . "(" . $student['section'] . ")" ?></td>
+                                                                    <td><?php echo $student['class'] ?></td>
                                                                     <td><?php echo $student['father_name']; ?></td>
                                                                     <td><?php echo $student['category']; ?></td>
                                                                     <td><?php echo $student['gender']; ?></td>

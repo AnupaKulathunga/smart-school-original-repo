@@ -214,12 +214,13 @@ class Subjectgroup extends Admin_Controller
     public function getGroupByClassandSection()
     {
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
+        // TVET: section_id ignored in TVET mode
         $session_id = $this->input->post('session_id');
         if(!isset($session_id)){
             $session_id=NULL;
         }
-        $data       = $this->subjectgroup_model->getGroupByClassandSection($class_id, $section_id,$session_id);
+        // TVET: Use getGroupByClass() - no section_id parameter
+        $data       = $this->subjectgroup_model->getGroupByClass($class_id, $session_id);
         echo json_encode($data);
     }
 
@@ -228,24 +229,27 @@ class Subjectgroup extends Admin_Controller
         $date       = date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('date')));
         $day        = date('l', strtotime($date));
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $data       = $this->subjecttimetable_model->getSubjectByClassandSectionDay($class_id, $section_id, $day);
+        // TVET: section_id ignored in TVET mode
+        // TVET: Use getSubjectByClassDay() - no section_id parameter
+        $data       = $this->subjecttimetable_model->getSubjectByClassDay($class_id, $day);
         echo json_encode($data);
     }
 
     public function getAllSubjectByClassandSection()
     {
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $data       = $this->subjectgroup_model->getAllsubjectByClassSection($class_id, $section_id);
+        // TVET: section_id ignored in TVET mode
+        // TVET: Use getAllSubjectByClass() - no section_id parameter
+        $data       = $this->subjectgroup_model->getAllSubjectByClass($class_id);
         echo json_encode($data);
     }
 
     public function getSubjectByClassandSection()
     {
         $class_id   = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $data       = $this->subjecttimetable_model->getSubjectByClassandSection($class_id, $section_id);
+        // TVET: section_id ignored in TVET mode
+        // TVET: Use getSubjectByClass() - no section_id parameter
+        $data       = $this->subjecttimetable_model->getSubjectByClass($class_id);
         echo json_encode($data);
     }
 

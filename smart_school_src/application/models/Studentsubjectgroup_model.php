@@ -13,9 +13,10 @@ class Studentsubjectgroup_model extends CI_Model {
     }
 
     public function searchAssignGroupByClassSection($class_id = null, $section_id = null, $subject_group_id = null, $category = null, $gender = null, $rte = null) {
-        $sql = "SELECT IFNULL(`student_subject_groups`.`id`, '0') as `student_subject_group_id`,`classes`.`id` AS `class_id`,"
-                . " `student_session`.`id` as `student_session_id`, `students`.`id`, "
-                . "`classes`.`class`, `sections`.`id` AS `section_id`, `sections`.`section`, "
+        $sql = "SELECT IFNULL(`student_subject_groups`.`id`, '0') as `student_subject_group_id`,"
+                . " `e`.`class_id` AS `class_id`,"
+                . " `e`.`id` as `student_session_id`, `students`.`id`, "
+                . "`ac`.`class_code` as `class`, "
                 . "`students`.`id`, `students`.`admission_no`, `students`.`roll_no`,"
                 . " `students`.`admission_date`, `students`.`firstname`, `students`.`middlename`,`students`.`lastname`,"
                 . " `students`.`image`, `students`.`mobileno`, `students`.`email`, `students`.`state`,"
@@ -28,21 +29,19 @@ class Studentsubjectgroup_model extends CI_Model {
                 . " `students`.`guardian_name`, `students`.`guardian_relation`, `students`.`guardian_phone`,"
                 . " `students`.`guardian_address`, `students`.`is_active`, `students`.`created_at`,"
                 . " `students`.`updated_at`, `students`.`father_name`, `students`.`rte`,"
-                . " `students`.`gender` FROM `students` JOIN `student_session` "
-                . "ON `student_session`.`student_id` = `students`.`id` JOIN `classes` "
-                . "ON `student_session`.`class_id` = `classes`.`id` JOIN `sections` "
-                . "ON `sections`.`id` = `student_session`.`section_id` LEFT JOIN `categories` "
-                . "ON `students`.`category_id` = `categories`.`id` LEFT JOIN student_subject_groups on"
-                . " student_subject_groups.student_session_id=student_session.id"
-                . "  AND student_subject_groups.subject_group_id=" . $this->db->escape($subject_group_id)
-                . " WHERE `student_session`.`session_id` =  " . $this->current_session
-                . " and `students`.`is_active` =  'yes'";
+                . " `students`.`gender` FROM `students`"
+                . " JOIN `academic_class_enrolment` `e` ON `e`.`student_id` = `students`.`id`"
+                . " JOIN `academic_class` `ac` ON `ac`.`id` = `e`.`class_id`"
+                . " LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id`"
+                . " LEFT JOIN student_subject_groups on"
+                . " student_subject_groups.student_session_id=e.id"
+                . " AND student_subject_groups.subject_group_id=" . $this->db->escape($subject_group_id)
+                . " WHERE `ac`.`session_id` = " . $this->current_session
+                . " AND `e`.`status` = 'Active'"
+                . " AND `students`.`is_active` = 'yes'";
 
         if ($class_id != null) {
-            $sql .= " AND `student_session`.`class_id` = " . $this->db->escape($class_id);
-        }
-        if ($section_id != null) {
-            $sql .= " AND `student_session`.`section_id` =" . $this->db->escape($section_id);
+            $sql .= " AND `e`.`class_id` = " . $this->db->escape($class_id);
         }
         if ($category != null) {
             $sql .= " AND `students`.`category_id` =" . $this->db->escape($category);

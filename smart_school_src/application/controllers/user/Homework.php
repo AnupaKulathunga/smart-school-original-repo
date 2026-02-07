@@ -28,9 +28,13 @@ class Homework extends Student_Controller
         $data["evaluated_by"]  = "";
         $userdata              = $this->customlib->getLoggedInUserData();
         $result                = $this->student_model->getRecentRecord($student_id);
+
+        // TVET: Use academic_class_id and enrolment_id
         $class_id              = $student_current_class->class_id;
-        $section_id            = $student_current_class->section_id;
-        $homeworklist          = $this->homework_model->getStudentHomeworkWithStatus($class_id, $section_id, $student_current_class->student_session_id);
+        $enrolment_id          = $student_current_class->student_session_id; // TVET: This now contains enrolment_id
+
+        // TVET: Call model method without section_id parameter
+        $homeworklist          = $this->homework_model->getStudentHomeworkWithStatus($class_id, $enrolment_id);
 
         foreach ($homeworklist as $key => $homeworklist_value) {
             $homeworklist[$key]['status'] = '';
@@ -41,7 +45,9 @@ class Homework extends Student_Controller
         }
 
         $data["homeworklist"] = $homeworklist;
-        $closedhomeworklist   = $this->homework_model->getstudentclosedhomeworkwithstatus($class_id, $section_id, $student_current_class->student_session_id);
+
+        // TVET: Call model method without section_id parameter
+        $closedhomeworklist   = $this->homework_model->getstudentclosedhomeworkwithstatus($class_id, $enrolment_id);
         foreach ($closedhomeworklist as $key => $closedhomeworklist_value) {
             $closedhomeworklist[$key]['status'] = '';
             $checkstatus                        = $this->homework_model->checkstatus($closedhomeworklist_value['id'], $student_id);
@@ -49,10 +55,13 @@ class Homework extends Student_Controller
             if ($checkstatus['record_count'] != 0) {
                 $closedhomeworklist[$key]['status'] = 'submitted';
             }
-        } 
+        }
 
         $data["closedhomeworklist"] = $closedhomeworklist;
-        $data['subjectlist'] = $this->subjectgroup_model->getAllsubjectByClassSection($class_id, $section_id);
+
+        // TVET: Get subjects by class (section_id = class_id in TVET)
+        $data['subjectlist'] = $this->subjectgroup_model->getAllsubjectByClassSection($class_id, $class_id);
+
         $this->load->view("layout/student/header");
         $this->load->view("user/homework/homeworklist", $data);
         $this->load->view("layout/student/footer");
@@ -103,9 +112,10 @@ class Homework extends Student_Controller
         $data['homework_id']     = $id;
         $result                  = $this->homework_model->getRecord($id);
 
+        // TVET: class_id is now academic_class_id, no section_id needed
         $class_id             = $result["class_id"];
-        $section_id           = $result["section_id"];
-        $studentlist          = $this->homework_model->getStudents($class_id, $section_id);
+        // TVET: getStudents takes homework_id (not class_id/section_id)
+        $studentlist          = $this->homework_model->getStudents($id);
         $data["studentlist"]  = $studentlist;
         $data["result"]       = $result;
         $report               = $this->homework_model->getEvaluationReportForStudent($id, $student_id);
@@ -114,22 +124,22 @@ class Homework extends Student_Controller
         $evaluated_by = "";
         $data["homeworkdocs"] = $this->homework_model->get_homeworkDocByIdStdid($id, $student_id);
 
-        $create_data = $this->staff_model->get($result["created_by"]);       
+        $create_data = $this->staff_model->get($result["created_by"]);
 
         if ($superadmin_restriction == 'disabled') {
             if ($create_data['role_id'] != 7) {
                 $created_by = ($create_data['surname'] != "") ? $create_data["name"] . " " . $create_data["surname"] . "  (" . $create_data["employee_id"] . ")" : $create_data["name"] . " (" . $create_data['employee_id'] . ")";
             } else {
                 $created_by = '';
-            }  
-        } else { 
-            $created_by = ($create_data['surname'] != "") ? $create_data["name"] . " " . $create_data["surname"] . "  (" . $create_data["employee_id"] . ")" : $create_data["name"] . " (" . $create_data['employee_id'] . ")";            
-        }        
-        
+            }
+        } else {
+            $created_by = ($create_data['surname'] != "") ? $create_data["name"] . " " . $create_data["surname"] . "  (" . $create_data["employee_id"] . ")" : $create_data["name"] . " (" . $create_data['employee_id'] . ")";
+        }
+
         if($result["evaluated_by"]){
             $eval_data   = $this->staff_model->get($result["evaluated_by"]);
 
-            if ($superadmin_restriction == 'disabled') {                
+            if ($superadmin_restriction == 'disabled') {
 
                 if ($eval_data['role_id'] != 7) {
                     $eval_employeeid = '';
@@ -144,11 +154,11 @@ class Homework extends Student_Controller
                 $eval_employeeid = '';
                 if ($eval_data["employee_id"] != '') {
                     $eval_employeeid = ' (' . $eval_data["employee_id"] . ')';
-                } 
+                }
                 $evaluated_by = ($eval_data['surname'] != "") ? $eval_data["name"] . " " . $eval_data["surname"] . $eval_employeeid : $eval_data["name"] . $eval_employeeid;
             }
-        }        
-        
+        }
+
         $data["created_by"]   = $created_by;
         $data["evaluated_by"] = $evaluated_by;
 
@@ -186,8 +196,8 @@ class Homework extends Student_Controller
 
             $allowed_extension = array_map('trim', array_map('strtolower', explode(',', $result->file_extension)));
             $allowed_mime_type = array_map('trim', array_map('strtolower', explode(',', $result->file_mime)));
-            $ext               = strtolower(pathinfo($file_name, PATHINFO_EXTENSION)); 
-            
+            $ext               = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+
             if (!in_array($file_type, $allowed_mime_type)) {
                 $this->form_validation->set_message('handle_upload', 'File Type Not Allowed');
                 return false;
@@ -259,13 +269,18 @@ class Homework extends Student_Controller
     {
         $this->session->set_userdata('top_menu', 'Homework');
         $student_id                  = $this->customlib->getStudentSessionUserID();
-        $student_current_session     = $this->customlib->getStudentCurrentClsSection();        
-        $dailyassignmentlist         = $this->homework_model->getdailyassignment($student_id, $student_current_session->student_session_id);        
-        $data["dailyassignmentlist"] = $dailyassignmentlist;        
-        $class_id                    = $student_current_session->class_id;
-        $section_id                  = $student_current_session->section_id;
+        $student_current_session     = $this->customlib->getStudentCurrentClsSection();
 
-        $data['subjectlist'] = $this->subjectgroup_model->getAllsubjectByClassSection($class_id, $section_id);       
+        // TVET: Get enrolment_id from session (stored as student_session_id)
+        $enrolment_id                = $student_current_session->student_session_id;
+
+        // TVET: Call model method with enrolment_id instead of student_session_id
+        $dailyassignmentlist         = $this->homework_model->getdailyassignment($student_id, $enrolment_id);
+        $data["dailyassignmentlist"] = $dailyassignmentlist;
+        $class_id                    = $student_current_session->class_id;
+
+        // TVET: section_id = class_id in TVET model
+        $data['subjectlist'] = $this->subjectgroup_model->getAllsubjectByClassSection($class_id, $class_id);
         $this->load->view("layout/student/header");
         $this->load->view("user/homework/dailyassignmentlist", $data);
         $this->load->view("layout/student/footer");
@@ -291,9 +306,10 @@ class Homework extends Student_Controller
 
             $img_name = $this->media_storage->fileupload("file", "./uploads/homework/daily_assignment/");
 
+            // TVET: Use student_session_id (which contains enrolment_id)
             $data = array(
                 'title'                    => $this->input->post('title'),
-                'student_session_id'       => $student_current_session->student_session_id,
+                'student_session_id'       => $student_current_session->student_session_id, // TVET: This is enrolment_id
                 'description'              => $this->input->post('description',TRUE),
                 'subject_group_subject_id' => $this->input->post('subject'),
                 'date'                     => date('Y-m-d'),
@@ -317,8 +333,8 @@ class Homework extends Student_Controller
         $data["dailyassignmentlist"] = $singledailyassignmentlist;
         $student_current_class       = $this->customlib->getStudentCurrentClsSection();
         $class_id                    = $student_current_class->class_id;
-        $section_id                  = $student_current_class->section_id;
-        $data['subjectlist']         = $this->subjectgroup_model->getAllsubjectByClassSection($class_id, $section_id);  
+        // TVET: section_id = class_id in TVET model
+        $data['subjectlist']         = $this->subjectgroup_model->getAllsubjectByClassSection($class_id, $class_id);
         $page                        = $this->load->view("user/homework/_editdailyassignment", $data, true);
         echo json_encode(array('page' => $page));
     }
@@ -341,10 +357,11 @@ class Homework extends Student_Controller
 
         } else {
 
+            // TVET: Use student_session_id (which contains enrolment_id)
             $data = array(
                 'id'                       => $this->input->post('assigment_id'),
                 'title'                    => $this->input->post('title'),
-                'student_session_id'       => $student_current_session->student_session_id,
+                'student_session_id'       => $student_current_session->student_session_id, // TVET: This is enrolment_id
                 'subject_group_subject_id' => $this->input->post('subject'),
                 'description'              => $this->input->post('description',TRUE),
                 'date'                     => date('Y-m-d'),

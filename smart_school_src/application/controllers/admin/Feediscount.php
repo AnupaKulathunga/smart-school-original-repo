@@ -161,8 +161,8 @@ class Feediscount extends Admin_Controller
             $data['gender']      = $this->input->post('gender');
             $data['rte_status']  = $this->input->post('rte');
             $data['class_id']    = $this->input->post('class_id');
-            $data['section_id']  = $this->input->post('section_id');
-            $resultlist          = $this->feediscount_model->searchAssignFeeByClassSection($data['class_id'], $data['section_id'], $id, $data['category_id'], $data['gender'], $data['rte_status']);
+            // TVET: No section_id - class_id is self-contained
+            $resultlist          = $this->feediscount_model->searchAssignFeeByClassTVET($data['class_id'], $id, $data['category_id'], $data['gender'], $data['rte_status']);
             $data['resultlist']  = $resultlist;
         }
         $data['sch_setting'] = $this->sch_setting_detail;
@@ -188,25 +188,26 @@ class Feediscount extends Admin_Controller
             echo json_encode($array);
         } else {
 
-            $student_list           = $this->input->post('student_list');
-            $feediscount_id         = $this->input->post('feediscount_id');
-            $student_sesssion_array = $this->input->post('student_session_id');
-            if (!isset($student_sesssion_array)) {
-                $student_sesssion_array = array();
+            $student_list       = $this->input->post('student_list');
+            $feediscount_id     = $this->input->post('feediscount_id');
+            // TVET: Use enrolment_id instead of student_session_id
+            $enrolment_array    = $this->input->post('enrolment_id');
+            if (!isset($enrolment_array)) {
+                $enrolment_array = array();
             }
-            $diff_aray       = array_diff($student_list, $student_sesssion_array);
+            $diff_aray       = array_diff($student_list, $enrolment_array);
             $preserve_record = array();
-            foreach ($student_sesssion_array as $key => $value) {
+            foreach ($enrolment_array as $key => $value) {
 
                 $insert_array = array(
-                    'student_session_id' => $value,
-                    'fees_discount_id'   => $feediscount_id,
+                    'enrolment_id'     => $value,
+                    'fees_discount_id' => $feediscount_id,
                 );
-                $inserted_id = $this->feediscount_model->allotdiscount($insert_array);
+                $inserted_id = $this->feediscount_model->allotDiscountTVET($insert_array);
                 $preserve_record[] = $inserted_id;
             }
             if (!empty($diff_aray)) {
-                $this->feediscount_model->deletedisstd($feediscount_id, $diff_aray);
+                $this->feediscount_model->deleteDiscountByEnrolmentTVET($feediscount_id, $diff_aray);
             }
 
             $array = array('status' => 'success', 'error' => '', 'message' => $this->lang->line('success_message'));

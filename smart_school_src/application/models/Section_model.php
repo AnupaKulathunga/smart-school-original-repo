@@ -3,180 +3,141 @@
 if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
+/**
+ * Section_model - DEPRECATED in TVET mode
+ *
+ * In the TVET academic model, sections do not exist. Classes are replaced by
+ * academic_classes which combine what was previously class + section into a single entity.
+ *
+ * This model is kept as a stub so that any legacy controller calls (e.g., Sections controller,
+ * Classes controller, Customlib) do not cause fatal errors. All methods return safe empty
+ * values or no-op results.
+ *
+ * Legacy tables no longer used: sections, class_sections
+ * Replacement: academic_classes table (managed via Academic_class_model)
+ */
 class Section_model extends MY_Model {
 
     public function __construct() {
         parent::__construct();
     }
 
+    /**
+     * Get section(s) - STUB
+     * Legacy: queried sections table
+     * TVET: returns empty (no sections exist)
+     *
+     * @param int $id  Optional section ID
+     * @return mixed  Empty array or null
+     */
     public function get($id = null) {
-        $this->db->select()->from('sections');
         if ($id != null) {
-            $this->db->where('id', $id);
-        } else {
-            $this->db->order_by('id');
+            // Single section lookup - return null (not found)
+            return null;
         }
-        $query = $this->db->get();
-        if ($id != null) {
-            return $query->row_array();
-        } else {
-            return $query->result_array();
-        }
+        // List all sections - return empty array
+        return array();
     }
 
+    /**
+     * Remove section - STUB (no-op)
+     * Legacy: deleted from sections table
+     * TVET: no-op, sections don't exist
+     *
+     * @param int $id
+     * @return bool
+     */
     public function remove($id) {
-        $this->db->trans_start(); # Starting Transaction
-        $this->db->trans_strict(false); # See Note 01. If you wish can remove as well
-        //=======================Code Start===========================
-        $this->db->where('id', $id);
-        $this->db->delete('sections');
-        $message = DELETE_RECORD_CONSTANT . " On sections id " . $id;
-        $action = "Delete";
-        $record_id = $id;
-        $this->log($message, $record_id, $action);
-        //======================Code End==============================
-        $this->db->trans_complete(); # Completing transaction
-        /* Optional */
-        if ($this->db->trans_status() === false) {
-            # Something went wrong.
-            $this->db->trans_rollback();
-            return false;
-        } else {
-            //return $return_value;
-        }
+        // No-op in TVET mode - nothing to delete
+        return true;
     }
 
+    /**
+     * Get sections for a class (all sections) - STUB
+     * Legacy: joined class_sections + sections
+     * TVET: returns empty array (no sections)
+     *
+     * @param int $classid
+     * @return array  Empty array
+     */
     public function getClassBySectionAll($classid) {
-
-        $this->db->select('class_sections.id,class_sections.section_id,sections.section');
-        $this->db->from('class_sections');
-        $this->db->join('sections', 'sections.id = class_sections.section_id');
-        $this->db->where('class_sections.class_id', $classid);
-        $this->db->order_by('class_sections.id');
-        $query = $this->db->get();
-        $section = $query->result_array();
-
-        return $section;
+        return array();
     }
- 
+
+    /**
+     * Get sections for a class (respecting teacher restrictions) - STUB
+     * Legacy: joined class_sections + sections, with teacher role check
+     * TVET: returns empty array (no sections)
+     *
+     * @param int $classid
+     * @return array  Empty array
+     */
     public function getClassBySection($classid) {
-        $userdata = $this->customlib->getUserData();
-        $role_id = $userdata["role_id"];
-        $carray = array();
-
-        if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
-
-            $section = $this->teacher_model->get_teacherrestricted_modesections($userdata["id"], $classid);
-        } else {
-            $this->db->select('class_sections.id,class_sections.section_id,sections.section');
-            $this->db->from('class_sections');
-            $this->db->join('sections', 'sections.id = class_sections.section_id');
-            $this->db->where('class_sections.class_id', $classid);
-            $this->db->order_by('class_sections.id');
-            $query = $this->db->get();
-            $section = $query->result_array();
-        }
-
-        return $section;
+        return array();
     }
 
+    /**
+     * Get sections assigned to class teacher - STUB
+     * Legacy: joined class_teacher + sections + class_sections
+     * TVET: returns empty array (no sections)
+     *
+     * @param int $classid
+     * @return array  Empty array
+     */
     public function getClassTeacherSection($classid) {
-
-        $userdata = $this->customlib->getUserData();
-        if (($userdata["role_id"] == 2)) {
-            $id = $userdata["id"];
-        
-            $query = $this->db->select("class_teacher.section_id ")->join('sections', 'sections.id = class_teacher.section_id')->join('class_sections', 'sections.id = class_sections.section_id')->where(array('class_teacher.class_id' => $classid, 'class_teacher.staff_id' => $id))->group_by("class_teacher.section_id")->get("class_teacher");
-            $result = $query->result_array();
-
-            foreach ($result as $key => $value) {
-                $query2 = $this->db->select('class_sections.id,sections.section')
-                        ->join('sections', 'sections.id = class_sections.section_id')
-                        ->where('sections.section_id', $value['section_id'])
-                        ->get('class_sections');
-                $result2 = $query2->row_array();
-                $result[$key]['id'] = $result2['id'];
-                $result[$key]['section'] = $result2['section'];
-            }
-            return $result;
-        }
+        return array();
     }
 
+    /**
+     * Get sections assigned to subject teacher - STUB
+     * Legacy: joined teacher_subjects + class_sections + sections
+     * TVET: returns empty array (no sections)
+     *
+     * @param int $classid
+     * @param int $id  Teacher ID
+     * @return array  Empty array
+     */
     public function getSubjectTeacherSection($classid, $id) {
-
-        $query = $this->db->select("class_sections.id,sections.section,class_sections.section_id")->join("class_sections", "teacher_subjects.class_section_id = class_sections.id")->join('sections', 'sections.id = class_sections.section_id')->where(array('class_sections.class_id' => $classid, 'teacher_subjects.teacher_id' => $id))->get("teacher_subjects");
-
-        return $query->result_array();
+        return array();
     }
 
-    public function getClassNameBySection($classid, $sectionid) {
-        $this->db->select('class_sections.id,class_sections.section_id,sections.section,classes.class');
-        $this->db->from('class_sections');
-        $this->db->join('sections', 'sections.id = class_sections.section_id');
-        $this->db->join('classes', 'classes.id = class_sections.class_id');
-        $this->db->where('class_sections.class_id', $classid);
-        $this->db->where('class_sections.section_id', $sectionid);
-        $this->db->order_by('class_sections.id');
-        $query = $this->db->get();
-        return $query->result_array();
+    /**
+     * Get class and section name by IDs - STUB
+     * Legacy: joined class_sections + sections + classes
+     * TVET: returns empty array
+     *
+     * @param int $classid
+     * @param int $sectionid  DEPRECATED
+     * @return array  Empty array
+     */
+    public function getClassNameBySection($classid, $sectionid = null) {
+        return array();
     }
 
-    public function getClassAndSectionNameByClassIDSectionID($classid, $sectionid) {
-        $this->db->select('class_sections.id,class_sections.section_id,sections.section,classes.class');
-        $this->db->from('class_sections');
-        $this->db->join('sections', 'sections.id = class_sections.section_id');
-        $this->db->join('classes', 'classes.id = class_sections.class_id');
-        $this->db->where('class_sections.class_id', $classid);
-        $this->db->where('class_sections.section_id', $sectionid);
-        $this->db->order_by('class_sections.id');
-        $query = $this->db->get();
-        return $query->row();
+    /**
+     * Get class and section name row by IDs - STUB
+     * Legacy: joined class_sections + sections + classes, returned single row
+     * TVET: returns null
+     *
+     * @param int $classid
+     * @param int $sectionid  DEPRECATED
+     * @return null
+     */
+    public function getClassAndSectionNameByClassIDSectionID($classid, $sectionid = null) {
+        return null;
     }
 
-
+    /**
+     * Add/update section - STUB (no-op)
+     * Legacy: inserted into or updated sections table
+     * TVET: no-op, sections don't exist
+     *
+     * @param array $data
+     * @return bool
+     */
     public function add($data) {
-        $this->db->trans_start(); # Starting Transaction
-        $this->db->trans_strict(false); # See Note 01. If you wish can remove as well
-        //=======================Code Start===========================
-        if (isset($data['id'])) {
-            $this->db->where('id', $data['id']);
-            $this->db->update('sections', $data);
-            $message = UPDATE_RECORD_CONSTANT . " On sections id " . $data['id'];
-            $action = "Update";
-            $record_id = $data['id'];
-            $this->log($message, $record_id, $action);
-            //======================Code End==============================
-
-            $this->db->trans_complete(); # Completing transaction
-            /* Optional */
-
-            if ($this->db->trans_status() === false) {
-                # Something went wrong.
-                $this->db->trans_rollback();
-                return false;
-            } else {
-                //return $return_value;
-            }
-        } else {
-            $this->db->insert('sections', $data);
-            $id = $this->db->insert_id();
-            $message = INSERT_RECORD_CONSTANT . " On sections id " . $id;
-            $action = "Insert";
-            $record_id = $id;
-            $this->log($message, $record_id, $action);
-            //======================Code End==============================
-
-            $this->db->trans_complete(); # Completing transaction
-            /* Optional */
-
-            if ($this->db->trans_status() === false) {
-                # Something went wrong.
-                $this->db->trans_rollback();
-                return false;
-            } else {
-                //return $return_value;
-            }
-        }
+        // No-op in TVET mode - sections are not used
+        return true;
     }
 
 }

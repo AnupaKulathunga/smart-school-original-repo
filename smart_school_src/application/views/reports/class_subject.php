@@ -122,7 +122,6 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                 <thead class="header">
                                     <tr>
                                         <th><?php echo $this->lang->line('class'); ?></th>
-                                        <th><?php echo $this->lang->line('section'); ?></th>
                                         <th><?php echo $this->lang->line('subject'); ?></th>
                                         <th><?php echo $this->lang->line('teacher'); ?></th>
                                         <th><?php echo $this->lang->line('time'); ?></th>
@@ -135,7 +134,6 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                                         ?>
                                         <tr>
                                             <td><?php echo $value[0]->class_name; ?></td>
-                                            <td><?php echo $value[0]->section_name; ?></td>
                                             <td><?php echo $value[0]->subject_name ; ?> <?php if($value[0]->code){ echo '('.$value[0]->code.')'; } ?></td>
                                             <td><?php
                                                 foreach ($value as $teacher) {
@@ -212,8 +210,7 @@ $(document).on('submit','#reportform',function(e){
     function resetFields(search_type){
         if(search_type == "keyword_search"){
             $('#class_id').prop('selectedIndex',0);
-            $('#section_id').find('option').not(':first').remove();
-        }else if (search_type == "class_search") {            
+        }else if (search_type == "class_search") {
              $('#search_text').val("");
         }
     }

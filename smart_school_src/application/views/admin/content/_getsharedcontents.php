@@ -156,8 +156,8 @@ if(!IsNullOrEmptyString($shared_contents->valid_upto)){
                             
                             # code...
                         }elseif ($result_value->class_section_id != "") {
-                            $user_list[]= $result_value->class." (".$result_value->section.")";
-                            # code...
+                            // TVET: Show class only (no section in parentheses)
+                            $user_list[]= $result_value->class;
                         }
                     }
                 }

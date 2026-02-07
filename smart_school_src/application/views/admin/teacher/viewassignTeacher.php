@@ -133,7 +133,6 @@ foreach ($teacherlist as $teacher) {
             $("#TextBoxContainer").html("");
             $("input[class$='_error']").html("");
             var class_id = $('#class_id').val();
-            var section_id = $('#section_id').val();
             var postData = $(this).serializeArray();
             var formURL = $(this).attr("action");
             $.ajax(

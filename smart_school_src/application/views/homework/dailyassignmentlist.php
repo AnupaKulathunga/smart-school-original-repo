@@ -24,21 +24,17 @@
                         </div>
                         <div class="col-lg-12 col-md-12 col-sm-12">
                             <?php
+                            // TVET: Use class_selector component (no section)
                             $this->load->view('admin/_partials/class_selector', [
                                 'selected_class_id' => $class_id,
-                                'selected_section_id' => '',
                                 'classlist' => $classlist,
                                 'required' => true,
-                                'class_id_field_name' => 'class_id',
-                                'section_id_field_name' => 'section_id',
-                                'class_id_element_id' => 'searchclassid',
-                                'section_id_element_id' => 'secid',
-                                'class_col_width' => 'col-md-2 col-lg-2 col-sm-6',
-                                'section_col_width' => 'col-md-2 col-lg-2 col-sm-6'
+                                'id' => 'searchclassid',
+                                'name' => 'class_id',
+                                'onchange' => 'getSubjectGroup(this.value, 0, \"subject_group_id\")'
                             ]);
                             ?>
                             <span class="text-danger" id="error_class_id"></span>
-                            <span class="text-danger" id="error_section_id"></span>
                         </div>
                         <div class="col-md-3 col-lg-3 col-sm-6">
                             <div class="form-group">
@@ -83,9 +79,8 @@ $this->customlib->get_postmessage();
 ?>">
                         <thead>
                             <tr>
-                                <th><?php echo $this->lang->line('student_name') ?></th>                         
+                                <th><?php echo $this->lang->line('student_name') ?></th>
                                 <th><?php echo $this->lang->line('class'); ?> </th>
-                                <th><?php echo $this->lang->line('section'); ?></th>
                                 <th><?php echo $this->lang->line('subject'); ?></th>
                                 <th><?php echo $this->lang->line('title'); ?></th>
                                 <th><?php echo $this->lang->line('submission_date'); ?></th>
@@ -248,9 +243,10 @@ $this->customlib->get_postmessage();
 <script type="text/javascript">
     var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'MM', 'Y' => 'yyyy']) ?>';
 
+    // TVET: Initialize subject groups and subjects by class (no section)
     $(document).ready(function (e) {
-        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id')
-        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $section_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
+        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id')
+        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
     });
 </script>
 
@@ -259,31 +255,29 @@ $this->customlib->get_postmessage();
     var save_method; //for save method string
     var update_id; //for save method string
 
-    $(document).on('change', '#secid', function () {
-        var class_id = $('#searchclassid').val();
-        var section_id = $(this).val();
-        getSubjectGroup(class_id, section_id, 0, 'subject_group_id');
+    // TVET: Load subject group when class changes
+    $(document).on('change', '#searchclassid', function () {
+        var class_id = $(this).val();
+        getSubjectGroup(class_id, 0, 'subject_group_id');
     });
 
     $(document).on('change', '#subject_group_id', function () {
         var class_id = $('#searchclassid').val();
-        var section_id = $('#secid').val();
         var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, section_id, subject_group_id, 0, 'subid');
+        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subid');
     });
 
-    function getSubjectGroup(class_id, section_id, subjectgroup_id, subject_group_target) {
-        if (class_id != "" && section_id != "") {
+    function getSubjectGroup(class_id, subjectgroup_id, subject_group_target) {
+        if (class_id != "") {
 
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
             $.ajax({
                 type: 'POST',
                 url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
-                data: {'class_id': class_id, 'section_id': section_id},
+                data: {'class_id': class_id},
                 dataType: 'JSON',
                 beforeSend: function () {
-                    // setting a timeout
                     $('#' + subject_group_target).html("").addClass('dropdownloading');
                 },
                 success: function (data) {
@@ -298,7 +292,7 @@ $this->customlib->get_postmessage();
                     });
                     $('#' + subject_group_target).append(div_data);
                 },
-                error: function (xhr) { // if error occured
+                error: function (xhr) {
                     alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
                 },
@@ -309,8 +303,8 @@ $this->customlib->get_postmessage();
         }
     }
 
-    function getsubjectBySubjectGroup(class_id, section_id, subject_group_id, subject_group_subject_id, subject_target) {
-        if (class_id != "" && section_id != "" && subject_group_id != "") {
+    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target) {
+        if (class_id != "" && subject_group_id != "") {
 
             var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
 
@@ -320,7 +314,6 @@ $this->customlib->get_postmessage();
                 data: {'subject_group_id': subject_group_id},
                 dataType: 'JSON',
                 beforeSend: function () {
-                    // setting a timeout
                     $('#' + subject_target).html("").addClass('dropdownloading');
                 },
                 success: function (data) {
@@ -331,17 +324,17 @@ $this->customlib->get_postmessage();
                         if (subject_group_subject_id == obj.id) {
                             sel = "selected";
                         }
-                        
+
                         code ='';
                         if(obj.code){
                             code = " (" + obj.code + ") ";
                         }
-                        
+
                         div_data += "<option value=" + obj.id + " " + sel + ">" + obj.name + code +"</option>";
                     });
                     $('#' + subject_target).append(div_data);
                 },
-                error: function (xhr) { // if error occured
+                error: function (xhr) {
                     alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
 
                 },

@@ -19,39 +19,40 @@ class Studentfeemaster_model extends MY_Model
         $this->current_session = $this->setting_model->getCurrentSession();
     }
 
+    // TVET: Converted from class_id+section_id to academic_class_enrolment pattern
     public function searchAssignFeeByClassSection($class_id = null, $section_id = null, $fee_session_group_id = null, $category = null, $gender = null, $rte = null)
     {
-        $sql = "SELECT IFNULL(`student_fees_master`.`id`, '0') as `student_fees_master_id`,`classes`.`id` AS `class_id`,"
-            . " `student_session`.`id` as `student_session_id`, `students`.`id`, "
-            . "`classes`.`class`, `sections`.`id` AS `section_id`, `sections`.`section`, "
-            . "`students`.`id`, `students`.`admission_no`, `students`.`roll_no`,"
-            . " `students`.`admission_date`, `students`.`firstname`, `students`.`middlename`,`students`.`lastname`,"
-            . " `students`.`image`, `students`.`mobileno`, `students`.`email`, `students`.`state`,"
-            . " `students`.`city`, `students`.`pincode`, `students`.`religion`, `students`.`dob`, "
-            . "`students`.`current_address`, `students`.`permanent_address`,"
-            . " IFNULL(students.category_id, 0) as `category_id`,"
-            . " IFNULL(categories.category, '') as `category`,"
-            . " `students`.`adhar_no`, `students`.`samagra_id`,"
-            . " `students`.`bank_account_no`, `students`.`bank_name`, `students`.`ifsc_code`,"
-            . " `students`.`guardian_name`, `students`.`guardian_relation`, `students`.`guardian_phone`,"
-            . " `students`.`guardian_address`, `students`.`is_active`, `students`.`created_at`,"
-            . " `students`.`updated_at`, `students`.`father_name`, `students`.`rte`,"
-            . " `students`.`gender` FROM `students` JOIN `student_session` "
-            . "ON `student_session`.`student_id` = `students`.`id` JOIN `classes` "
-            . "ON `student_session`.`class_id` = `classes`.`id` JOIN `sections` "
-            . "ON `sections`.`id` = `student_session`.`section_id` LEFT JOIN `categories` "
-            . "ON `students`.`category_id` = `categories`.`id` LEFT JOIN student_fees_master on"
-            . " student_fees_master.student_session_id=student_session.id"
-            . "  AND student_fees_master.fee_session_group_id=" . $this->db->escape($fee_session_group_id)
-            . "WHERE `student_session`.`session_id` =  " . $this->current_session
-            . " and `students`.`is_active` =  'yes'";
+        $sql = "SELECT IFNULL(`student_fees_master`.`id`, '0') as `student_fees_master_id`,
+                `academic_class`.`id` AS `class_id`,
+                `enrolment`.`id` as `student_session_id`,
+                `students`.`id`,
+                CONCAT(`academic_class`.`class_code`, ' - ', `academic_class`.`cohort_name`) as `class`,
+                `students`.`admission_no`, `students`.`roll_no`,
+                `students`.`admission_date`, `students`.`firstname`, `students`.`middlename`,`students`.`lastname`,
+                `students`.`image`, `students`.`mobileno`, `students`.`email`, `students`.`state`,
+                `students`.`city`, `students`.`pincode`, `students`.`religion`, `students`.`dob`,
+                `students`.`current_address`, `students`.`permanent_address`,
+                IFNULL(students.category_id, 0) as `category_id`,
+                IFNULL(categories.category, '') as `category`,
+                `students`.`adhar_no`, `students`.`samagra_id`,
+                `students`.`bank_account_no`, `students`.`bank_name`, `students`.`ifsc_code`,
+                `students`.`guardian_name`, `students`.`guardian_relation`, `students`.`guardian_phone`,
+                `students`.`guardian_address`, `students`.`is_active`, `students`.`created_at`,
+                `students`.`updated_at`, `students`.`father_name`, `students`.`rte`,
+                `students`.`gender`
+                FROM `students`
+                JOIN `academic_class_enrolment` AS `enrolment` ON `enrolment`.`student_id` = `students`.`id`
+                JOIN `academic_class` ON `academic_class`.`id` = `enrolment`.`class_id`
+                LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id`
+                LEFT JOIN student_fees_master ON student_fees_master.student_session_id = enrolment.id
+                    AND student_fees_master.fee_session_group_id=" . $this->db->escape($fee_session_group_id) . "
+                WHERE `academic_class`.`session_id` = " . $this->current_session . "
+                AND `students`.`is_active` = 'yes'";
 
         if ($class_id != null) {
-            $sql .= " AND `student_session`.`class_id` = " . $this->db->escape($class_id);
+            $sql .= " AND `enrolment`.`class_id` = " . $this->db->escape($class_id);
         }
-        if ($section_id != null) {
-            $sql .= " AND `student_session`.`section_id` =" . $this->db->escape($section_id);
-        }
+        // section_id ignored in TVET mode
         if ($category != null) {
             $sql .= " AND `students`.`category_id` =" . $this->db->escape($category);
         }
@@ -218,22 +219,21 @@ class Studentfeemaster_model extends MY_Model
         return $result;
     }
 
+    // TVET: Converted from class_id+section_id to academic_class_enrolment pattern
     public function getStudentFeesByClassSectionStudent($class_id = NULL, $section_id = NULL, $student_id = NULL)
     {
         $where_condition = array();
         if ($class_id != NULL) {
-            $where_condition[] = " and student_session.class_id=" . $class_id;
+            $where_condition[] = " and enrolment.class_id=" . $class_id;
         }
-        if ($section_id != NULL) {
-            $where_condition[] = " and student_session.section_id=" . $section_id;
-        }
+        // section_id ignored in TVET mode
         if ($student_id != NULL) {
-            $where_condition[] = " and student_session.student_id=" . $student_id;
+            $where_condition[] = " and enrolment.student_id=" . $student_id;
         }
 
         $where_condition_string = implode(" ", $where_condition);
 
-        $sql = "SELECT student_fees_master.*,student_session.id as `student_session_id`,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,students.category_id,students.image,students.id as student_id,students.father_name,students.admission_no,students.mobileno,students.roll_no,students.rte, IFNULL(categories.category, '') as `category` FROM `student_fees_master` INNER JOIN student_session on student_session.id=student_fees_master.student_session_id INNER JOIN students on students.id=student_session.student_id INNER JOIN classes on classes.id =student_session.class_id left join  categories on students.category_id = categories.id INNER join sections on sections.id=student_session.section_id  WHERE student_session.session_id=" . $this->db->escape($this->current_session) . $where_condition_string;
+        $sql = "SELECT student_fees_master.*,enrolment.id as `student_session_id`,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,'' as `section`,students.category_id,students.image,students.id as student_id,students.father_name,students.admission_no,students.mobileno,students.roll_no,students.rte, IFNULL(categories.category, '') as `category` FROM `student_fees_master` INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_fees_master.student_session_id INNER JOIN students on students.id=enrolment.student_id INNER JOIN academic_class on academic_class.id=enrolment.class_id LEFT JOIN categories on students.category_id = categories.id WHERE academic_class.session_id=" . $this->db->escape($this->current_session) . $where_condition_string;
 
         $query        = $this->db->query($sql);
         $result       = $query->result();
@@ -259,7 +259,7 @@ class Studentfeemaster_model extends MY_Model
                         'lastname' => $result_value->lastname,
                         'class_id' => $result_value->class_id,
                         'class' => $result_value->class,
-                        'section' => $result_value->section,
+                        'section' => '',
                         'father_name' => $result_value->father_name,
                         'admission_no' => $result_value->admission_no,
                         'mobileno' => $result_value->mobileno,
@@ -268,7 +268,7 @@ class Studentfeemaster_model extends MY_Model
                         'category' => $result_value->category,
                         'rte' => $result_value->rte,
                         'image' => $result_value->image
-                    ); //the magic
+                    );
 
                     $student_fees[$result_value->student_session_id]['student_discount_fee'] = $this->feediscount_model->getStudentFeesDiscount($result_value->student_session_id);
                 }
@@ -301,6 +301,7 @@ class Studentfeemaster_model extends MY_Model
         return $result;
     }
 
+    // TVET: Converted transport fees query from student_session to academic_class_enrolment
     public function getTransStudentFees($student_session_id)
     {
         $sql    = "SELECT `student_fees_master`.*,fee_groups.name FROM `student_fees_master` INNER JOIN fee_session_groups on student_fees_master.fee_session_group_id=fee_session_groups.id INNER JOIN fee_groups on fee_groups.id=fee_session_groups.fee_groups_id  WHERE `student_session_id` = " . $student_session_id . " ORDER BY `student_fees_master`.`id`";
@@ -311,33 +312,27 @@ class Studentfeemaster_model extends MY_Model
         if (isset($_POST['class_id']) && !empty($_POST['class_id'])) {
             $class_id = $_POST['class_id'];
         }
-        $section_id = "";
-        if (isset($_POST['section_id']) && !empty($_POST['section_id'])) {
-            $section_id = $_POST['section_id'];
-        }
+        // section_id no longer needed in TVET mode
         $module = $this->module_model->getPermissionByModulename('transport');
         if ($module['is_active']) {
-            $this->db->select('`student_fees_deposite`.*,0 as previous_balance_amount,route_pickup_point.fees as amount,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,"Transport Fees" as fee_group,"Transport Fees" as name, "Transport Fees" as `fee_type`, "" as `fee_code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no, `student_session`.`id` as `student_session_id`,0 as is_system, "" as fee_session_group_id')->from('student_transport_fees');
+            $this->db->select('`student_fees_deposite`.*,0 as previous_balance_amount,route_pickup_point.fees as amount,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,"Transport Fees" as fee_group,"Transport Fees" as name, "Transport Fees" as `fee_type`, "" as `fee_code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no, `enrolment`.`id` as `student_session_id`,0 as is_system, "" as fee_session_group_id', FALSE)->from('student_transport_fees');
 
             $this->db->join('student_fees_deposite', 'student_transport_fees.id = `student_fees_deposite`.`student_transport_fee_id`', 'left');
             $this->db->join('transport_feemaster', '`student_transport_fees`.`transport_feemaster_id` = `transport_feemaster`.`id`');
-            $this->db->join('student_session', 'student_session.id= `student_transport_fees`.`student_session_id`', 'INNER');
+            $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = `student_transport_fees`.`student_session_id`', 'INNER');
             $this->db->join('route_pickup_point', 'route_pickup_point.id = student_transport_fees.route_pickup_point_id');
 
-            $this->db->join('classes', 'classes.id= student_session.class_id');
-            $this->db->join('sections', 'sections.id= student_session.section_id');
-            $this->db->join('students', 'students.id=student_session.student_id');
-            $this->db->where('student_session.session_id', $this->current_session);
-            $this->db->where('student_session.id', $student_session_id);
+            $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+            $this->db->join('students', 'students.id = enrolment.student_id');
+            $this->db->where('academic_class.session_id', $this->current_session);
+            $this->db->where('enrolment.id', $student_session_id);
             $this->db->order_by('student_fees_deposite.id', 'desc');
 
             if ($class_id != null) {
-                $this->db->where('student_session.class_id', $class_id);
+                $this->db->where('enrolment.class_id', $class_id);
             }
 
-            if ($section_id != null) {
-                $this->db->where('student_session.section_id', $section_id);
-            }
+            // section_id filter removed - TVET
 
             $query1        = $this->db->get();
             $result_value1 = $query1->result();
@@ -363,7 +358,7 @@ class Studentfeemaster_model extends MY_Model
                     $result_value->fees     = (object)$this->getDueFeeByFeeSessionGroup($fee_session_group_id, $student_fees_master_id);
                 }
 
-                if ($result_value->is_system != 0) {                  
+                if ($result_value->is_system != 0) {
                     $result_value->fees->{"0"}->{'amount'} = $result_value->amount;
                 }
             }
@@ -393,37 +388,32 @@ class Studentfeemaster_model extends MY_Model
         return $result;
     }
 	
+    // TVET: Converted transport due fees from student_session to academic_class_enrolment
     public function getTransDueFeeByFeeSessionGroup($fee_session_groups_id, $student_fees_master_id)
     {
         $class_id = "";
         if (isset($_POST['class_id']) && !empty($_POST['class_id'])) {
             $class_id = $_POST['class_id'];
         }
-        $section_id = "";
-        if (isset($_POST['section_id']) && !empty($_POST['section_id'])) {
-            $section_id = $_POST['section_id'];
-        }
+        // section_id no longer needed in TVET mode
 
-        $this->db->select('`student_fees_deposite`.*,0 as previous_balance_amount,route_pickup_point.fees as amount,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,"Transport Fees" as fee_group,"Transport Fees" as name, "Transport Fees" as `fee_type`, "" as `fee_code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no, `student_session`.`id` as `student_session_id`,0 as is_system')->from('student_transport_fees');
+        $this->db->select('`student_fees_deposite`.*,0 as previous_balance_amount,route_pickup_point.fees as amount,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,"Transport Fees" as fee_group,"Transport Fees" as name, "Transport Fees" as `fee_type`, "" as `fee_code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no, `enrolment`.`id` as `student_session_id`,0 as is_system', FALSE)->from('student_transport_fees');
 
         $this->db->join('student_fees_deposite', 'student_transport_fees.id = `student_fees_deposite`.`student_transport_fee_id`', 'left');
         $this->db->join('transport_feemaster', '`student_transport_fees`.`transport_feemaster_id` = `transport_feemaster`.`id`');
-        $this->db->join('student_session', 'student_session.id= `student_transport_fees`.`student_session_id`', 'INNER');
+        $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = `student_transport_fees`.`student_session_id`', 'INNER');
         $this->db->join('route_pickup_point', 'route_pickup_point.id = student_transport_fees.route_pickup_point_id');
-        $this->db->join('classes', 'classes.id= student_session.class_id');
-        $this->db->join('sections', 'sections.id= student_session.section_id');
-        $this->db->join('students', 'students.id=student_session.student_id');
+        $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+        $this->db->join('students', 'students.id = enrolment.student_id');
 
-        $this->db->where('student_session.session_id', $this->current_session);
+        $this->db->where('academic_class.session_id', $this->current_session);
         $this->db->order_by('student_fees_deposite.id', 'desc');
 
         if ($class_id != null) {
-            $this->db->where('student_session.class_id', $class_id);
+            $this->db->where('enrolment.class_id', $class_id);
         }
 
-        if ($section_id != null) {
-            $this->db->where('student_session.section_id', $section_id);
-        }
+        // section_id filter removed - TVET
 
         $query1        = $this->db->get();
         $result_value1 = $query1->result();
@@ -454,9 +444,10 @@ class Studentfeemaster_model extends MY_Model
         return $query->result();
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getDueFeesByStudent($student_session_id, $date)
     {
-        $sql = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,fee_groups_feetype.fine_type,fee_groups_feetype.due_date,fee_groups_feetype.fine_percentage,fee_groups_feetype.fine_amount,IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail`,students.is_active,classes.class,sections.section,feetype.type,feetype.code FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN student_session on student_session.id=student_fees_master.student_session_id INNER JOIN students on students.id=student_session.student_id inner join classes on student_session.class_id=classes.id INNER JOIN sections on sections.id=student_session.section_id  INNER JOIN fee_groups_feetype on student_fees_master.fee_session_group_id=fee_groups_feetype.fee_session_group_id inner join fee_groups on fee_groups.id=fee_session_groups.fee_groups_id  INNER JOIN feetype on feetype.id= fee_groups_feetype.feetype_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE student_fees_master.student_session_id='" . $student_session_id . "' AND student_session.session_id='" . $this->current_session . "' and  fee_session_groups.session_id='" . $this->current_session . "'  and fee_groups_feetype.due_date <  '" . $date . "' ORDER BY `student_fees_master`.`id` DESC";
+        $sql = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,fee_groups_feetype.fine_type,fee_groups_feetype.due_date,fee_groups_feetype.fine_percentage,fee_groups_feetype.fine_amount,IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail`,students.is_active,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,'' as `section`,feetype.type,feetype.code FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_fees_master.student_session_id INNER JOIN students on students.id=enrolment.student_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN fee_groups_feetype on student_fees_master.fee_session_group_id=fee_groups_feetype.fee_session_group_id INNER JOIN fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN feetype on feetype.id=fee_groups_feetype.feetype_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE student_fees_master.student_session_id='" . $student_session_id . "' AND academic_class.session_id='" . $this->current_session . "' and fee_session_groups.session_id='" . $this->current_session . "' and fee_groups_feetype.due_date < '" . $date . "' ORDER BY `student_fees_master`.`id` DESC";
         $query = $this->db->query($sql);
         return $query->result();
     }
@@ -474,26 +465,29 @@ class Studentfeemaster_model extends MY_Model
         return false;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getTransportFeesByDueDate($start_date, $end_date)
     {
-        $sql    = "SELECT student_transport_fees.*,route_pickup_point.fees,transport_feemaster.month,transport_feemaster.due_date ,transport_feemaster.fine_amount, transport_feemaster.fine_type,transport_feemaster.fine_percentage,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id, IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail`,students.id as `student_id`, students.roll_no,students.admission_date,students.firstname,students.middlename,  students.lastname,students.image,    students.mobileno, students.email ,students.state ,   students.city , students.pincode ,     students.religion,students.dob ,students.current_address,    students.permanent_address,students.category_id, IFNULL(categories.category, '') as `category`,   students.adhar_no,students.samagra_id,students.bank_account_no,students.bank_name, students.ifsc_code , students.guardian_name, students.guardian_relation,students.guardian_phone,students.guardian_email,`classes`.`class`,students.guardian_address,students.is_active,`students`.`father_name`,`students`.`app_key`,`students`.`parent_app_key`,`students`.`gender`  FROM `student_transport_fees` INNER JOIN transport_feemaster on transport_feemaster.id =student_transport_fees.transport_feemaster_id   LEFT JOIN student_fees_deposite on student_fees_deposite.student_transport_fee_id=student_transport_fees.id INNER JOIN student_session on student_session.id= student_transport_fees.student_session_id INNER JOIN classes on classes.id= student_session.class_id INNER JOIN sections on sections.id= student_session.section_id INNER JOIN students on students.id=student_session.student_id INNER JOIN route_pickup_point on route_pickup_point.id = student_transport_fees.route_pickup_point_id LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id` WHERE transport_feemaster.due_date BETWEEN " . $this->db->escape($start_date) . " and " . $this->db->escape($end_date);
+        $sql    = "SELECT student_transport_fees.*,route_pickup_point.fees,transport_feemaster.month,transport_feemaster.due_date,transport_feemaster.fine_amount, transport_feemaster.fine_type,transport_feemaster.fine_percentage,enrolment.class_id,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,'' as `section`,'' as `section_id`,enrolment.student_id, IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail`,students.id as `student_id`, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.image, students.mobileno, students.email,students.state, students.city, students.pincode, students.religion,students.dob,students.current_address, students.permanent_address,students.category_id, IFNULL(categories.category, '') as `category`, students.adhar_no,students.samagra_id,students.bank_account_no,students.bank_name, students.ifsc_code, students.guardian_name, students.guardian_relation,students.guardian_phone,students.guardian_email,students.guardian_address,students.is_active,`students`.`father_name`,`students`.`app_key`,`students`.`parent_app_key`,`students`.`gender` FROM `student_transport_fees` INNER JOIN transport_feemaster on transport_feemaster.id=student_transport_fees.transport_feemaster_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_transport_fee_id=student_transport_fees.id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_transport_fees.student_session_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN students on students.id=enrolment.student_id INNER JOIN route_pickup_point on route_pickup_point.id = student_transport_fees.route_pickup_point_id LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id` WHERE transport_feemaster.due_date BETWEEN " . $this->db->escape($start_date) . " and " . $this->db->escape($end_date);
         $query  = $this->db->query($sql);
         $result = $query->result();
 
         return $result;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getFeesByStudentFeeMasterAndFeetype($student_fees_master_id, $fee_groups_feetype_id)
     {
-        $sql = "SELECT student_fees_master.id,student_fees_master.is_system,student_fees_master.student_session_id,student_fees_master.fee_session_group_id,student_fees_master.amount as `student_fees_master_amount`,fee_groups_feetype.id as `fee_groups_feetype_id`,students.id as student_id,students.firstname,students.middlename,students.admission_no,students.lastname,student_session.class_id,classes.class,sections.section,students.guardian_name,students.guardian_phone,students.father_name,student_session.section_id,student_session.student_id,fee_groups_feetype.amount,fee_groups_feetype.due_date,fee_groups_feetype.fine_amount,fee_groups_feetype.fine_type,fee_groups_feetype.fee_groups_id,fee_groups.name,fee_groups_feetype.feetype_id,feetype.code,feetype.type, IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail` FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id = student_fees_master.fee_session_group_id INNER JOIN fee_groups_feetype on  fee_groups_feetype.fee_session_group_id = fee_session_groups.id  INNER JOIN fee_groups on fee_groups.id=fee_groups_feetype.fee_groups_id INNER JOIN feetype on feetype.id=fee_groups_feetype.feetype_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id INNER JOIN student_session on student_session.id= student_fees_master.student_session_id INNER JOIN classes on classes.id= student_session.class_id INNER JOIN sections on sections.id= student_session.section_id INNER JOIN students on students.id=student_session.student_id  WHERE  student_fees_master.id=" . $student_fees_master_id . " and fee_groups_feetype.id= " . $fee_groups_feetype_id;
+        $sql = "SELECT student_fees_master.id,student_fees_master.is_system,student_fees_master.student_session_id,student_fees_master.fee_session_group_id,student_fees_master.amount as `student_fees_master_amount`,fee_groups_feetype.id as `fee_groups_feetype_id`,students.id as student_id,students.firstname,students.middlename,students.admission_no,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,'' as `section`,students.guardian_name,students.guardian_phone,students.father_name,'' as `section_id`,enrolment.student_id,fee_groups_feetype.amount,fee_groups_feetype.due_date,fee_groups_feetype.fine_amount,fee_groups_feetype.fine_type,fee_groups_feetype.fee_groups_id,fee_groups.name,fee_groups_feetype.feetype_id,feetype.code,feetype.type, IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail` FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id = student_fees_master.fee_session_group_id INNER JOIN fee_groups_feetype on fee_groups_feetype.fee_session_group_id = fee_session_groups.id INNER JOIN fee_groups on fee_groups.id=fee_groups_feetype.fee_groups_id INNER JOIN feetype on feetype.id=fee_groups_feetype.feetype_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_fees_master.student_session_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN students on students.id=enrolment.student_id WHERE student_fees_master.id=" . $student_fees_master_id . " and fee_groups_feetype.id= " . $fee_groups_feetype_id;
 
         $query = $this->db->query($sql);
         return $query->row();
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getDueFeeByFeeSessionGroupFeetype($fee_session_groups_id, $student_fees_master_id, $fee_groups_feetype_id)
     {
-        $sql = "SELECT fee_groups_feetype.fine_type,student_fees_master.id,student_fees_master.is_system,student_fees_master.student_session_id,student_fees_master.fee_session_group_id,student_fees_master.amount as `student_fees_master_amount`,fee_groups_feetype.id as `fee_groups_feetype_id`,students.id as student_id,students.firstname,students.middlename,students.admission_no,students.lastname,student_session.class_id,classes.class,sections.section,students.guardian_name,students.guardian_phone,students.father_name,student_session.section_id,student_session.student_id,fee_groups_feetype.amount,fee_groups_feetype.due_date,fee_groups_feetype.fine_amount,fee_groups_feetype.fee_groups_id,fee_groups.name,fee_groups_feetype.feetype_id,feetype.code,feetype.type, IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail` FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id = student_fees_master.fee_session_group_id INNER JOIN fee_groups_feetype on  fee_groups_feetype.fee_session_group_id = fee_session_groups.id  INNER JOIN fee_groups on fee_groups.id=fee_groups_feetype.fee_groups_id INNER JOIN feetype on feetype.id=fee_groups_feetype.feetype_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id INNER JOIN student_session on student_session.id= student_fees_master.student_session_id INNER JOIN classes on classes.id= student_session.class_id INNER JOIN sections on sections.id= student_session.section_id INNER JOIN students on students.id=student_session.student_id  WHERE student_fees_master.fee_session_group_id =" . $fee_session_groups_id . " and student_fees_master.id=" . $student_fees_master_id . " and fee_groups_feetype.id= " . $fee_groups_feetype_id;
+        $sql = "SELECT fee_groups_feetype.fine_type,student_fees_master.id,student_fees_master.is_system,student_fees_master.student_session_id,student_fees_master.fee_session_group_id,student_fees_master.amount as `student_fees_master_amount`,fee_groups_feetype.id as `fee_groups_feetype_id`,students.id as student_id,students.firstname,students.middlename,students.admission_no,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,'' as `section`,students.guardian_name,students.guardian_phone,students.father_name,'' as `section_id`,enrolment.student_id,fee_groups_feetype.amount,fee_groups_feetype.due_date,fee_groups_feetype.fine_amount,fee_groups_feetype.fee_groups_id,fee_groups.name,fee_groups_feetype.feetype_id,feetype.code,feetype.type, IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail` FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id = student_fees_master.fee_session_group_id INNER JOIN fee_groups_feetype on fee_groups_feetype.fee_session_group_id = fee_session_groups.id INNER JOIN fee_groups on fee_groups.id=fee_groups_feetype.fee_groups_id INNER JOIN feetype on feetype.id=fee_groups_feetype.feetype_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_fees_master.student_session_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN students on students.id=enrolment.student_id WHERE student_fees_master.fee_session_group_id =" . $fee_session_groups_id . " and student_fees_master.id=" . $student_fees_master_id . " and fee_groups_feetype.id= " . $fee_groups_feetype_id;
 
         $query = $this->db->query($sql);
         return $query->row();
@@ -688,52 +682,47 @@ class Studentfeemaster_model extends MY_Model
         return $data;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getFeeCollectionReport($start_date, $end_date, $feetype_id = null, $received_by = null, $group = null, $class_id = null, $section_id = null)
     {
-        $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,`fee_groups`.`name`, `feetype`.`type`, `feetype`.`code`,feetype.is_system,student_fees_master.student_session_id,students.admission_no')->from('student_fees_deposite');
+        $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,`fee_groups`.`name`, `feetype`.`type`, `feetype`.`code`,feetype.is_system,student_fees_master.student_session_id,students.admission_no', FALSE)->from('student_fees_deposite');
         $this->db->join('fee_groups_feetype', 'fee_groups_feetype.id = student_fees_deposite.fee_groups_feetype_id');
         $this->db->join('fee_groups', 'fee_groups.id = fee_groups_feetype.fee_groups_id');
         $this->db->join('feetype', 'feetype.id = fee_groups_feetype.feetype_id');
         $this->db->join('student_fees_master', 'student_fees_master.id=student_fees_deposite.student_fees_master_id');
-        $this->db->join('student_session', 'student_session.id= student_fees_master.student_session_id', 'left');
-        $this->db->join('classes', 'classes.id= student_session.class_id');
-        $this->db->join('sections', 'sections.id= student_session.section_id');
-        $this->db->join('students', 'students.id=student_session.student_id');
+        $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = student_fees_master.student_session_id', 'left');
+        $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+        $this->db->join('students', 'students.id = enrolment.student_id');
         if ($feetype_id != null) {
             $this->db->where('fee_groups_feetype.feetype_id', $feetype_id);
         }
         $this->db->where('fee_groups_feetype.session_id', $this->current_session);
-        $this->db->where('student_session.session_id', $this->current_session);       
+        $this->db->where('academic_class.session_id', $this->current_session);
 
         if ($class_id != null) {
-            $this->db->where('student_session.class_id', $class_id);
+            $this->db->where('enrolment.class_id', $class_id);
         }
 
-        if ($section_id != null) {
-            $this->db->where('student_session.section_id', $section_id);
-        }
+        // section_id filter removed - TVET
 
         $query        = $this->db->get();
         $result_value = $query->result();
         $module = $this->module_model->getPermissionByModulename('transport');
         if ($module['is_active']) {
-            $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,"Transport Fees" as name, "Transport Fees" as `type`, "" as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no')->from('student_fees_deposite');
+            $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,"Transport Fees" as name, "Transport Fees" as `type`, "" as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no', FALSE)->from('student_fees_deposite');
 
             $this->db->join('student_transport_fees', 'student_transport_fees.id = `student_fees_deposite`.`student_transport_fee_id`');
             $this->db->join('transport_feemaster', '`student_transport_fees`.`transport_feemaster_id` = `transport_feemaster`.`id`');
-            $this->db->join('student_session', 'student_session.id= `student_transport_fees`.`student_session_id`', 'INNER');
-            $this->db->join('classes', 'classes.id= student_session.class_id');
-            $this->db->join('sections', 'sections.id= student_session.section_id');
-            $this->db->join('students', 'students.id=student_session.student_id');
-            $this->db->where('student_session.session_id', $this->current_session);
-         
+            $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = `student_transport_fees`.`student_session_id`', 'INNER');
+            $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+            $this->db->join('students', 'students.id = enrolment.student_id');
+            $this->db->where('academic_class.session_id', $this->current_session);
+
             if ($class_id != null) {
-                $this->db->where('student_session.class_id', $class_id);
+                $this->db->where('enrolment.class_id', $class_id);
             }
 
-            if ($section_id != null) {
-                $this->db->where('student_session.section_id', $section_id);
-            }
+            // section_id filter removed - TVET
 
             $query1        = $this->db->get();
             $result_value1 = $query1->result();
@@ -812,17 +801,17 @@ class Studentfeemaster_model extends MY_Model
         return $return_array;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getFeeBetweenDate($start_date, $end_date)
     {
-        $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,`fee_groups`.`name`, `feetype`.`type`, `feetype`.`code`,student_fees_master.student_session_id')->from('student_fees_deposite');
+        $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,`fee_groups`.`name`, `feetype`.`type`, `feetype`.`code`,student_fees_master.student_session_id', FALSE)->from('student_fees_deposite');
         $this->db->join('fee_groups_feetype', 'fee_groups_feetype.id = student_fees_deposite.fee_groups_feetype_id');
         $this->db->join('fee_groups', 'fee_groups.id = fee_groups_feetype.fee_groups_id');
         $this->db->join('feetype', 'feetype.id = fee_groups_feetype.feetype_id');
         $this->db->join('student_fees_master', 'student_fees_master.id=student_fees_deposite.student_fees_master_id');
-        $this->db->join('student_session', 'student_session.id= student_fees_master.student_session_id');
-        $this->db->join('classes', 'classes.id= student_session.class_id');
-        $this->db->join('sections', 'sections.id= student_session.section_id');
-        $this->db->join('students', 'students.id=student_session.student_id');
+        $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = student_fees_master.student_session_id');
+        $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+        $this->db->join('students', 'students.id = enrolment.student_id');
         $this->db->order_by('student_fees_deposite.id');
         $query        = $this->db->get();
         $result_value = $query->result();
@@ -949,25 +938,26 @@ class Studentfeemaster_model extends MY_Model
         return $array;
     }	
 
-    public function getTransportFeeByID($trans_fee_id) 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
+    public function getTransportFeeByID($trans_fee_id)
     {
-        $sql = "SELECT student_transport_fees.*,route_pickup_point.fees,transport_feemaster.month,transport_feemaster.due_date ,transport_feemaster.fine_amount, transport_feemaster.fine_type,transport_feemaster.fine_percentage,students.id as student_id,students.firstname,students.middlename,students.admission_no,students.lastname,student_session.class_id,classes.class,sections.section,students.guardian_name,students.guardian_phone,students.father_name,student_session.section_id,student_session.student_id, IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail` FROM `student_transport_fees` INNER JOIN transport_feemaster on transport_feemaster.id =student_transport_fees.transport_feemaster_id   LEFT JOIN student_fees_deposite on student_fees_deposite.student_transport_fee_id=student_transport_fees.id INNER JOIN student_session on student_session.id= student_transport_fees.student_session_id INNER JOIN classes on classes.id= student_session.class_id INNER JOIN sections on sections.id= student_session.section_id INNER JOIN students on students.id=student_session.student_id INNER JOIN route_pickup_point on route_pickup_point.id = student_transport_fees.route_pickup_point_id  WHERE student_transport_fees.id=" . $trans_fee_id;
+        $sql = "SELECT student_transport_fees.*,route_pickup_point.fees,transport_feemaster.month,transport_feemaster.due_date,transport_feemaster.fine_amount, transport_feemaster.fine_type,transport_feemaster.fine_percentage,students.id as student_id,students.firstname,students.middlename,students.admission_no,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,'' as `section`,students.guardian_name,students.guardian_phone,students.father_name,'' as `section_id`,enrolment.student_id, IFNULL(student_fees_deposite.id,0) as `student_fees_deposite_id`, IFNULL(student_fees_deposite.amount_detail,0) as `amount_detail` FROM `student_transport_fees` INNER JOIN transport_feemaster on transport_feemaster.id=student_transport_fees.transport_feemaster_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_transport_fee_id=student_transport_fees.id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_transport_fees.student_session_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN students on students.id=enrolment.student_id INNER JOIN route_pickup_point on route_pickup_point.id = student_transport_fees.route_pickup_point_id WHERE student_transport_fees.id=" . $trans_fee_id;
         $query = $this->db->query($sql);
         return $query->row();
     }
 	
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getTransportFeeByInvoice($invoice_id, $sub_invoice_id)
     {
-        $this->db->select('`student_fees_deposite`.*,students.id as std_id,students.firstname,students.middlename,students.lastname,students.admission_no,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,pickup_point.name as `pickup_name`,transport_route.route_title,transport_route_id,pickup_point_id,transport_feemaster.month,transport_feemaster.due_date,transport_feemaster.fine_amount,transport_feemaster.fine_type,route_pickup_point.fees')->from('student_fees_deposite');
+        $this->db->select('`student_fees_deposite`.*,students.id as std_id,students.firstname,students.middlename,students.lastname,students.admission_no,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,pickup_point.name as `pickup_name`,transport_route.route_title,transport_route_id,pickup_point_id,transport_feemaster.month,transport_feemaster.due_date,transport_feemaster.fine_amount,transport_feemaster.fine_type,route_pickup_point.fees', FALSE)->from('student_fees_deposite');
         $this->db->join('student_transport_fees', 'student_transport_fees.id = student_fees_deposite.student_transport_fee_id');
         $this->db->join('transport_feemaster', 'transport_feemaster.id = student_transport_fees.transport_feemaster_id');
         $this->db->join('route_pickup_point', 'route_pickup_point.id = student_transport_fees.route_pickup_point_id');
         $this->db->join('pickup_point', 'route_pickup_point.pickup_point_id = pickup_point.id');
         $this->db->join('transport_route', 'route_pickup_point.transport_route_id = transport_route.id');
-        $this->db->join('student_session', 'student_session.id= student_transport_fees.student_session_id');
-        $this->db->join('classes', 'classes.id= student_session.class_id');
-        $this->db->join('sections', 'sections.id= student_session.section_id');
-        $this->db->join('students', 'students.id=student_session.student_id');
+        $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = student_transport_fees.student_session_id');
+        $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+        $this->db->join('students', 'students.id = enrolment.student_id');
         $this->db->where('student_fees_deposite.id', $invoice_id);
         $q = $this->db->get();
 
@@ -987,19 +977,19 @@ class Studentfeemaster_model extends MY_Model
         return false;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getFeeByInvoice($invoice_id, $sub_invoice_id)
     {
         $type = $this->db->select('`student_fees_deposite`.*')->from('`student_fees_deposite`')->where('id', $invoice_id)->get()->row_array();
         if (empty($type['student_transport_fee_id'])) {
-            $this->db->select('`student_fees_deposite`.*,students.id as std_id,students.firstname,students.middlename,students.lastname,students.admission_no,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,`fee_groups`.`name`, `feetype`.`type`, `feetype`.`code`,feetype.is_system,student_fees_master.student_session_id,student_session.session_id,student_fees_master.amount as `student_fees_master_amount`,fee_groups_feetype.amount')->from('student_fees_deposite');
+            $this->db->select('`student_fees_deposite`.*,students.id as std_id,students.firstname,students.middlename,students.lastname,students.admission_no,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,`fee_groups`.`name`, `feetype`.`type`, `feetype`.`code`,feetype.is_system,student_fees_master.student_session_id,academic_class.session_id,student_fees_master.amount as `student_fees_master_amount`,fee_groups_feetype.amount', FALSE)->from('student_fees_deposite');
             $this->db->join('fee_groups_feetype', 'fee_groups_feetype.id = student_fees_deposite.fee_groups_feetype_id');
             $this->db->join('fee_groups', 'fee_groups.id = fee_groups_feetype.fee_groups_id');
             $this->db->join('feetype', 'feetype.id = fee_groups_feetype.feetype_id');
             $this->db->join('student_fees_master', 'student_fees_master.id=student_fees_deposite.student_fees_master_id');
-            $this->db->join('student_session', 'student_session.id= student_fees_master.student_session_id');
-            $this->db->join('classes', 'classes.id= student_session.class_id');
-            $this->db->join('sections', 'sections.id= student_session.section_id');
-            $this->db->join('students', 'students.id=student_session.student_id');
+            $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = student_fees_master.student_session_id');
+            $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+            $this->db->join('students', 'students.id = enrolment.student_id');
             $this->db->where('student_fees_deposite.id', $invoice_id);
             $q = $this->db->get();
             if ($q->num_rows() > 0) {
@@ -1017,14 +1007,13 @@ class Studentfeemaster_model extends MY_Model
         } else {
             $module = $this->module_model->getPermissionByModulename('transport');
             if ($module['is_active']) {
-                $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,"Transport Fees" as name, "Transport Fees" as `type`, transport_feemaster.month as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no,student_session.session_id')->from('student_fees_deposite');
+                $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,"Transport Fees" as name, "Transport Fees" as `type`, transport_feemaster.month as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no,academic_class.session_id', FALSE)->from('student_fees_deposite');
 
                 $this->db->join('student_transport_fees', 'student_transport_fees.id = `student_fees_deposite`.`student_transport_fee_id`');
                 $this->db->join('transport_feemaster', '`student_transport_fees`.`transport_feemaster_id` = `transport_feemaster`.`id`');
-                $this->db->join('student_session', 'student_session.id= `student_transport_fees`.`student_session_id`', 'INNER');
-                $this->db->join('classes', 'classes.id= student_session.class_id');
-                $this->db->join('sections', 'sections.id= student_session.section_id');
-                $this->db->join('students', 'students.id=student_session.student_id');
+                $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = `student_transport_fees`.`student_session_id`', 'INNER');
+                $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+                $this->db->join('students', 'students.id = enrolment.student_id');
                 $this->db->order_by('student_fees_deposite.id', 'desc');
                 $this->db->where('student_fees_deposite.id', $invoice_id);
                 $q        = $this->db->get();
@@ -1161,33 +1150,32 @@ class Studentfeemaster_model extends MY_Model
         return $array;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getOnlineFeeCollectionReport($start_date, $end_date)
     {
-        $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,`fee_groups`.`name`, `feetype`.`type`, `feetype`.`code`,feetype.is_system,student_fees_master.student_session_id,students.admission_no')->from('student_fees_deposite');
+        $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,`fee_groups`.`name`, `feetype`.`type`, `feetype`.`code`,feetype.is_system,student_fees_master.student_session_id,students.admission_no', FALSE)->from('student_fees_deposite');
         $this->db->join('fee_groups_feetype', 'fee_groups_feetype.id = student_fees_deposite.fee_groups_feetype_id');
         $this->db->join('fee_groups', 'fee_groups.id = fee_groups_feetype.fee_groups_id');
         $this->db->join('feetype', 'feetype.id = fee_groups_feetype.feetype_id');
         $this->db->join('student_fees_master', 'student_fees_master.id=student_fees_deposite.student_fees_master_id');
-        $this->db->join('student_session', 'student_session.id= student_fees_master.student_session_id');
-        $this->db->join('classes', 'classes.id= student_session.class_id');
-        $this->db->join('sections', 'sections.id= student_session.section_id');
-        $this->db->join('students', 'students.id=student_session.student_id');
-        $this->db->where('student_session.session_id', $this->current_session);
+        $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = student_fees_master.student_session_id');
+        $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+        $this->db->join('students', 'students.id = enrolment.student_id');
+        $this->db->where('academic_class.session_id', $this->current_session);
         $this->db->order_by('student_fees_deposite.id');
 
         $query        = $this->db->get();
         $result_value = $query->result();
         $module = $this->module_model->getPermissionByModulename('transport');
         if ($module['is_active']) {
-            $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,"Transport Fees" as name, "Transport Fees" as `type`, "" as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no')->from('student_fees_deposite');
+            $this->db->select('`student_fees_deposite`.*,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,"Transport Fees" as name, "Transport Fees" as `type`, "" as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no', FALSE)->from('student_fees_deposite');
 
             $this->db->join('student_transport_fees', 'student_transport_fees.id = `student_fees_deposite`.`student_transport_fee_id`');
             $this->db->join('transport_feemaster', '`student_transport_fees`.`transport_feemaster_id` = `transport_feemaster`.`id`');
-            $this->db->join('student_session', 'student_session.id= `student_transport_fees`.`student_session_id`', 'INNER');
-            $this->db->join('classes', 'classes.id= student_session.class_id');
-            $this->db->join('sections', 'sections.id= student_session.section_id');
-            $this->db->join('students', 'students.id=student_session.student_id');
-            $this->db->where('student_session.session_id', $this->current_session);
+            $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = `student_transport_fees`.`student_session_id`', 'INNER');
+            $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+            $this->db->join('students', 'students.id = enrolment.student_id');
+            $this->db->where('academic_class.session_id', $this->current_session);
             $this->db->order_by('student_fees_deposite.id', 'desc');
 
             $query1        = $this->db->get();
@@ -1249,31 +1237,32 @@ class Studentfeemaster_model extends MY_Model
         return $return_array;
     }
 
+    // TVET: Converted from student_session to academic_class_enrolment
     public function getFeesAwaiting($start_date, $end_date)
     {
-        $sql    = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,student_fees_deposite.amount_detail,students.firstname,students.middlename,students.is_active FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN student_session on student_session.id=student_fees_master.student_session_id INNER JOIN students on students.id=student_session.student_id inner join fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN fee_groups_feetype on fee_groups.id=fee_groups_feetype.fee_groups_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE student_session.session_id='" . $this->current_session . "' and  fee_session_groups.session_id='" . $this->current_session . "' and fee_groups_feetype.due_date BETWEEN '" . $start_date . "' and '" . $end_date . "' and students.is_active='yes' order by fee_groups_feetype.due_date asc";
+        $sql    = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,student_fees_deposite.amount_detail,students.firstname,students.middlename,students.is_active FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_fees_master.student_session_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN students on students.id=enrolment.student_id INNER JOIN fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN fee_groups_feetype on fee_groups.id=fee_groups_feetype.fee_groups_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE academic_class.session_id='" . $this->current_session . "' and fee_session_groups.session_id='" . $this->current_session . "' and fee_groups_feetype.due_date BETWEEN '" . $start_date . "' and '" . $end_date . "' and students.is_active='yes' order by fee_groups_feetype.due_date asc";
         $query  = $this->db->query($sql);
         $result = $query->result();
 
         return $result;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getCurrentSessionStudentFees()
     {
-        $sql = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,student_fees_deposite.id as `student_fees_deposite_id`,student_fees_deposite.amount_detail,students.admission_no , students.roll_no,students.admission_date,students.firstname,students.middlename,  students.lastname,students.father_name,students.image, students.mobileno, students.email ,students.state ,   students.city , students.pincode ,students.is_active,classes.class,sections.section FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN student_session on student_session.id=student_fees_master.student_session_id INNER JOIN students on students.id=student_session.student_id inner join classes on student_session.class_id=classes.id INNER JOIN sections on sections.id=student_session.section_id inner join fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN fee_groups_feetype on fee_groups.id=fee_groups_feetype.fee_groups_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE student_session.session_id='" . $this->current_session . "' and  fee_session_groups.session_id='" . $this->current_session . "'";
+        $sql = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,student_fees_deposite.id as `student_fees_deposite_id`,student_fees_deposite.amount_detail,students.admission_no, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.father_name,students.image, students.mobileno, students.email,students.state, students.city, students.pincode,students.is_active,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,'' as `section` FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_fees_master.student_session_id INNER JOIN students on students.id=enrolment.student_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN fee_groups_feetype on fee_groups.id=fee_groups_feetype.fee_groups_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE academic_class.session_id='" . $this->current_session . "' and fee_session_groups.session_id='" . $this->current_session . "'";
 
         $query  = $this->db->query($sql);
         $result_value = $query->result();
         $module = $this->module_model->getPermissionByModulename('transport');
         if ($module['is_active']) {
-            $this->db->select('`student_fees_deposite`.*,student_fees_deposite.id as `student_fees_deposite_id`,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,"Transport Fees" as name, "Transport Fees" as `type`, "" as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no')->from('student_fees_deposite');
+            $this->db->select('`student_fees_deposite`.*,student_fees_deposite.id as `student_fees_deposite_id`,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,"Transport Fees" as name, "Transport Fees" as `type`, "" as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no', FALSE)->from('student_fees_deposite');
             $this->db->join('student_transport_fees', 'student_transport_fees.id = `student_fees_deposite`.`student_transport_fee_id`');
             $this->db->join('transport_feemaster', '`student_transport_fees`.`transport_feemaster_id` = `transport_feemaster`.`id`');
-            $this->db->join('student_session', 'student_session.id= `student_transport_fees`.`student_session_id`', 'INNER');
-            $this->db->join('classes', 'classes.id= student_session.class_id');
-            $this->db->join('sections', 'sections.id= student_session.section_id');
-            $this->db->join('students', 'students.id=student_session.student_id');
-            $this->db->where('student_session.session_id', $this->current_session);
+            $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = `student_transport_fees`.`student_session_id`', 'INNER');
+            $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+            $this->db->join('students', 'students.id = enrolment.student_id');
+            $this->db->where('academic_class.session_id', $this->current_session);
             $this->db->order_by('student_fees_deposite.id', 'desc');
 
             $query1        = $this->db->get();
@@ -1292,26 +1281,26 @@ class Studentfeemaster_model extends MY_Model
         return $result_value2;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getFeesDepositeByIdArray($id_array = array())
     {
         $id_implode = $imp = "'" . implode("','", $id_array) . "'";
-      
-        $sql = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,student_fees_deposite.id as `student_fees_deposite_id`,student_fees_deposite.amount_detail,students.admission_no , students.roll_no,students.admission_date,students.firstname,students.middlename,  students.lastname,students.father_name,students.image, students.mobileno, students.email ,students.state ,   students.city , students.pincode ,students.is_active,classes.class,sections.section FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN student_session on student_session.id=student_fees_master.student_session_id INNER JOIN students on students.id=student_session.student_id inner join classes on student_session.class_id=classes.id INNER JOIN sections on sections.id=student_session.section_id inner join fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN fee_groups_feetype on fee_groups.id=fee_groups_feetype.fee_groups_id  JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE student_session.session_id='" . $this->current_session . "' and  fee_session_groups.session_id='" . $this->current_session . "' and student_fees_deposite.id in (" . $id_implode . ")";
+
+        $sql = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,student_fees_deposite.id as `student_fees_deposite_id`,student_fees_deposite.amount_detail,students.admission_no, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.father_name,students.image, students.mobileno, students.email,students.state, students.city, students.pincode,students.is_active,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,'' as `section` FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_fees_master.student_session_id INNER JOIN students on students.id=enrolment.student_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN fee_groups_feetype on fee_groups.id=fee_groups_feetype.fee_groups_id JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE academic_class.session_id='" . $this->current_session . "' and fee_session_groups.session_id='" . $this->current_session . "' and student_fees_deposite.id in (" . $id_implode . ")";
 
         $query  = $this->db->query($sql);
         $result_value = $query->result();
         $module = $this->module_model->getPermissionByModulename('transport');
         if ($module['is_active']) {
-            $this->db->select('`student_fees_deposite`.*,student_fees_deposite.id as `student_fees_deposite_id`,students.firstname,students.middlename,students.lastname,student_session.class_id,classes.class,sections.section,student_session.section_id,student_session.student_id,"Transport Fees" as name, "Transport Fees" as `type`, "" as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no,students.father_name')->from('student_fees_deposite');
+            $this->db->select('`student_fees_deposite`.*,student_fees_deposite.id as `student_fees_deposite_id`,students.firstname,students.middlename,students.lastname,enrolment.class_id,CONCAT(academic_class.class_code, " - ", academic_class.cohort_name) as `class`,"" as `section`,"" as `section_id`,enrolment.student_id,"Transport Fees" as name, "Transport Fees" as `type`, "" as `code`,0 as is_system,student_transport_fees.student_session_id,students.admission_no,students.father_name', FALSE)->from('student_fees_deposite');
 
             $this->db->join('student_transport_fees', 'student_transport_fees.id = `student_fees_deposite`.`student_transport_fee_id`');
             $this->db->join('transport_feemaster', '`student_transport_fees`.`transport_feemaster_id` = `transport_feemaster`.`id`');
-            $this->db->join('student_session', 'student_session.id= `student_transport_fees`.`student_session_id`', 'INNER');
-            $this->db->join('classes', 'classes.id= student_session.class_id');
-            $this->db->join('sections', 'sections.id= student_session.section_id');
-            $this->db->join('students', 'students.id=student_session.student_id');
+            $this->db->join('academic_class_enrolment as enrolment', 'enrolment.id = `student_transport_fees`.`student_session_id`', 'INNER');
+            $this->db->join('academic_class', 'academic_class.id = enrolment.class_id');
+            $this->db->join('students', 'students.id = enrolment.student_id');
 
-            $this->db->where('student_session.session_id', $this->current_session);
+            $this->db->where('academic_class.session_id', $this->current_session);
             $this->db->where_in('student_fees_deposite.id', $id_array);
 			$query1        = $this->db->get();
             $result_value1 = $query1->result();
@@ -1328,18 +1317,17 @@ class Studentfeemaster_model extends MY_Model
         return $result_value2;
     }
 
+    // TVET: Converted from student_session/classes/sections to academic_class_enrolment
     public function getStudentDueFeeTypesByDate($date, $class_id = null, $section_id = null)
     {
         $where_condition = array();
         if ($class_id != null) {
-            $where_condition[] = " AND student_session.class_id=" . $class_id;
+            $where_condition[] = " AND enrolment.class_id=" . $class_id;
         }
-        if ($section_id != null) {
-            $where_condition[] = "student_session.section_id=" . $section_id;
-        }
+        // section_id ignored in TVET mode
         $where_condition_string = implode(" AND ", $where_condition);
 
-        $sql = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,student_fees_deposite.amount_detail,students.admission_no , students.roll_no,students.admission_date,students.firstname,students.middlename,  students.lastname,students.father_name,students.image, students.mobileno, students.email ,students.state ,   students.city , students.pincode ,students.is_active,classes.class,classes.id as class_id,sections.section,sections.id as section_id,students.id as student_id FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN student_session on student_session.id=student_fees_master.student_session_id INNER JOIN students on students.id=student_session.student_id inner join classes on student_session.class_id=classes.id INNER JOIN sections on sections.id=student_session.section_id inner join fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN fee_groups_feetype on fee_groups.id=fee_groups_feetype.fee_groups_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE student_session.session_id='" . $this->current_session . "' and  fee_session_groups.session_id='" . $this->current_session . "' and fee_groups_feetype.due_date <=" . $this->db->escape($date) . $where_condition_string;
+        $sql = "SELECT student_fees_master.*,fee_session_groups.fee_groups_id,fee_session_groups.session_id,fee_groups.name,fee_groups.is_system,fee_groups_feetype.amount as `fee_amount`,fee_groups_feetype.id as fee_groups_feetype_id,student_fees_deposite.amount_detail,students.admission_no, students.roll_no,students.admission_date,students.firstname,students.middlename, students.lastname,students.father_name,students.image, students.mobileno, students.email,students.state, students.city, students.pincode,students.is_active,CONCAT(academic_class.class_code, ' - ', academic_class.cohort_name) as `class`,academic_class.id as class_id,'' as `section`,'' as section_id,students.id as student_id FROM `student_fees_master` INNER JOIN fee_session_groups on fee_session_groups.id=student_fees_master.fee_session_group_id INNER JOIN academic_class_enrolment as enrolment on enrolment.id=student_fees_master.student_session_id INNER JOIN students on students.id=enrolment.student_id INNER JOIN academic_class on academic_class.id=enrolment.class_id INNER JOIN fee_groups on fee_groups.id=fee_session_groups.fee_groups_id INNER JOIN fee_groups_feetype on fee_groups.id=fee_groups_feetype.fee_groups_id LEFT JOIN student_fees_deposite on student_fees_deposite.student_fees_master_id=student_fees_master.id and student_fees_deposite.fee_groups_feetype_id=fee_groups_feetype.id WHERE academic_class.session_id='" . $this->current_session . "' and fee_session_groups.session_id='" . $this->current_session . "' and fee_groups_feetype.due_date <=" . $this->db->escape($date) . $where_condition_string;
 
         $query  = $this->db->query($sql);
         $result = $query->result();
@@ -1407,89 +1395,4 @@ class Studentfeemaster_model extends MY_Model
         return $result;
     }
 
-    // ============================================================================
-    // TVET METHODS - Use enrolment table (no sections)
-    // ============================================================================
-
-    /**
-     * Search students for fee assignment by class only (TVET)
-     * Replaces searchAssignFeeByClassSection() for TVET architecture
-     *
-     * @param int $class_id The TVET class ID
-     * @param int $fee_session_group_id The fee session group ID
-     * @param int $category Category filter
-     * @param string $gender Gender filter
-     * @param string $rte RTE status filter
-     * @return array Students with their enrolment and fee assignment status
-     */
-    public function searchAssignFeeByClass($class_id = null, $fee_session_group_id = null, $category = null, $gender = null, $rte = null)
-    {
-        $sql = "SELECT IFNULL(`student_fees_master`.`id`, '0') as `student_fees_master_id`,
-                `class`.`id` AS `class_id`,
-                `enrolment`.`id` as `enrolment_id`,
-                `students`.`id`,
-                `class`.`class_code`,
-                `class`.`cohort_name`,
-                `students`.`id`,
-                `students`.`admission_no`,
-                `students`.`roll_no`,
-                `students`.`admission_date`,
-                `students`.`firstname`,
-                `students`.`middlename`,
-                `students`.`lastname`,
-                `students`.`image`,
-                `students`.`mobileno`,
-                `students`.`email`,
-                `students`.`state`,
-                `students`.`city`,
-                `students`.`pincode`,
-                `students`.`religion`,
-                `students`.`dob`,
-                `students`.`current_address`,
-                `students`.`permanent_address`,
-                IFNULL(students.category_id, 0) as `category_id`,
-                IFNULL(categories.category, '') as `category`,
-                `students`.`adhar_no`,
-                `students`.`samagra_id`,
-                `students`.`bank_account_no`,
-                `students`.`bank_name`,
-                `students`.`ifsc_code`,
-                `students`.`guardian_name`,
-                `students`.`guardian_relation`,
-                `students`.`guardian_phone`,
-                `students`.`guardian_address`,
-                `students`.`is_active`,
-                `students`.`created_at`,
-                `students`.`updated_at`,
-                `students`.`father_name`,
-                `students`.`rte`,
-                `students`.`gender`,
-                `enrolment`.`enrolment_type`
-                FROM `students`
-                JOIN `enrolment` ON `enrolment`.`student_id` = `students`.`id`
-                JOIN `class` ON `enrolment`.`class_id` = `class`.`id`
-                LEFT JOIN `categories` ON `students`.`category_id` = `categories`.`id`
-                LEFT JOIN student_fees_master on student_fees_master.enrolment_id = enrolment.id
-                    AND student_fees_master.fee_session_group_id = " . $this->db->escape($fee_session_group_id) . "
-                WHERE `enrolment`.`session_id` = " . $this->current_session . "
-                AND `students`.`is_active` = 'yes'
-                AND `enrolment`.`status` = 'Active'";
-
-        if ($class_id != null) {
-            $sql .= " AND `enrolment`.`class_id` = " . $this->db->escape($class_id);
-        }
-        if ($category != null) {
-            $sql .= " AND `students`.`category_id` = " . $this->db->escape($category);
-        }
-        if ($gender != null) {
-            $sql .= " AND `students`.`gender` = " . $this->db->escape($gender);
-        }
-        if ($rte != null) {
-            $sql .= " AND `students`.`rte` = " . $this->db->escape($rte);
-        }
-        $sql .= " ORDER BY `students`.`id`";
-
-        $query = $this->db->query($sql);
-        return $query->result_array();
-    }
 }
