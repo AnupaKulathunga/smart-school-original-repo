@@ -95,7 +95,7 @@ class Course extends Admin_Controller
 
         $config['num_tag_open']  = '<span class="numlink">';
         $config['num_tag_close'] = '</span>';
-        $page_num                = ($this->uri->segment(4)) ? $this->uri->segment(4) : 1;
+        $page_num                = (is_numeric($this->uri->segment(4))) ? (int)$this->uri->segment(4) : 1;
 
         $this->pagination->initialize($config);
 
