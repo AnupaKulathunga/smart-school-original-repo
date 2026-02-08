@@ -37,4 +37,8 @@ $route['examresult'] = 'welcome/examresult';
 $route['frontend'] = 'welcome';
 $route['cbseexam'] = 'welcome/cbseexam';
 $route['online_course'] = 'course';
-$route['annual_calendar'] = 'welcome/annual_calendar'; 
+$route['annual_calendar'] = 'welcome/annual_calendar';
+
+// Online Course Plugin: views use onlinecourse/* URLs but controllers are under admin/onlinecourse/
+$route['onlinecourse/(.+)'] = 'admin/onlinecourse/$1';
+$route['onlinecourse'] = 'admin/onlinecourse';
