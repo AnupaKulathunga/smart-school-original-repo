@@ -437,7 +437,7 @@ class Coursereport extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'onlinecourse/coursereport/report');
         $this->session->set_userdata('subsub_menu', 'onlinecourse/coursereport/completereport');
         $data['student_id'] = '';
-        $session_id = $this->setting[0]->session_id;
+        $session_id = $this->setting_model->getCurrentSession();
         $data['classlist']  = $this->classmodel_model->getClassesBySession($session_id);
         
         $userdata = $this->customlib->getUserData();
@@ -1340,7 +1340,7 @@ class Coursereport extends Admin_Controller
         $this->sch_setting_detail = $this->setting_model->getSetting();
         $course_list            = $this->coursereport_model->get_online_course_list();
         $data['course_list']    = $course_list;
-        $session_id          = $this->setting[0]->session_id;
+        $session_id          = $this->setting_model->getCurrentSession();
         $data['classlist']   = $this->classmodel_model->getClassesBySession($session_id);
         $data['sch_setting'] = $this->sch_setting_detail;
         $this->load->view('layout/header', $data);

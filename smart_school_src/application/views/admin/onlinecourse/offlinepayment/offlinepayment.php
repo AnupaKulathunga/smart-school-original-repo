@@ -253,6 +253,7 @@ $(document).ready(function() {
 
 })(jQuery);
 
+var student_id = '<?php echo isset($student_id) ? $student_id : ""; ?>';
 function studentlist(class_id){
     $.ajax({
         url: '<?php echo base_url(); ?>onlinecourse/offlinepayment/studentlist',

@@ -18,7 +18,7 @@ class Courseofflinepayment_model extends MY_Model {
     }
 
     private function _getSession() {
-        if ($this->current_session === null && isset($this->setting_model)) {
+        if ($this->current_session === null) {
             $this->current_session = $this->setting_model->getCurrentSession();
         }
         return $this->current_session;
@@ -34,14 +34,17 @@ class Courseofflinepayment_model extends MY_Model {
     /*
     This is used to get student list by academic class
     */
-    public function studentlist($academic_class_id) {
+    public function studentlist($academic_class_id, $session_id = null) {
+        if ($session_id === null) {
+            $session_id = $this->_getSession();
+        }
         $this->db->select('students.id,students.firstname,students.lastname,students.admission_no');
         $this->db->from('student_session');
         $this->db->join('academic_class_enrolment', 'academic_class_enrolment.student_session_id = student_session.id');
         $this->db->join('students','students.id=student_session.student_id');
         $this->db->where('students.is_active', 'yes');
         $this->db->where('academic_class_enrolment.class_id', $academic_class_id);
-        $this->db->where('student_session.session_id', $this->_getSession());
+        $this->db->where('student_session.session_id', $session_id);
         $query = $this->db->get();
         return $query->result_array();
     }

@@ -40,7 +40,7 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
                         </div>  
                     </div>
 
-<div id="course_card_tab" class="tabcontent">
+<div id="course_card_tab" class="tabcontent" style="display:none">
    <?php if (isset($new_courselist)) {   ?>
     <div class="nav-tabs-custom border0 navnoshadow">
         <div class="tab-content">          

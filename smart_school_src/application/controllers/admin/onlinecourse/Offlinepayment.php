@@ -32,7 +32,7 @@ class Offlinepayment extends Admin_Controller
         $this->session->set_userdata('top_menu', 'onlinecourse');
         $this->session->set_userdata('sub_menu', 'onlinecourse/offlinepayment/index');       
         $data['student_id'] = '';
-        $session_id = $this->setting[0]->session_id;
+        $session_id = $this->setting_model->getCurrentSession();
         $data['classlist']  = $this->classmodel_model->getClassesBySession($session_id);
         $this->load->view('layout/header');
         $this->load->view('onlinecourse/offlinepayment/offlinepayment', $data);
@@ -167,7 +167,8 @@ class Offlinepayment extends Admin_Controller
     public function studentlist()
     {
         $class_id    = $this->input->post('class_id');
-        $studentlist = $this->courseofflinepayment_model->studentlist($class_id);
+        $session_id  = $this->setting_model->getCurrentSession();
+        $studentlist = $this->courseofflinepayment_model->studentlist($class_id, $session_id);
         echo json_encode($studentlist);
     }
 
@@ -177,7 +178,7 @@ class Offlinepayment extends Admin_Controller
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('student_id', $this->lang->line('student'), 'trim|required|xss_clean');
 
-        $session_id        = $this->setting[0]->session_id;
+        $session_id        = $this->setting_model->getCurrentSession();
         $data['classlist'] = $this->classmodel_model->getClassesBySession($session_id);
         if ($this->form_validation->run() == false) {
             $this->load->view('layout/header');

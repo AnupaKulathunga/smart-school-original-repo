@@ -29,7 +29,7 @@ class Courseexamquestion extends Admin_Controller
 
     public function index($offset = 0){
         $data                   = array();
-        $session_id             = $this->setting[0]->session_id;
+        $session_id             = $this->setting_model->getCurrentSession();
         $data['classlist']      = $this->classmodel_model->getClassesBySession($session_id);
         $data['question_type']  = $this->config->item('question_type');
         $data['question_level'] = $this->config->item('question_level');
@@ -44,7 +44,7 @@ class Courseexamquestion extends Admin_Controller
 
     public function addform(){
         $data                        = array();
-        $session_id                  = $this->setting[0]->session_id;
+        $session_id                  = $this->setting_model->getCurrentSession();
         $data['classList']           = $this->classmodel_model->getClassesBySession($session_id);
         $subject_result              = $this->subject_model->get();
         $data['subjectlist']         = $subject_result;

@@ -40,7 +40,7 @@ class Course extends Admin_Controller
         $this->session->set_userdata('top_menu', 'onlinecourse');
         $this->session->set_userdata('sub_menu', 'onlinecourse/course/index');
         $search_course                 = $this->input->get('search_course');
-        $session_id = $this->setting[0]->session_id;
+        $session_id = $this->setting_model->getCurrentSession();
         $data['classlist']             = $this->classmodel_model->getClassesBySession($session_id);
         $data['allTeacherList']        = $this->course_model->allteacher();
         $data["course_provider"]       = $this->course_provider;
@@ -280,7 +280,7 @@ class Course extends Admin_Controller
         $this->session->set_userdata('sub_menu', 'admin/coursestaff');
         $courseID                      = $this->input->post('courseID');
         $data['courseID']              = $courseID;
-        $session_id = $this->setting[0]->session_id;
+        $session_id = $this->setting_model->getCurrentSession();
         $data['classlist']             = $this->classmodel_model->getClassesBySession($session_id);
         $data['allTeacherList']        = $this->course_model->allteacher();
         $data["course_provider"]       = $this->course_provider;
