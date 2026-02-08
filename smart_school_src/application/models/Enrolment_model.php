@@ -8,6 +8,9 @@ if (!defined('BASEPATH')) {
  * Enrolment Model - REPLACES student_session
  * Links students to classes with enrolment_type (Core/Elective)
  * Critical model for TVET architecture
+ *
+ * Table: academic_class_enrolment
+ * Session comes from academic_class.session_id (not enrolment table)
  */
 class Enrolment_model extends CI_Model
 {
@@ -24,22 +27,22 @@ class Enrolment_model extends CI_Model
      */
     public function getEnrolmentById($enrolment_id)
     {
-        $this->db->select('enrolment.*,
+        $this->db->select('ace.*, ace.id as enrolment_id,
             students.*, students.id as student_id,
-            class.class_code, class.cohort_name, class.academic_year,
-            subjects.name as subject_name, subjects.code as subject_code,
-            level.name as level_name, level.code as level_code,
+            ac.class_code, ac.cohort_name, ac.academic_year, ac.session_id,
+            asub.name as subject_name, asub.code as subject_code,
+            alv.name as level_name, alv.code as level_code,
             staff.name as lecturer_name,
-            sessions.session as session_name');
-        $this->db->from('enrolment');
-        $this->db->join('students', 'enrolment.student_id = students.id');
-        $this->db->join('class', 'enrolment.class_id = class.id');
-        $this->db->join('subject_level', 'class.subject_level_id = subject_level.id');
-        $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
-        $this->db->join('level', 'subject_level.level_id = level.id');
-        $this->db->join('staff', 'class.primary_lecturer_id = staff.id', 'left');
-        $this->db->join('sessions', 'enrolment.session_id = sessions.id');
-        $this->db->where('enrolment.id', $enrolment_id);
+            sessions.session as session_name', FALSE);
+        $this->db->from('academic_class_enrolment ace');
+        $this->db->join('students', 'ace.student_id = students.id');
+        $this->db->join('academic_class ac', 'ace.class_id = ac.id');
+        $this->db->join('academic_subject_level asl', 'ac.subject_level_id = asl.id');
+        $this->db->join('academic_subject asub', 'asl.subject_id = asub.id');
+        $this->db->join('academic_level alv', 'asl.level_id = alv.id');
+        $this->db->join('staff', 'ac.primary_lecturer_id = staff.id', 'left');
+        $this->db->join('sessions', 'ac.session_id = sessions.id');
+        $this->db->where('ace.id', $enrolment_id);
         return $this->db->get()->row();
     }
 
@@ -51,29 +54,30 @@ class Enrolment_model extends CI_Model
      */
     public function getStudentEnrolments($student_id, $session_id = null)
     {
-        $this->db->select('enrolment.*, enrolment.id as enrolment_id,
-            class.class_code, class.cohort_name, class.academic_year, class.status as class_status,
-            subjects.name as subject_name, subjects.code as subject_code, subjects.credits,
-            level.name as level_name, level.code as level_code, level.level_type,
+        $this->db->select('ace.*, ace.id as enrolment_id, ace.id as student_session_id,
+            ac.class_code, ac.cohort_name, ac.academic_year, ac.status as class_status,
+            ac.session_id, ac.id as class_id,
+            asub.name as subject_name, asub.code as subject_code, asub.credits,
+            alv.name as level_name, alv.code as level_code, alv.level_type,
             staff.name as lecturer_name, staff.id as lecturer_id,
-            sessions.session as session_name');
-        $this->db->from('enrolment');
-        $this->db->join('class', 'enrolment.class_id = class.id');
-        $this->db->join('subject_level', 'class.subject_level_id = subject_level.id');
-        $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
-        $this->db->join('level', 'subject_level.level_id = level.id');
-        $this->db->join('staff', 'class.primary_lecturer_id = staff.id', 'left');
-        $this->db->join('sessions', 'enrolment.session_id = sessions.id');
-        $this->db->where('enrolment.student_id', $student_id);
-        $this->db->where('enrolment.status', 'Active');
+            sessions.session as session_name, sessions.id as session_id', FALSE);
+        $this->db->from('academic_class_enrolment ace');
+        $this->db->join('academic_class ac', 'ace.class_id = ac.id');
+        $this->db->join('academic_subject_level asl', 'ac.subject_level_id = asl.id');
+        $this->db->join('academic_subject asub', 'asl.subject_id = asub.id');
+        $this->db->join('academic_level alv', 'asl.level_id = alv.id');
+        $this->db->join('staff', 'ac.primary_lecturer_id = staff.id', 'left');
+        $this->db->join('sessions', 'ac.session_id = sessions.id');
+        $this->db->where('ace.student_id', $student_id);
+        $this->db->where('ace.status', 'Active');
 
         if ($session_id) {
-            $this->db->where('enrolment.session_id', $session_id);
+            $this->db->where('ac.session_id', $session_id);
         } else {
             $this->db->where('sessions.is_active', 'yes');
         }
 
-        $this->db->order_by('subjects.name', 'ASC');
+        $this->db->order_by('asub.name', 'ASC');
         return $this->db->get()->result();
     }
 
@@ -84,16 +88,12 @@ class Enrolment_model extends CI_Model
      */
     public function getClassEnrolments($class_id)
     {
-        $this->db->select('enrolment.*, enrolment.id as enrolment_id,
-            students.*, students.id as student_id,
-            student_programme.programme_id,
-            programme.name as programme_name');
-        $this->db->from('enrolment');
-        $this->db->join('students', 'enrolment.student_id = students.id');
-        $this->db->join('student_programme', 'student_programme.student_id = students.id AND student_programme.session_id = enrolment.session_id', 'left');
-        $this->db->join('programme', 'student_programme.programme_id = programme.id', 'left');
-        $this->db->where('enrolment.class_id', $class_id);
-        $this->db->where('enrolment.status', 'Active');
+        $this->db->select('ace.*, ace.id as enrolment_id,
+            students.*, students.id as student_id', FALSE);
+        $this->db->from('academic_class_enrolment ace');
+        $this->db->join('students', 'ace.student_id = students.id');
+        $this->db->where('ace.class_id', $class_id);
+        $this->db->where('ace.status', 'Active');
         $this->db->where('students.is_active', 'yes');
         $this->db->order_by('students.firstname', 'ASC');
         $this->db->order_by('students.lastname', 'ASC');
@@ -110,7 +110,7 @@ class Enrolment_model extends CI_Model
         // Check if already enrolled
         $existing = $this->db->where('student_id', $data['student_id'])
             ->where('class_id', $data['class_id'])
-            ->get('enrolment')->row();
+            ->get('academic_class_enrolment')->row();
 
         if ($existing) {
             return array(
@@ -123,12 +123,12 @@ class Enrolment_model extends CI_Model
         // Check class capacity
         $class = $this->db->select('max_students')
             ->where('id', $data['class_id'])
-            ->get('class')->row();
+            ->get('academic_class')->row();
 
         if ($class) {
             $current_count = $this->db->where('class_id', $data['class_id'])
                 ->where('status', 'Active')
-                ->count_all_results('enrolment');
+                ->count_all_results('academic_class_enrolment');
 
             if ($current_count >= $class->max_students) {
                 return array(
@@ -139,7 +139,7 @@ class Enrolment_model extends CI_Model
         }
 
         // Insert enrolment
-        if ($this->db->insert('enrolment', $data)) {
+        if ($this->db->insert('academic_class_enrolment', $data)) {
             return array(
                 'success' => true,
                 'enrolment_id' => $this->db->insert_id(),
@@ -157,11 +157,11 @@ class Enrolment_model extends CI_Model
      * Enroll student in multiple classes (bulk enrollment)
      * @param int $student_id Student ID
      * @param array $class_ids Array of class IDs
-     * @param int $session_id Session ID
+     * @param int $student_session_id Student session ID
      * @param string $enrolment_type 'Core' or 'Elective'
      * @return array Result array with success count and errors
      */
-    public function enrollStudentBulk($student_id, $class_ids, $session_id, $enrolment_type = 'Core')
+    public function enrollStudentBulk($student_id, $class_ids, $student_session_id, $enrolment_type = 'Core')
     {
         $results = array(
             'success_count' => 0,
@@ -173,11 +173,9 @@ class Enrolment_model extends CI_Model
             $data = array(
                 'student_id' => $student_id,
                 'class_id' => $class_id,
-                'session_id' => $session_id,
+                'student_session_id' => $student_session_id,
                 'enrolment_date' => date('Y-m-d'),
-                'enrolment_type' => $enrolment_type,
-                'status' => 'Active',
-                'is_active' => 1
+                'status' => 'Active'
             );
 
             $result = $this->enrollStudent($data);
@@ -202,7 +200,7 @@ class Enrolment_model extends CI_Model
     public function update($enrolment_id, $data)
     {
         $this->db->where('id', $enrolment_id);
-        return $this->db->update('enrolment', $data);
+        return $this->db->update('academic_class_enrolment', $data);
     }
 
     /**
@@ -220,7 +218,7 @@ class Enrolment_model extends CI_Model
         }
 
         $this->db->where('id', $enrolment_id);
-        return $this->db->update('enrolment', $data);
+        return $this->db->update('academic_class_enrolment', $data);
     }
 
     /**
@@ -240,9 +238,9 @@ class Enrolment_model extends CI_Model
      */
     public function remove($enrolment_id)
     {
-        $data = array('is_active' => 0);
+        $data = array('status' => 'Dropped');
         $this->db->where('id', $enrolment_id);
-        return $this->db->update('enrolment', $data);
+        return $this->db->update('academic_class_enrolment', $data);
     }
 
     /**
@@ -255,31 +253,28 @@ class Enrolment_model extends CI_Model
         $stats = new stdClass();
 
         // Total enrolments
-        $stats->total = $this->db->where('session_id', $session_id)
-            ->where('status', 'Active')
-            ->count_all_results('enrolment');
-
-        // By enrolment type
-        $this->db->select('enrolment_type, COUNT(*) as count', FALSE);
-        $this->db->from('enrolment');
-        $this->db->where('session_id', $session_id);
-        $this->db->where('status', 'Active');
-        $this->db->group_by('enrolment_type');
-        $stats->by_type = $this->db->get()->result();
+        $this->db->from('academic_class_enrolment ace');
+        $this->db->join('academic_class ac', 'ace.class_id = ac.id');
+        $this->db->where('ac.session_id', $session_id);
+        $this->db->where('ace.status', 'Active');
+        $stats->total = $this->db->count_all_results();
 
         // By status
-        $this->db->select('status, COUNT(*) as count', FALSE);
-        $this->db->from('enrolment');
-        $this->db->where('session_id', $session_id);
-        $this->db->group_by('status');
+        $this->db->select('ace.status, COUNT(*) as count', FALSE);
+        $this->db->from('academic_class_enrolment ace');
+        $this->db->join('academic_class ac', 'ace.class_id = ac.id');
+        $this->db->where('ac.session_id', $session_id);
+        $this->db->group_by('ace.status');
         $stats->by_status = $this->db->get()->result();
 
         // Unique students enrolled
-        $stats->unique_students = $this->db->select('DISTINCT student_id', FALSE)
-            ->from('enrolment')
-            ->where('session_id', $session_id)
-            ->where('status', 'Active')
-            ->count_all_results();
+        $this->db->select('COUNT(DISTINCT ace.student_id) as cnt', FALSE);
+        $this->db->from('academic_class_enrolment ace');
+        $this->db->join('academic_class ac', 'ace.class_id = ac.id');
+        $this->db->where('ac.session_id', $session_id);
+        $this->db->where('ace.status', 'Active');
+        $row = $this->db->get()->row();
+        $stats->unique_students = $row ? $row->cnt : 0;
 
         return $stats;
     }
@@ -287,43 +282,39 @@ class Enrolment_model extends CI_Model
     /**
      * Get enrolments by filters
      * @param int $session_id Session ID
-     * @param array $filters (class_id, level_id, subject_id, enrolment_type, status)
+     * @param array $filters (class_id, level_id, subject_id, status)
      * @return array Array of enrolments
      */
     public function getByFilters($session_id, $filters = array())
     {
-        $this->db->select('enrolment.*, enrolment.id as enrolment_id,
+        $this->db->select('ace.*, ace.id as enrolment_id,
             students.admission_no, students.firstname, students.lastname,
-            class.class_code,
-            subjects.name as subject_name,
-            level.name as level_name');
-        $this->db->from('enrolment');
-        $this->db->join('students', 'enrolment.student_id = students.id');
-        $this->db->join('class', 'enrolment.class_id = class.id');
-        $this->db->join('subject_level', 'class.subject_level_id = subject_level.id');
-        $this->db->join('subjects', 'subject_level.subject_id = subjects.id');
-        $this->db->join('level', 'subject_level.level_id = level.id');
-        $this->db->where('enrolment.session_id', $session_id);
+            ac.class_code,
+            asub.name as subject_name,
+            alv.name as level_name', FALSE);
+        $this->db->from('academic_class_enrolment ace');
+        $this->db->join('students', 'ace.student_id = students.id');
+        $this->db->join('academic_class ac', 'ace.class_id = ac.id');
+        $this->db->join('academic_subject_level asl', 'ac.subject_level_id = asl.id');
+        $this->db->join('academic_subject asub', 'asl.subject_id = asub.id');
+        $this->db->join('academic_level alv', 'asl.level_id = alv.id');
+        $this->db->where('ac.session_id', $session_id);
 
         // Apply filters
         if (!empty($filters['class_id'])) {
-            $this->db->where('enrolment.class_id', $filters['class_id']);
+            $this->db->where('ace.class_id', $filters['class_id']);
         }
 
         if (!empty($filters['level_id'])) {
-            $this->db->where('level.id', $filters['level_id']);
+            $this->db->where('alv.id', $filters['level_id']);
         }
 
         if (!empty($filters['subject_id'])) {
-            $this->db->where('subjects.id', $filters['subject_id']);
-        }
-
-        if (!empty($filters['enrolment_type'])) {
-            $this->db->where('enrolment.enrolment_type', $filters['enrolment_type']);
+            $this->db->where('asub.id', $filters['subject_id']);
         }
 
         if (!empty($filters['status'])) {
-            $this->db->where('enrolment.status', $filters['status']);
+            $this->db->where('ace.status', $filters['status']);
         }
 
         $this->db->order_by('students.firstname', 'ASC');

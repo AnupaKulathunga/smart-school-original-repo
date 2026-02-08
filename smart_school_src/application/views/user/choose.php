@@ -161,7 +161,10 @@ foreach ($student_lists as $student_key => $student_value) {
 
 <div class="radio">
   <label>
-    <input type="radio" value="<?php echo $student_value->student_session_id; ?>" class="clschg" name="clschg"><?php echo ($role == 'parent') ? $name . " " . $student_value->class . " (" . $student_value->section . ")" : $student_value->class . " (" . $student_value->section . ")"; ?>
+    <input type="radio" value="<?php echo $student_value->student_session_id; ?>" class="clschg" name="clschg"><?php
+        $class_label = isset($student_value->subject_name) ? $student_value->subject_name . ' - ' . $student_value->level_code . ' (Cohort ' . $student_value->cohort_name . ')' : (isset($student_value->class) ? $student_value->class : $student_value->class_code);
+        echo ($role == 'parent') ? $name . " " . $class_label : $class_label;
+    ?>
   </label>
 </div>
 

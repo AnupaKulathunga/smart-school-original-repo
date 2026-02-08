@@ -132,7 +132,8 @@ class Classmodel_model extends CI_Model
             programme.name as programme_name');
         $this->db->from('academic_class_enrolment enrolment');
         $this->db->join('students', 'enrolment.student_id = students.id');
-        $this->db->join('student_programme', 'student_programme.student_id = students.id AND student_programme.session_id = enrolment.session_id', 'left');
+        $this->db->join('academic_class ac_cls', 'ac_cls.id = enrolment.class_id');
+        $this->db->join('student_programme', 'student_programme.student_id = students.id AND student_programme.session_id = ac_cls.session_id', 'left');
         $this->db->join('academic_programme programme', 'student_programme.programme_id = programme.id', 'left');
         $this->db->where('enrolment.class_id', $class_id);
         $this->db->where('enrolment.status', 'Active');

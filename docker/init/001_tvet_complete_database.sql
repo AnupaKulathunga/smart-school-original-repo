@@ -1860,6 +1860,7 @@ CREATE TABLE IF NOT EXISTS `homework` (
   `id` int NOT NULL AUTO_INCREMENT,
   `class_id` int NOT NULL,
   `section_id` int NOT NULL,
+  `academic_class_id` int DEFAULT NULL,
   `session_id` int NOT NULL,
   `staff_id` int NOT NULL,
   `subject_group_subject_id` int DEFAULT NULL,
@@ -1878,6 +1879,26 @@ CREATE TABLE IF NOT EXISTS `homework` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `homework_evaluation`
+--
+
+CREATE TABLE IF NOT EXISTS `homework_evaluation` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `homework_id` int NOT NULL,
+  `student_id` int NOT NULL,
+  `student_session_id` int DEFAULT NULL,
+  `enrolment_id` int DEFAULT NULL,
+  `marks` float(10,2) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `homework_id` (`homework_id`),
+  KEY `student_id` (`student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Table structure for table `hostel`
@@ -3609,11 +3630,15 @@ CREATE TABLE IF NOT EXISTS `student_applyleave` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE IF NOT EXISTS `student_attendence_schedules` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `attendence_date` date DEFAULT NULL,
-  `student_session_id` int DEFAULT NULL,
-  `is_active` varchar(10) DEFAULT 'no',
+  `class_section_id` int NOT NULL DEFAULT 0 COMMENT 'Maps to academic_class.id in TVET',
+  `attendence_type_id` int NOT NULL DEFAULT 0,
+  `entry_time_from` time DEFAULT NULL,
+  `entry_time_to` time DEFAULT NULL,
+  `total_institute_hour` varchar(50) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `class_section_id` (`class_section_id`),
+  KEY `attendence_type_id` (`attendence_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -3669,6 +3694,8 @@ CREATE TABLE IF NOT EXISTS `student_dashboard_settings` (
   `name` varchar(200) DEFAULT NULL,
   `short_code` varchar(100) DEFAULT NULL,
   `status` int DEFAULT '1',
+  `is_student` tinyint(1) DEFAULT 1,
+  `is_parent` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -3914,6 +3941,9 @@ CREATE TABLE IF NOT EXISTS `students` (
   `app_key` text,
   `parent_app_key` text,
   `created_by` int DEFAULT NULL,
+  `is_disabled` tinyint(1) DEFAULT 0,
+  `disability_type_id` int DEFAULT NULL,
+  `disability_details` text DEFAULT NULL,
   `disable_at` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -4415,8 +4445,8 @@ CREATE TABLE IF NOT EXISTS `userlog` (
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
-  `username` varchar(50) DEFAULT NULL,
-  `password` varchar(50) DEFAULT NULL,
+  `username` varchar(255) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
   `childs` text NOT NULL,
   `role` varchar(30) NOT NULL,
   `lang_id` int NOT NULL,
@@ -4619,9 +4649,10 @@ CREATE OR REPLACE VIEW `class` AS SELECT * FROM `academic_class`;
 
 INSERT INTO `roles` (`id`, `name`, `slug`, `is_active`, `is_system`, `is_superadmin`, `created_at`, `updated_at`) VALUES (1,'Admin',NULL,1,1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(2,'Lecturer',NULL,1,1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(3,'Accountant',NULL,1,1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(4,'Librarian',NULL,1,1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(6,'Receptionist',NULL,1,1,0,'2026-02-07 06:22:32','2026-02-07 06:22:32'),(7,'Super Admin',NULL,1,1,1,'2026-02-07 06:22:32','2026-02-07 06:22:32');
 INSERT INTO `staff` (`id`, `employee_id`, `lang_id`, `currency_id`, `department`, `designation`, `qualification`, `work_exp`, `name`, `surname`, `father_name`, `mother_name`, `contact_no`, `emergency_contact_no`, `email`, `dob`, `marital_status`, `date_of_joining`, `date_of_leaving`, `local_address`, `permanent_address`, `note`, `image`, `password`, `gender`, `account_title`, `bank_account_no`, `bank_name`, `ifsc_code`, `bank_branch`, `payscale`, `basic_salary`, `epf_no`, `contract_type`, `shift`, `location`, `facebook`, `twitter`, `linkedin`, `instagram`, `resume`, `joining_letter`, `resignation_letter`, `other_document_name`, `other_document_file`, `user_id`, `is_active`, `verification_code`, `disable_at`, `created_at`, `updated_at`) VALUES (1,'ADMIN001',1,1,NULL,NULL,'','','System','Administrator','','','+27 11 123 4567','+27 11 123 4567','admin@school.com','1990-01-01','Single','2026-01-01',NULL,'Johannesburg, South Africa','Johannesburg, South Africa','Default System Administrator','','$2y$10$XUfjAqLH43Vha2TexExUoeZwamen4VnjMkFEh.W0PcUERLHhe8zr.','Male','','','','','','',NULL,'','','','','','','','','','','','','',1,1,'',NULL,'2026-02-07 06:22:32','2026-02-07 06:27:36');
-INSERT INTO `users` (`id`, `user_id`, `username`, `password`, `childs`, `role`, `lang_id`, `currency_id`, `verification_code`, `is_active`, `created_at`, `updated_at`) VALUES (1,1,'admin','admin123','','Admin',1,1,'','yes','2026-02-07 06:22:32','2026-02-07 06:22:32');
+INSERT INTO `users` (`id`, `user_id`, `username`, `password`, `childs`, `role`, `lang_id`, `currency_id`, `verification_code`, `is_active`, `created_at`, `updated_at`) VALUES (1,1,'admin@school.com','$2y$10$XUfjAqLH43Vha2TexExUoeZwamen4VnjMkFEh.W0PcUERLHhe8zr.','','Admin',1,1,'','yes','2026-02-07 06:22:32','2026-02-07 06:22:32');
 INSERT INTO `staff_roles` (`id`, `role_id`, `staff_id`, `is_active`, `created_at`, `updated_at`) VALUES (1,7,1,1,'2026-02-07 06:22:32','2026-02-07 06:22:32');
 INSERT INTO `sessions` (`id`, `session`, `is_active`, `created_at`, `updated_at`) VALUES (1,'2024-25','no','2026-02-07 06:22:32','2026-02-07 06:22:32'),(2,'2025-26','no','2026-02-07 06:22:32','2026-02-07 06:22:32'),(3,'2026-27','yes','2026-02-07 06:22:32','2026-02-07 06:22:32'),(4,'2027-28','no','2026-02-07 06:22:32','2026-02-07 06:22:32'),(5,'2028-29','no','2026-02-07 06:22:32','2026-02-07 06:22:32'),(6,'2029-30','no','2026-02-07 06:22:32','2026-02-07 06:22:32');
+INSERT INTO `student_dashboard_settings` (`name`, `short_code`, `status`, `is_student`, `is_parent`) VALUES ('homework','homework',1,1,1),('attendance','attendance',1,1,1),('live_classes','live_classes',1,1,1),('exam_schedule','exam_schedule',1,1,1),('fees','fees',1,1,1),('library','library',1,1,1),('transport','transport',1,1,1),('hostel','hostel',1,1,1),('documents','documents',1,1,1),('attendance_chart','attendance_chart',1,1,1),('calendar','calendar',1,1,1),('notice_board','notice_board',1,1,1);
 INSERT INTO `languages` (`id`, `language`, `short_code`, `country_code`, `is_rtl`, `is_deleted`, `is_active`, `created_at`, `updated_at`) VALUES (1,'English','en','us',0,'no','yes','2026-02-07 06:22:32','2026-02-07 06:22:32'),(2,'Afrikaans','af','za',0,'no','no','2026-02-07 06:22:32','2026-02-07 06:22:32');
 INSERT INTO `currencies` (`id`, `name`, `short_name`, `symbol`, `base_price`, `is_active`, `created_at`, `updated_at`) VALUES (1,'South African Rand','ZAR','R','1',1,'2026-02-07 06:22:32','2026-02-07 06:22:32');
 INSERT INTO `filetypes` (`id`, `file_extension`, `file_mime`, `file_size`, `image_extension`, `image_mime`, `image_size`, `created_at`, `updated_at`) VALUES (1,'pdf, zip, jpg, jpeg, png, txt, 7z, gif, csv, docx, mp3, mp4, accdb, odt, ods, ppt, pptx, xlsx, wmv, jfif, apk, ppt, bmp, jpe, mdb, rar, xls, svg','application/pdf, image/zip, image/jpg, image/png, image/jpeg, text/plain, application/x-zip-compressed, application/zip, image/gif, text/csv, application/vnd.openxmlformats-officedocument.wordprocessingml.document, audio/mpeg, application/msaccess, application/vnd.oasis.opendocument.text, application/vnd.oasis.opendocument.spreadsheet, application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, video/x-ms-wmv, video/mp4, image/jpeg, application/vnd.android.package-archive, application/x-msdownload, application/vnd.ms-powerpoint, image/bmp, image/jpeg, application/msaccess, application/vnd.ms-excel, image/svg+xml',100048576,'jfif, png, jpe, jpeg, jpg, bmp, gif, svg','image/jpeg, image/png, image/jpeg, image/jpeg, image/bmp, image/gif, image/x-ms-bmp, image/svg+xml',10048576,'2026-02-07 06:22:32','2026-02-07 06:22:32');

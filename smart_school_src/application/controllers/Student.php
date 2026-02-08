@@ -66,8 +66,8 @@ class Student extends Admin_Controller
             // TVET: Get all classes for the dropdown
             $data['classes']         = $class;
 
-            // TVET: Get students enrolled in this class
-            $students                = $this->classmodel_model->getClassStudents($class_id);
+            // TVET: Get students enrolled in this class with their multi-class enrolments
+            $students                = $this->studentsession_model->searchMultiStudentByClassSection($class_id);
             $data['students']        = $students;
         }
         $this->load->view('layout/header', $data);

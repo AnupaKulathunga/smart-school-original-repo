@@ -4,6 +4,7 @@
 
 // include APPPATH . 'third_party/aws/aws-autoloader.php';
 require_once(APPPATH . 'third_party/omnipay/vendor/autoload.php');
+
 use Aws\S3\S3Client;
 
 class Aws3

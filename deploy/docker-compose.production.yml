@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.production
+    container_name: smartschool-tvet
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      # Persist uploads outside the container
+      - ../smart_school_src/uploads:/var/www/html/smart_school_src/uploads
+      # Persist logs
+      - ./logs:/var/www/html/smart_school_src/application/logs
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html/smart_school_src
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

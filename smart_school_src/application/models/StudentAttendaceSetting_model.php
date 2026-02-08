@@ -21,25 +21,28 @@ class StudentAttendaceSetting_model extends MY_Model
         $condition = "";
 
         if ($class_id != null) {
-            $condition = " AND class.id = " . $this->db->escape($class_id);
+            $condition = " AND ac.id = " . $this->db->escape($class_id);
         }
 
-        $sql = "SELECT class.id, class.id as class_section_id, class.class_code,
-                subjects.name as subject_name, level.name as level_name,
-                CONCAT(subjects.name, ' - ', level.name) as `class`,
+        $session_id = $this->setting_model->getCurrentSession();
+
+        $sql = "SELECT ac.id, ac.id as class_section_id, ac.class_code,
+                asub.name as subject_name, al.name as level_name,
+                CONCAT(asub.name, ' - ', al.name) as `class`,
                 '' as `section`,
-                student_attendence_schedules.class_section_id as sched_class_section_id,
-                student_attendence_schedules.attendence_type_id,
-                student_attendence_schedules.id as `student_attendence_schedule_id`,
-                student_attendence_schedules.entry_time_from,
-                student_attendence_schedules.entry_time_to,
-                student_attendence_schedules.total_institute_hour
-            FROM `class`
-            INNER JOIN subject_level ON class.subject_level_id = subject_level.id
-            INNER JOIN subjects ON subject_level.subject_id = subjects.id
-            INNER JOIN level ON subject_level.level_id = level.id
-            LEFT JOIN student_attendence_schedules ON student_attendence_schedules.class_section_id = class.id
-            WHERE class.is_active = 1
+                sas.class_section_id as sched_class_section_id,
+                sas.attendence_type_id,
+                sas.id as `student_attendence_schedule_id`,
+                sas.entry_time_from,
+                sas.entry_time_to,
+                sas.total_institute_hour
+            FROM `academic_class` ac
+            INNER JOIN academic_subject_level asl ON ac.subject_level_id = asl.id
+            INNER JOIN academic_subject asub ON asl.subject_id = asub.id
+            INNER JOIN academic_level al ON asl.level_id = al.id
+            LEFT JOIN student_attendence_schedules sas ON sas.class_section_id = ac.id
+            WHERE ac.is_active = 1
+            AND ac.session_id = " . $this->db->escape($session_id) . "
             $condition";
 
         $query = $this->db->query($sql);
@@ -65,17 +68,17 @@ class StudentAttendaceSetting_model extends MY_Model
      */
     public function getClassWiseAttendanceSettingByClassAndSection($class_id, $section_id = null)
     {
-        $sql = "SELECT student_attendence_schedules.*,
-                class.id as class_id,
-                CONCAT(subjects.name, ' - ', level.name) as `class`,
-                subjects.name as subject_name, level.name as level_name,
+        $sql = "SELECT sas.*,
+                ac.id as class_id,
+                CONCAT(asub.name, ' - ', al.name) as `class`,
+                asub.name as subject_name, al.name as level_name,
                 '' as section_id, '' as section
-            FROM `student_attendence_schedules`
-            INNER JOIN class ON class.id = student_attendence_schedules.class_section_id
-            INNER JOIN subject_level ON class.subject_level_id = subject_level.id
-            INNER JOIN subjects ON subject_level.subject_id = subjects.id
-            INNER JOIN level ON subject_level.level_id = level.id
-            WHERE class.id = " . $this->db->escape($class_id);
+            FROM `student_attendence_schedules` sas
+            INNER JOIN academic_class ac ON ac.id = sas.class_section_id
+            INNER JOIN academic_subject_level asl ON ac.subject_level_id = asl.id
+            INNER JOIN academic_subject asub ON asl.subject_id = asub.id
+            INNER JOIN academic_level al ON asl.level_id = al.id
+            WHERE ac.id = " . $this->db->escape($class_id);
 
         $query = $this->db->query($sql);
         return $query->result();
@@ -170,15 +173,15 @@ class StudentAttendaceSetting_model extends MY_Model
      */
     public function getClassWiseAttendanceSettingByClass($class_id)
     {
-        $this->db->select('student_attendence_schedules.*,
-            class.id as class_id, class.class_code,
-            subjects.name as subject_name, level.name as level_name')
-            ->from('student_attendence_schedules')
-            ->join('class', 'class.id = student_attendence_schedules.class_id')
-            ->join('subject_level', 'class.subject_level_id = subject_level.id')
-            ->join('subjects', 'subject_level.subject_id = subjects.id')
-            ->join('level', 'subject_level.level_id = level.id')
-            ->where('class.id', $class_id);
+        $this->db->select('sas.*,
+            ac.id as class_id, ac.class_code,
+            asub.name as subject_name, al.name as level_name')
+            ->from('student_attendence_schedules sas')
+            ->join('academic_class ac', 'ac.id = sas.class_section_id')
+            ->join('academic_subject_level asl', 'ac.subject_level_id = asl.id')
+            ->join('academic_subject asub', 'asl.subject_id = asub.id')
+            ->join('academic_level al', 'asl.level_id = al.id')
+            ->where('ac.id', $class_id);
 
         $query = $this->db->get();
         return $query->result();
