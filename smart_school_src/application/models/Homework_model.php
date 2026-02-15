@@ -381,7 +381,7 @@ class Homework_model extends MY_model
     public function getStudentHomeworkWithStatus($class_id, $enrolment_id)
     {
         // TVET: Use academic_class and enrolment instead of classes/sections/student_session
-        $sql   = "SELECT `homework`.*,IFNULL(homework_evaluation.id,0) as homework_evaluation_id,homework_evaluation.note,homework_evaluation.marks as evaluation_marks, `ac`.`class_code`, `ac`.`cohort_name`, `subject_group_subjects`.`subject_id`, `subject_group_subjects`.`id` as `subject_group_subject_id`, `subjects`.`name` as `subject_name`, `subjects`.`code` as `subject_code`, `subject_groups`.`id` as `subject_groups_id`, `subject_groups`.`name` FROM `homework` LEFT JOIN homework_evaluation on homework_evaluation.homework_id=homework.id and homework_evaluation.enrolment_id=" . $this->db->escape($enrolment_id) . "  JOIN `academic_class` ac ON `ac`.`id` = `homework`.`academic_class_id` JOIN `subject_group_subjects` ON `subject_group_subjects`.`id` = `homework`.`subject_group_subject_id` JOIN `subjects` ON `subjects`.`id` = `subject_group_subjects`.`subject_id` JOIN `subject_groups` ON `subject_group_subjects`.`subject_group_id`=`subject_groups`.`id` WHERE `homework`.`academic_class_id` = " . $this->db->escape($class_id) . " AND `homework`.`session_id` = " . $this->current_session . " and submit_date >= '" . date('Y-m-d') . "'  order by homework.homework_date desc";
+        $sql   = "SELECT `homework`.*,IFNULL(homework_evaluation.id,0) as homework_evaluation_id,homework_evaluation.note,homework_evaluation.marks as evaluation_marks, `ac`.`class_code`, `ac`.`class_code` as `class`, `ac`.`cohort_name`, `subject_group_subjects`.`subject_id`, `subject_group_subjects`.`id` as `subject_group_subject_id`, `subjects`.`name` as `subject_name`, `subjects`.`code` as `subject_code`, `subject_groups`.`id` as `subject_groups_id`, `subject_groups`.`name` FROM `homework` LEFT JOIN homework_evaluation on homework_evaluation.homework_id=homework.id and homework_evaluation.enrolment_id=" . $this->db->escape($enrolment_id) . "  JOIN `academic_class` ac ON `ac`.`id` = `homework`.`academic_class_id` JOIN `subject_group_subjects` ON `subject_group_subjects`.`id` = `homework`.`subject_group_subject_id` JOIN `subjects` ON `subjects`.`id` = `subject_group_subjects`.`subject_id` JOIN `subject_groups` ON `subject_group_subjects`.`subject_group_id`=`subject_groups`.`id` WHERE `homework`.`academic_class_id` = " . $this->db->escape($class_id) . " AND `homework`.`session_id` = " . $this->current_session . " and submit_date >= '" . date('Y-m-d') . "'  order by homework.homework_date desc";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
@@ -390,7 +390,7 @@ class Homework_model extends MY_model
     public function getstudentclosedhomeworkwithstatus($class_id, $enrolment_id)
     {
         // TVET: Use academic_class and enrolment instead of classes/sections/student_session
-        $sql   = "SELECT `homework`.*,IFNULL(homework_evaluation.id,0) as homework_evaluation_id,homework_evaluation.note,homework_evaluation.marks as evaluation_marks, `ac`.`class_code`, `ac`.`cohort_name`, `subject_group_subjects`.`subject_id`, `subject_group_subjects`.`id` as `subject_group_subject_id`, `subjects`.`name` as `subject_name`, `subjects`.`code` as `subject_code`,  `subject_groups`.`id` as `subject_groups_id`, `subject_groups`.`name` FROM `homework` LEFT JOIN homework_evaluation on homework_evaluation.homework_id=homework.id and homework_evaluation.enrolment_id=" . $this->db->escape($enrolment_id) . "  JOIN `academic_class` ac ON `ac`.`id` = `homework`.`academic_class_id` JOIN `subject_group_subjects` ON `subject_group_subjects`.`id` = `homework`.`subject_group_subject_id` JOIN `subjects` ON `subjects`.`id` = `subject_group_subjects`.`subject_id` JOIN `subject_groups` ON `subject_group_subjects`.`subject_group_id`=`subject_groups`.`id` WHERE `homework`.`academic_class_id` = " . $this->db->escape($class_id) . " AND `homework`.`session_id` = " . $this->current_session . " and submit_date < '" . date('Y-m-d') . "' order by homework.homework_date desc";
+        $sql   = "SELECT `homework`.*,IFNULL(homework_evaluation.id,0) as homework_evaluation_id,homework_evaluation.note,homework_evaluation.marks as evaluation_marks, `ac`.`class_code`, `ac`.`class_code` as `class`, `ac`.`cohort_name`, `subject_group_subjects`.`subject_id`, `subject_group_subjects`.`id` as `subject_group_subject_id`, `subjects`.`name` as `subject_name`, `subjects`.`code` as `subject_code`,  `subject_groups`.`id` as `subject_groups_id`, `subject_groups`.`name` FROM `homework` LEFT JOIN homework_evaluation on homework_evaluation.homework_id=homework.id and homework_evaluation.enrolment_id=" . $this->db->escape($enrolment_id) . "  JOIN `academic_class` ac ON `ac`.`id` = `homework`.`academic_class_id` JOIN `subject_group_subjects` ON `subject_group_subjects`.`id` = `homework`.`subject_group_subject_id` JOIN `subjects` ON `subjects`.`id` = `subject_group_subjects`.`subject_id` JOIN `subject_groups` ON `subject_group_subjects`.`subject_group_id`=`subject_groups`.`id` WHERE `homework`.`academic_class_id` = " . $this->db->escape($class_id) . " AND `homework`.`session_id` = " . $this->current_session . " and submit_date < '" . date('Y-m-d') . "' order by homework.homework_date desc";
         $query = $this->db->query($sql);
         return $query->result_array();
     }
@@ -498,14 +498,13 @@ class Homework_model extends MY_model
     // TVET: Replaced student_session_id with enrolment_id
     public function getdailyassignment($student_id, $enrolment_id)
     {
-        // TVET: Use academic_class_enrolment (e) instead of student_session
+        // TVET: daily_assignment.student_session_id stores the enrolment_id
         return $this->db->select('daily_assignment.*,subjects.name as subject_name,`subjects`.`code` as `subject_code`')
             ->from('daily_assignment')
-            ->join('academic_class_enrolment e', 'e.student_id=daily_assignment.student_id', 'left')
+            ->join('academic_class_enrolment e', 'e.id=daily_assignment.student_session_id', 'left')
             ->join('subject_group_subjects', 'subject_group_subjects.id=daily_assignment.subject_group_subject_id', 'left')
             ->join('subjects', 'subjects.id=subject_group_subjects.subject_id')
-            ->where('daily_assignment.enrolment_id', $enrolment_id)
-            ->or_where('e.student_id', $student_id)
+            ->where('daily_assignment.student_session_id', $enrolment_id)
             ->order_by('daily_assignment.id', 'desc')
             ->group_by('daily_assignment.id')
             ->get()
@@ -549,7 +548,7 @@ class Homework_model extends MY_model
         // TVET: Use academic_class_enrolment (e) + academic_class (ac) instead of student_session
         $this->datatables->select('daily_assignment.*,staff.name,staff.surname,staff.employee_id,ac.class_code,ac.cohort_name,students.firstname,students.middlename,students.lastname,students.id as student_id,students.admission_no as student_admission_no,subjects.name as subject_name,subjects.code as subject_code')
             ->searchable('students.firstname,ac.class_code,ac.cohort_name,daily_assignment.title,daily_assignment.date,daily_assignment.description')
-            ->join("academic_class_enrolment e", "e.id = daily_assignment.enrolment_id")
+            ->join("academic_class_enrolment e", "e.id = daily_assignment.student_session_id")
             ->join("academic_class ac", "ac.id = e.class_id")
             ->join("students", "students.id = e.student_id")
             ->join("subject_group_subjects", "subject_group_subjects.id = daily_assignment.subject_group_subject_id")
@@ -584,7 +583,7 @@ class Homework_model extends MY_model
     {
         // TVET: Use academic_class_enrolment (e) + academic_class (ac) instead of student_session
         $this->db->select('daily_assignment.*,staff.name,staff.surname,staff.employee_id,ac.class_code,ac.cohort_name,students.firstname,students.middlename,students.lastname,students.id as student_id,students.admission_no as student_admission_no,subjects.name as subject_name,subjects.code as subject_code');
-        $this->db->join("academic_class_enrolment e", "e.id = daily_assignment.enrolment_id");
+        $this->db->join("academic_class_enrolment e", "e.id = daily_assignment.student_session_id");
         $this->db->join("academic_class ac", "ac.id = e.class_id");
         $this->db->join("students", "students.id = e.student_id");
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = daily_assignment.subject_group_subject_id");
@@ -610,7 +609,7 @@ class Homework_model extends MY_model
         // TVET: Use academic_class_enrolment (e) + academic_class (ac) instead of student_session
         $this->datatables->select('daily_assignment.*,staff.name,staff.surname,staff.employee_id,ac.class_code,ac.cohort_name,students.firstname,students.middlename,students.lastname,students.id as student_id,students.admission_no as student_admission_no,subjects.name as subject_name,count(students.id) as total_student', FALSE)
             ->searchable('students.firstname,ac.class_code,ac.cohort_name,daily_assignment.title,daily_assignment.date,daily_assignment.description')
-            ->join("academic_class_enrolment e", "e.id = daily_assignment.enrolment_id")
+            ->join("academic_class_enrolment e", "e.id = daily_assignment.student_session_id")
             ->join("academic_class ac", "ac.id = e.class_id")
             ->join("students", "students.id = e.student_id")
             ->join("subject_group_subjects", "subject_group_subjects.id = daily_assignment.subject_group_subject_id")
@@ -628,7 +627,7 @@ class Homework_model extends MY_model
     {
         // TVET: Use academic_class_enrolment (e) + academic_class (ac) instead of student_session
         $this->db->select('daily_assignment.*,staff.name,staff.surname,staff.employee_id,ac.class_code,ac.cohort_name,students.firstname,students.middlename,students.lastname,students.id as student_id,students.admission_no as student_admission_no,subjects.name as subject_name,subjects.code as subject_code');
-        $this->db->join("academic_class_enrolment e", "e.id = daily_assignment.enrolment_id");
+        $this->db->join("academic_class_enrolment e", "e.id = daily_assignment.student_session_id");
         $this->db->join("academic_class ac", "ac.id = e.class_id");
         $this->db->join("students", "students.id = e.student_id");
         $this->db->join("subject_group_subjects", "subject_group_subjects.id = daily_assignment.subject_group_subject_id");

@@ -18,16 +18,14 @@ class Subjectgroup extends Admin_Controller
             access_denied();
         }
 
-        $json_array = array();
         $this->session->set_userdata('top_menu', 'Academics');
         $this->session->set_userdata('sub_menu', 'subjectgroup/index');
-        $data['title']         = 'Add Class';
-        $data['title_list']    = 'Class List';
+        $data['title']         = 'Add Subject Group';
+        $data['title_list']    = 'Subject Group List';
         // TVET: Use classmodel_model to get classes for current session
         $session_id            = $this->setting_model->getCurrentSession();
         $class                 = $this->classmodel_model->getClassesBySession($session_id);
         $data['classlist']     = $class;
-        $data['section_array'] = $json_array;
 
         $this->form_validation->set_rules(
             'name', $this->lang->line('name'), array(
@@ -40,17 +38,9 @@ class Subjectgroup extends Admin_Controller
 
         $this->form_validation->set_rules('subject[]', $this->lang->line('subject'), 'trim|required|xss_clean');
 
-        $this->form_validation->set_rules(
-            'sections[]', $this->lang->line('section'), array(
-                'required',
-                array('check_section_exists', array($this->subjectgroup_model, 'check_section_exists')),
-            )
-        );
-
         if ($this->form_validation->run() == false) {
-            $data['section_array'] = $this->input->post('sections');
+
         } else {
-            $name        = $this->input->post('name');
             $session     = $this->setting_model->getCurrentSession();
             $class_array = array(
                 'name'        => $this->input->post('name'),
@@ -58,7 +48,8 @@ class Subjectgroup extends Admin_Controller
                 'description' => $this->input->post('description'),
             );
             $subject  = $this->input->post('subject');
-            $sections = $this->input->post('sections');
+            // TVET: Use class_id directly — no sections in TVET
+            $sections = array($this->input->post('class_id'));
 
             $this->subjectgroup_model->add($class_array, $subject, $sections);
             $this->session->set_flashdata('msg', '<div class="alert alert-success text-left">' . $this->lang->line('success_message') . '</div>');
@@ -91,10 +82,9 @@ class Subjectgroup extends Admin_Controller
 
         $this->session->set_userdata('top_menu', 'Academics');
         $this->session->set_userdata('sub_menu', 'subjectgroup/index');
-        $json_array        = array();
         $old_sections      = array();
         $old_subjects      = array();
-        $data['title']     = 'Edit Class';
+        $data['title']     = 'Edit Subject Group';
         $data['id']        = $id;
         // TVET: Use classmodel_model to get classes for current session
         $session_id        = $this->setting_model->getCurrentSession();
@@ -109,12 +99,10 @@ class Subjectgroup extends Admin_Controller
         $subjectgroup             = $this->subjectgroup_model->getByID($id);
 
         if (!empty($subjectgroup[0]->sections)) {
-
+            // TVET: class_id = academic_class.id, class_section_id also = academic_class.id
             $data['class_id'] = $subjectgroup[0]->sections[0]->class_id;
             foreach ($subjectgroup[0]->sections as $key => $value) {
-
                 $old_sections[] = ($value->class_section_id);
-                $json_array[]   = ($value->class_section_id);
             }
         }
         if (!empty($subjectgroup[0]->group_subject)) {
@@ -124,8 +112,6 @@ class Subjectgroup extends Admin_Controller
                 $old_subjects[] = $value->subject_id;
             }
         }
-
-        $data['section_array'] = $json_array;
 
         $data['subjectgroup'] = $subjectgroup;
         $this->form_validation->set_rules(
@@ -137,20 +123,9 @@ class Subjectgroup extends Admin_Controller
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
 
-        $this->form_validation->set_rules(
-            'sections[]', $this->lang->line('section'), array(
-                'required',
-                array('check_section_exists', array($this->subjectgroup_model, 'check_section_exists')),
-            )
-        );
-
         $this->form_validation->set_rules('subject[]', $this->lang->line('subject'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
-            if ($this->input->server('REQUEST_METHOD') == "POST") {
-                $data['section_array'] = $this->input->post('sections');
-            }
-
             $this->load->view('layout/header', $data);
             $this->load->view('admin/subjectgroup/subjectgroupEdit', $data);
             $this->load->view('layout/footer', $data);
@@ -162,7 +137,8 @@ class Subjectgroup extends Admin_Controller
                 'description' => $this->input->post('description'),
             );
             $subject         = $this->input->post('subject');
-            $sections        = $this->input->post('sections');
+            // TVET: Use class_id directly — no sections in TVET
+            $sections        = array($this->input->post('class_id'));
             $delete_sections = array_diff($old_sections, $sections);
             $add_sections    = array_diff($sections, $old_sections);
             $delete_subjects = array_diff($old_subjects, $subject);

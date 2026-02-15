@@ -194,13 +194,20 @@ class Student_model extends MY_Model
     public function getByEnrolment($enrolment_id)
     {
         $this->db->select('enrolment.id as enrolment_id,
+            enrolment.id as student_session_id,
             enrolment.class_id,
             class.class_code,
+            class.id as class_section_id,
             class.cohort_name,
-            class.year,
+            class.academic_year,
             subject.name as subject_name,
             level.code as level_code,
             level.name as level_name,
+            CONCAT(subject.name, " - ", level.code) as class,
+            sessions.session as session,
+            0 as route_pickup_point_id,
+            0 as transport_fees,
+            0 as fees_discount,
             students.id,
             students.admission_no,
             students.roll_no,
@@ -276,6 +283,7 @@ class Student_model extends MY_Model
             ->join('academic_subject_level subject_level', 'subject_level.id = class.subject_level_id')
             ->join('academic_subject subject', 'subject.id = subject_level.subject_id')
             ->join('academic_level level', 'level.id = subject_level.level_id')
+            ->join('sessions', 'sessions.id = class.session_id', 'left')
             ->join('school_houses', 'school_houses.id = students.school_house_id', 'left')
             ->join('users', 'users.user_id = students.id AND users.role = "student"', 'left')
             ->join('hostel_rooms', 'hostel_rooms.id = students.hostel_room_id', 'left')

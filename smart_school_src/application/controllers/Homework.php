@@ -113,8 +113,8 @@ class Homework extends Admin_Controller
                 }
 
                 $row   = array();
-                $row[] = $homeworklist->class;
-                $row[] = $homeworklist->section;
+                // TVET: Use class_code as class display (cohort already included in class_code)
+                $row[] = $homeworklist->class_code;
                 $row[] = $homeworklist->name;
                 $row[] = $homeworklist->subject_name . ' ' . $subject_code;
                 $row[] = $this->customlib->dateformat($homeworklist->homework_date);
@@ -198,8 +198,8 @@ class Homework extends Admin_Controller
 
                 $row   = array();
                 $row[] = '<input type="checkbox" id="delete_homework" name="delete_homework[]" value="' . $homeworklist->id . '">';
-                $row[] = $homeworklist->class;
-                $row[] = $homeworklist->section;
+                // TVET: Use class_code as class display (cohort already included in class_code)
+                $row[] = $homeworklist->class_code;
                 $row[] = $homeworklist->name;
                 $row[] = $homeworklist->subject_name . ' ' . $subject_code;
 
@@ -335,11 +335,14 @@ class Homework extends Admin_Controller
                 $marks    = NULL;
             }
 
-            // TVET: No section_id in data array
+            // TVET: Save to academic_class_id (and class_id for backward compat)
+            $academic_class_id = $this->input->post("modal_class_id");
             $data       = array(
                 'id'                       => $record_id,
                 'session_id'               => $session_id,
-                'class_id'                 => $this->input->post("modal_class_id"),
+                'academic_class_id'        => $academic_class_id,
+                'class_id'                 => $academic_class_id,
+                'section_id'               => 0,
                 'homework_date'            => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('homework_date'))),
                 'submit_date'              => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('submit_date'))),
                 'staff_id'                 => $userdata["id"],
@@ -496,17 +499,20 @@ class Homework extends Admin_Controller
                 $document = $this->input->post("document");
             }
 
-            // TVET: No section_id in data array
+            // TVET: Save to academic_class_id (and class_id for backward compat)
+            $academic_class_id = $this->input->post("class_id");
             $data = array(
-                'id'            => $id,
-                'class_id'      => $this->input->post("class_id"),
-                'subject_id'    => $this->input->post("subject_id"),
-                'homework_date' => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('homework_date'))),
-                'submit_date'   => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('submit_date'))),
-                'staff_id'      => $userdata["id"],
-                'description'   => $this->input->post("description"),
-                'create_date'   => date("Y-m-d"),
-                'document'      => $document,
+                'id'                => $id,
+                'academic_class_id' => $academic_class_id,
+                'class_id'          => $academic_class_id,
+                'section_id'        => 0,
+                'subject_id'        => $this->input->post("subject_id"),
+                'homework_date'     => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('homework_date'))),
+                'submit_date'       => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('submit_date'))),
+                'staff_id'          => $userdata["id"],
+                'description'       => $this->input->post("description"),
+                'create_date'       => date("Y-m-d"),
+                'document'          => $document,
             );
 
             $this->homework_model->add($data);
@@ -665,19 +671,19 @@ class Homework extends Admin_Controller
                 if ($std_value == 0) {
                     // TVET: Insert new evaluation record - std_key is enrolment_id
                     $insert_array[] = array(
-                        'student_session_id' => $std_key, // TVET: This is enrolment_id
-                        'note'               => $note[$std_key],
-                        'marks'              => $newmarks,
-                        'student_id'         => $student_id[$std_key],
-                        'status'             => 'completed',
+                        'enrolment_id' => $std_key,
+                        'note'         => $note[$std_key],
+                        'marks'        => $newmarks,
+                        'student_id'   => $student_id[$std_key],
+                        'status'       => 'completed',
                     );
                 } else {
                     // TVET: Update existing evaluation record
                     $insert_prev[] = $std_value;
                     $update_array[$std_value][] = array(
-                        'note'               => $note[$std_key],
-                        'marks'              => $newmarks,
-                        'student_session_id' => $std_key, // TVET: This is enrolment_id
+                        'note'          => $note[$std_key],
+                        'marks'         => $newmarks,
+                        'enrolment_id'  => $std_key,
                     );
                 }
             }
@@ -909,8 +915,8 @@ class Homework extends Admin_Controller
 
                 $row   = array();
                 $row[] = $value->firstname . ' ' . $value->middlename . ' ' . $value->lastname . ' (' . $value->student_admission_no . ')';
-                $row[] = $value->class;
-                $row[] = $value->section;
+                // TVET: Use class_code as class display (cohort already included in class_code)
+                $row[] = $value->class_code;
                 $row[] = $value->subject_name . ' ' . $code;
                 $row[] = $value->title;
                 $row[] = date($this->customlib->getSchoolDateFormat(), $this->customlib->dateyyyymmddTodateformat($value->date));
@@ -1159,8 +1165,8 @@ class Homework extends Admin_Controller
 
                 $row   = array();
                 $row[] = $value->firstname . ' ' . $value->middlename . ' ' . $value->lastname . ' (' . $value->student_admission_no . ')';
-                $row[] = $value->class;
-                $row[] = $value->section;
+                // TVET: Use class_code as class display (cohort already included in class_code)
+                $row[] = $value->class_code;
                 $row[] = $value->total_student;
                 $row[] = $assignment;
                 $dt_data[] = $row;

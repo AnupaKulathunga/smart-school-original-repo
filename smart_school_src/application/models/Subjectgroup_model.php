@@ -408,7 +408,8 @@ class Subjectgroup_model extends MY_Model {
 
     public function getAllsubjectByClassSection($class_id, $section_id = null){
         // TVET: Join to academic_class instead of class_sections
-        $sql = "SELECT subject_group_class_sections.*, subject_groups.name as subject_group_name, subject_group_subjects.id as subject_group_subject_id, subjects.id as subject_id, subjects.name as subject_name, subjects.code as subject_code
+        // Include 'name' and 'code' aliases for backward compatibility with views
+        $sql = "SELECT subject_group_class_sections.*, subject_groups.name as subject_group_name, subject_group_subjects.id as subject_group_subject_id, subjects.id as subject_id, subjects.name as subject_name, subjects.name as name, subjects.code as subject_code, subjects.code as code
                 FROM `subject_group_class_sections`
                 INNER JOIN academic_class ac ON subject_group_class_sections.class_section_id = ac.id
                 INNER JOIN subject_groups ON subject_groups.id = subject_group_class_sections.subject_group_id
@@ -418,7 +419,7 @@ class Subjectgroup_model extends MY_Model {
                 AND subject_group_class_sections.session_id=" . $this->db->escape($this->current_session);
 
         $query = $this->db->query($sql);
-        return $query->result();
+        return $query->result_array();
     }
 
     // ============================================================================

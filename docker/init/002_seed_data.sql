@@ -48,4 +48,30 @@ INSERT INTO permission_category (perm_group_id, name, short_code, enable_view, e
 SELECT 23, 'Exam Moderation', 'exam_moderation', 1, 1, 1, 1
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM permission_category WHERE short_code = 'exam_moderation');
 
+-- ============================================================================
+-- 6. PERMISSION STUDENT (Student/Parent module visibility)
+-- ============================================================================
+INSERT INTO `permission_student` (`id`, `name`, `short_code`, `system`, `student`, `parent`, `group_id`) VALUES
+(1, 'Fees', 'fees', 0, 1, 1, 2),
+(2, 'Class Timetable', 'class_timetable', 1, 1, 1, 7),
+(3, 'Assignments', 'homework', 0, 1, 1, 19),
+(4, 'Download Center', 'download_center', 0, 1, 1, 8),
+(5, 'Attendance', 'attendance', 0, 1, 1, 5),
+(7, 'Examinations', 'examinations', 0, 1, 1, 6),
+(8, 'Notice Board', 'notice_board', 0, 1, 1, 13),
+(11, 'Library', 'library', 0, 1, 1, 9),
+(12, 'Transport Routes', 'transport_routes', 0, 1, 1, 11),
+(13, 'Hostel Rooms', 'hostel_rooms', 0, 1, 1, 12),
+(14, 'Calendar To Do List', 'calendar_to_do_list', 0, 1, 1, 21),
+(15, 'Online Examination', 'online_examination', 0, 1, 1, 23),
+(16, 'Teachers Rating', 'teachers_rating', 0, 1, 1, NULL),
+(17, 'Chat', 'chat', 0, 1, 1, 25),
+(18, 'Multi Class', 'multi_class', 1, 1, 1, 26),
+(19, 'Lesson Plan', 'lesson_plan', 0, 1, 1, 29),
+(20, 'Syllabus Status', 'syllabus_status', 0, 1, 1, 29),
+(23, 'Apply Leave', 'apply_leave', 0, 1, 1, NULL),
+(24, 'Visitor Book', 'visitor_book', 0, 1, 1, NULL),
+(25, 'Student Timeline', 'student_timeline', 0, 1, 1, NULL)
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
 -- End of seed data

@@ -182,7 +182,7 @@ class Stuattendence_model extends MY_Model
                 students.firstname, students.middlename, students.lastname,
                 student_sessions.date, student_sessions.remark,
                 students.roll_no, students.admission_no, students.id as std_id,
-                student_sessions.attendence_type_id, student_sessions.id as student_session_id,
+                student_sessions.attendence_type_id, student_sessions.id as enrolment_id,
                 attendence_type.type as `att_type`, attendence_type.key_value as `key`,
                 attendence_type.long_lang_name, attendence_type.long_name_style
             FROM students, (
@@ -224,7 +224,7 @@ class Stuattendence_model extends MY_Model
         $sql = "SELECT student_sessions.attendence_id, students.firstname, students.middlename,
                 student_sessions.date, student_sessions.remark,
                 students.roll_no, students.admission_no, students.lastname,
-                student_sessions.attendence_type_id, student_sessions.id as student_session_id,
+                student_sessions.attendence_type_id, student_sessions.id as enrolment_id,
                 attendence_type.type as `att_type`, attendence_type.key_value as `key`
             FROM students, (
                 SELECT ace.id, ace.student_id,
@@ -255,7 +255,7 @@ class Stuattendence_model extends MY_Model
         $query = $this->db->query("SELECT student_sessions.attendence_id, student_sessions.remark,
                 students.id as std_id, students.firstname, students.middlename,
                 students.admission_no, student_sessions.date, students.roll_no, students.lastname,
-                student_sessions.attendence_type_id, student_sessions.id as student_session_id
+                student_sessions.attendence_type_id, student_sessions.id as enrolment_id
             FROM students, (
                 SELECT ace.id, ace.student_id,
                     IFNULL(student_attendences.date, 'xxx') as date,
@@ -428,7 +428,7 @@ class Stuattendence_model extends MY_Model
                 students.firstname, students.middlename, students.lastname,
                 student_sessions.date, student_sessions.remark,
                 students.roll_no, students.admission_no, students.id as std_id,
-                student_sessions.attendence_type_id, student_sessions.id as student_session_id,
+                student_sessions.attendence_type_id, student_sessions.id as enrolment_id,
                 attendence_type.type as `att_type`, attendence_type.key_value as `key`,
                 attendence_type.long_lang_name, attendence_type.long_name_style
             FROM students, (
@@ -515,7 +515,16 @@ class Stuattendence_model extends MY_Model
     {
         $query = $this->db->select('students.*, students.id as student_id,
             ace.id as enrolment_id, ace.status as enrolment_status,
-            student_attendences.*, student_attendences.id as attendance_id,
+            student_attendences.id as attendence_id,
+            student_attendences.attendence_type_id,
+            student_attendences.date,
+            student_attendences.remark,
+            student_attendences.in_time,
+            student_attendences.out_time,
+            student_attendences.is_active as att_is_active,
+            IFNULL(student_attendences.biometric_attendence, 0) as biometric_attendence,
+            IFNULL(student_attendences.qrcode_attendance, 0) as qrcode_attendance,
+            student_attendences.created_at as attendence_dt,
             attendence_type.type as attendence_type, attendence_type.key_value,
             ac.class_code, ac.cohort_name,
             asubj.name as subject_name, al.name as level_name', FALSE)

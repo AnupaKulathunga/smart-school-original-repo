@@ -109,6 +109,7 @@ class Academic_attendance_model extends CI_Model
 
     /**
      * Get student's attendance summary for a class
+     * Reads from student_attendences table (where admin marks attendance)
      */
     public function getStudentSummary($enrolment_id)
     {
@@ -116,12 +117,14 @@ class Academic_attendance_model extends CI_Model
 
         $stats = $this->db->select('
             COUNT(*) as total,
-            SUM(CASE WHEN status = "Present" THEN 1 ELSE 0 END) as present,
-            SUM(CASE WHEN status = "Absent" THEN 1 ELSE 0 END) as absent,
-            SUM(CASE WHEN status = "Late" THEN 1 ELSE 0 END) as late,
-            SUM(CASE WHEN status = "Excused" THEN 1 ELSE 0 END) as excused')
-            ->where('enrolment_id', $enrolment_id)
-            ->get($this->table)->row();
+            SUM(CASE WHEN at.type = "Present" THEN 1 ELSE 0 END) as present,
+            SUM(CASE WHEN at.type = "Absent" THEN 1 ELSE 0 END) as absent,
+            SUM(CASE WHEN at.type = "Late" THEN 1 ELSE 0 END) as late,
+            SUM(CASE WHEN at.type = "Excused" THEN 1 ELSE 0 END) as excused', FALSE)
+            ->from('student_attendences sa')
+            ->join('attendence_type at', 'at.id = sa.attendence_type_id', 'left')
+            ->where('sa.enrolment_id', $enrolment_id)
+            ->get()->row();
 
         $summary->total = $stats->total ?: 0;
         $summary->present = $stats->present ?: 0;
@@ -231,25 +234,28 @@ class Academic_attendance_model extends CI_Model
      */
     public function getStudentAttendanceRange($student_id, $start_date, $end_date, $class_id = null)
     {
-        $this->db->select('a.*, a.attendance_date as date, c.class_code, c.cohort_name,
+        $this->db->select('sa.id, sa.date, sa.remark as notes,
+                          at.type as status,
+                          ace.class_id,
+                          ac.class_code, ac.cohort_name,
                           subj.name as subject_name, subj.code as subject_code,
-                          l.code as level_code', FALSE);
-        $this->db->from($this->table . ' a');
-        $this->db->join('academic_class_enrolment e', 'e.id = a.enrolment_id');
-        $this->db->join('student_session ss', 'ss.id = e.student_session_id');
-        $this->db->join('academic_class c', 'c.id = a.class_id');
-        $this->db->join('academic_subject_level sl', 'sl.id = c.subject_level_id');
-        $this->db->join('academic_subject subj', 'subj.id = sl.subject_id');
-        $this->db->join('academic_level l', 'l.id = sl.level_id');
-        $this->db->where('ss.student_id', $student_id);
-        $this->db->where('a.attendance_date >=', $start_date);
-        $this->db->where('a.attendance_date <=', $end_date);
+                          al.code as level_code', FALSE);
+        $this->db->from('student_attendences sa');
+        $this->db->join('attendence_type at', 'at.id = sa.attendence_type_id', 'left');
+        $this->db->join('academic_class_enrolment ace', 'ace.id = sa.enrolment_id');
+        $this->db->join('academic_class ac', 'ac.id = ace.class_id');
+        $this->db->join('academic_subject_level asl', 'asl.id = ac.subject_level_id');
+        $this->db->join('academic_subject subj', 'subj.id = asl.subject_id');
+        $this->db->join('academic_level al', 'al.id = asl.level_id');
+        $this->db->where('ace.student_id', $student_id);
+        $this->db->where('sa.date >=', $start_date);
+        $this->db->where('sa.date <=', $end_date);
 
         if ($class_id) {
-            $this->db->where('a.class_id', $class_id);
+            $this->db->where('ace.class_id', $class_id);
         }
 
-        return $this->db->order_by('a.attendance_date', 'ASC')
+        return $this->db->order_by('sa.date', 'ASC')
             ->get()->result();
     }
 
@@ -263,20 +269,23 @@ class Academic_attendance_model extends CI_Model
      */
     public function getStudentAttendanceByDate($student_id, $date)
     {
-        $this->db->select('a.*, c.class_code, c.cohort_name, c.venue,
+        $this->db->select('sa.id, sa.date, sa.remark as notes,
+                          at.type as status,
+                          ace.class_id,
+                          ac.class_code, ac.cohort_name, ac.venue,
                           subj.name as subject_name, subj.code as subject_code,
-                          l.code as level_code, l.name as level_name,
+                          al.code as level_code, al.name as level_name,
                           st.name as lecturer_name, st.surname as lecturer_surname', FALSE);
-        $this->db->from($this->table . ' a');
-        $this->db->join('academic_class_enrolment e', 'e.id = a.enrolment_id');
-        $this->db->join('student_session ss', 'ss.id = e.student_session_id');
-        $this->db->join('academic_class c', 'c.id = a.class_id');
-        $this->db->join('academic_subject_level sl', 'sl.id = c.subject_level_id');
-        $this->db->join('academic_subject subj', 'subj.id = sl.subject_id');
-        $this->db->join('academic_level l', 'l.id = sl.level_id');
-        $this->db->join('staff st', 'st.id = c.primary_lecturer_id', 'left');
-        $this->db->where('ss.student_id', $student_id);
-        $this->db->where('a.attendance_date', $date);
+        $this->db->from('student_attendences sa');
+        $this->db->join('attendence_type at', 'at.id = sa.attendence_type_id', 'left');
+        $this->db->join('academic_class_enrolment ace', 'ace.id = sa.enrolment_id');
+        $this->db->join('academic_class ac', 'ac.id = ace.class_id');
+        $this->db->join('academic_subject_level asl', 'asl.id = ac.subject_level_id');
+        $this->db->join('academic_subject subj', 'subj.id = asl.subject_id');
+        $this->db->join('academic_level al', 'al.id = asl.level_id');
+        $this->db->join('staff st', 'st.id = ac.primary_lecturer_id', 'left');
+        $this->db->where('ace.student_id', $student_id);
+        $this->db->where('sa.date', $date);
 
         return $this->db->order_by('subj.name', 'ASC')
             ->get()->result();

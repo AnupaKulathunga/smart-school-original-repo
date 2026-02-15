@@ -93,7 +93,7 @@ if ($this->rbac->hasPrivilege('subject_group', 'can_add')) {
                                 <thead>
                                     <tr>
                                         <th><?php echo $this->lang->line('name'); ?></th>
-                                        <th class="text-left"><?php echo $this->lang->line('class_section'); ?></th>
+                                        <th class="text-left"><?php echo $this->lang->line('class'); ?></th>
                                         <th><?php echo $this->lang->line('subject'); ?></th>
                                         <th class="text-right no_print"><?php echo $this->lang->line('action'); ?></th>
                                     </tr>
@@ -123,8 +123,7 @@ if ($subjectgroup->description == "") {
                                                 <ol>
 
                                                     <?php foreach ($subjectgroup->sections as $group_section_key => $group_section_value) {?>
-                                                         <?php echo "<li>" . $group_section_value->class . "(" . $group_section_value->section . ") </li>"; ?>
-
+                                                         <?php echo "<li>" . $group_section_value->class . "</li>"; ?>
                                                         <?php
 }
     ?>

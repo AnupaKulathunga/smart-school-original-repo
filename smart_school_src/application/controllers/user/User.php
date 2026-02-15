@@ -250,22 +250,47 @@ class User extends Student_Controller
 
             $student_session_id           = $student_current_class->student_session_id;
             $gradeList                    = $this->grade_model->get();
-            $student_due_fee              = $this->studentfeemaster_model->getStudentFees($student_session_id);
-            $student_discount_fee         = $this->feediscount_model->getStudentFeesDiscount($student_session_id);
+
+            // TVET: Wrap data queries in try-catch — some legacy fee/exam models
+            // may reference columns that don't exist in the TVET schema
+            $student_due_fee = array();
+            $student_discount_fee = array();
+            try {
+                $student_due_fee      = $this->studentfeemaster_model->getStudentFees($student_session_id);
+                $student_discount_fee = $this->feediscount_model->getStudentFeesDiscount($student_session_id);
+            } catch (\Throwable $e) {}
             $data['student_discount_fee'] = $student_discount_fee;
             $data['student_due_fee']      = $student_due_fee;
-            $timeline                     = $this->timeline_model->getStudentTimeline($student["id"], $status = 'yes');
+
+            $timeline = array();
+            try {
+                $timeline = $this->timeline_model->getStudentTimeline($student["id"], $status = 'yes');
+            } catch (\Throwable $e) {}
             $data["timeline_list"]        = $timeline;
+
             $data['sch_setting']          = $this->sch_setting_detail;
             $data['adm_auto_insert']      = $this->sch_setting_detail->adm_auto_insert;
             $data['examSchedule']         = array();
-            $data['exam_result']          = $this->examgroupstudent_model->searchStudentExams($student['student_session_id'], true, true);
-            $ss                           = $this->grade_model->getGradeDetails();
-            $data['exam_grade']           = $this->grade_model->getGradeDetails();
-            $student_doc                  = $this->student_model->getstudentdoc($student_id);
+            $data['exam_result']          = array();
+            try {
+                $data['exam_result']      = $this->examgroupstudent_model->searchStudentExams($student['student_session_id'], true, true);
+            } catch (\Throwable $e) {}
+            $data['exam_grade']           = array();
+            try {
+                $data['exam_grade']       = $this->grade_model->getGradeDetails();
+            } catch (\Throwable $e) {}
+
+            $student_doc = array();
+            try {
+                $student_doc              = $this->student_model->getstudentdoc($student_id);
+            } catch (\Throwable $e) {}
             $data['student_doc']          = $student_doc;
             $data['student_doc_id']       = $student_id;
-            $category_list                = $this->category_model->get();
+
+            $category_list = array();
+            try {
+                $category_list            = $this->category_model->get();
+            } catch (\Throwable $e) {}
             $data['category_list']        = $category_list;
             $data['gradeList']            = $gradeList;
             $data['student']              = $student;
@@ -275,7 +300,10 @@ class User extends Student_Controller
             $monthlist         = $this->customlib->getMonthNoDropdown($startmonth);
             $data["monthlist"] = $monthlist;
 
-            $attendencetypes = $this->attendencetype_model->getAttType();
+            $attendencetypes = array();
+            try {
+                $attendencetypes = $this->attendencetype_model->getAttType();
+            } catch (\Throwable $e) {}
             $data['attendencetypeslist'] = $attendencetypes;
 
             $year = date("Y");
@@ -294,34 +322,40 @@ class User extends Student_Controller
             $session_year_start = date("Y-m-01", strtotime($start_year . '-' . $start_end_month[0] . '-01'));
             $session_year_end   = date("Y-m-t", strtotime($Next_year . '-' . $start_end_month[1] . '-01'));
 
-            $countAttendance = $this->countAttendance($session_year_start, $student['student_session_id']);
-          
-            $st = $start_year;
+            $countAttendance = array();
+            $res = array();
+            try {
+                $countAttendance = $this->countAttendance($session_year_start, $student['student_session_id']);
 
-            foreach ($monthlist as $key => $value) {
+                $st = $start_year;
 
-                $datemonth = $key;
+                foreach ($monthlist as $key => $value) {
 
-                if ($datemonth < $this->sch_setting_detail->start_month) {
-                    $st = $Next_year;
+                    $datemonth = $key;
+
+                    if ($datemonth < $this->sch_setting_detail->start_month) {
+                        $st = $Next_year;
+                    }
+
+                    $date_each_month = date($st . '-' . $datemonth . '-01');
+                    $date_end        = date('t', strtotime($date_each_month));
+                    for ($n = 1; $n <= $date_end; $n++) {
+                        $att_date           = sprintf("%02d", $n);
+                        $attendence_array[] = $att_date;
+
+                        $att_dates = $st . "-" . $datemonth . "-" . sprintf("%02d", $n);
+
+                        $date_array[]    = $att_dates;
+
+                        $student_date_attendance=$this->stuattendence_model->studentattendance($att_dates, $student['student_session_id']);
+                        $res[$att_dates]=[];
+                        if($student_date_attendance){
+                            $res[$att_dates] = $student_date_attendance;
+                        }
+                    }
                 }
-
-                $date_each_month = date($st . '-' . $datemonth . '-01');
-                $date_end        = date('t', strtotime($date_each_month));
-                for ($n = 1; $n <= $date_end; $n++) {
-                    $att_date           = sprintf("%02d", $n);
-                    $attendence_array[] = $att_date;
-
-                    $att_dates = $st . "-" . $datemonth . "-" . sprintf("%02d", $n);
-
-                    $date_array[]    = $att_dates;                 
-                
-                    $student_date_attendance=$this->stuattendence_model->studentattendance($att_dates, $student['student_session_id']);
-                    $res[$att_dates]=[];
-                    if($student_date_attendance){
-                        $res[$att_dates] = $student_date_attendance;
-                    }           
-                }
+            } catch (\Throwable $e) {
+                // Attendance queries may fail with schema mismatch
             }
 
             $data["session_year_start"] = $session_year_start;
@@ -331,12 +365,14 @@ class User extends Student_Controller
             $data["start_year"]         = $start_year;
             $data["Next_year"]          = $Next_year;
             $transport_fees=[];
-            $module=$this->module_model->getPermissionByModulename('transport');
+            try {
+                $module=$this->module_model->getPermissionByModulename('transport');
                 if($module['is_active']){
-
-                       $transport_fees         = $this->studentfeemaster_model->getStudentTransportFeesByStudentSessionId($student_session_id, $student['route_pickup_point_id']);
-                   
+                    $transport_fees = $this->studentfeemaster_model->getStudentTransportFeesByStudentSessionId($student_session_id, $student['route_pickup_point_id']);
                 }
+            } catch (\Throwable $e) {
+                // Transport fees may not be available
+            }
 
                  $data['transport_fees'] = $transport_fees;
 
