@@ -537,12 +537,16 @@ class User extends Student_Controller
 
     public function dashboard()
     {
-        $student_current_class = $this->customlib->getStudentCurrentClsSection();
+        // TVET: Use getStudentCurrentEnrolment() for TVET compatibility
+        $student_current_class = $this->customlib->getStudentCurrentEnrolment();
+        $student_session_data  = $this->customlib->getStudentCurrentClsSection();
+        $student_session_id    = isset($student_session_data->student_session_id) ? $student_session_data->student_session_id : null;
+
         $session_year_detail   = sessionYearDetails($this->sch_setting_detail->session, $this->sch_setting_detail->start_month);
         $attendance_date           = ['start' => $session_year_detail['month_start'], 'end' => $session_year_detail['month_end']];
-        $student_total_attendances = $this->attendencetype_model->getStudentAttendenceRange($attendance_date, $student_current_class->student_session_id);
+        $student_total_attendances = $this->attendencetype_model->getStudentAttendenceRange($attendance_date, $student_session_id);
         $attendence_percentage = -1;
-      
+
         if (!empty($student_total_attendances)) {
             $total_attendance_count=count($student_total_attendances);
             $absents = 0;
@@ -550,18 +554,18 @@ class User extends Student_Controller
                 ($attend_value->attendence_type_id == 4) ? $absents++ : "";
             }
             $total_presents= $total_attendance_count-$absents;
-            $attendence_percentage= two_digit_float(($total_presents*100)/$total_attendance_count);        
+            $attendence_percentage= two_digit_float(($total_presents*100)/$total_attendance_count);
         }
-       
+
         $this->session->set_userdata('top_menu', 'dashboard');
         $data          = array();
         $student_id    = $this->customlib->getStudentSessionUserID();
         $member_type   = "student";
         $checkIsMember = $this->librarymember_model->checkIsMember($member_type, $student_id);
-        $data['bookList'] = $checkIsMember;             
+        $data['bookList'] = $checkIsMember;
         $class_id     = $student_current_class->class_id;
         // TVET: Call model method without section_id parameter
-        $homeworklist = $this->homework_model->getStudentHomeworkWithStatus($class_id, $student_current_class->student_session_id);
+        $homeworklist = $this->homework_model->getStudentHomeworkWithStatus($class_id, $student_session_id);
         foreach ($homeworklist as $key => $homeworklist_value) {
             $homeworklist[$key]['status'] = '';
             $checkstatus                  = $this->homework_model->checkstatus($homeworklist_value['id'], $student_id);
@@ -574,6 +578,7 @@ class User extends Student_Controller
 
         // notification list start
         $user_role = $this->customlib->getUserRole();
+        $notifications = array();
         if ($user_role == 'student') {
             $student_id    = $this->customlib->getStudentSessionUserID();
             $notifications = $this->notification_model->getNotificationForStudent($student_id);
@@ -593,17 +598,14 @@ class User extends Student_Controller
 
         // your progress start
         // TVET: section_id = class_id in TVET model
+        $data['subjects_data'] = array();
         $subjects = $this->syllabus_model->getmysubjects($student_current_class->class_id, $student_current_class->class_id);
 
         foreach ($subjects as $key => $value) {
-            $show_status     = 0;
-            $teacher_summary = array();
-            $lesson_result   = array();
             $complete        = 0;
             $incomplete      = 0;
-            $array[]         = $value;
             $subject_details = $this->syllabus_model->get_subjectstatus($value->subject_group_subjects_id, $value->subject_group_class_sections_id);
-            if ($subject_details[0]->total != 0) {
+            if (!empty($subject_details) && isset($subject_details[0]) && $subject_details[0]->total != 0) {
 
                 $complete   = ($subject_details[0]->complete / $subject_details[0]->total) * 100;
                 $incomplete = ($subject_details[0]->incomplete / $subject_details[0]->total) * 100;
@@ -647,21 +649,21 @@ class User extends Student_Controller
         $data['attendence_percentage'] = $attendence_percentage;
         // end
 
-        $data['visitor_list'] = $this->visitors_model->visitorbystudentid($student_current_class->student_session_id);
+        $data['visitor_list'] = $this->visitors_model->visitorbystudentid($student_session_id);
         $data['studentsession_username'] = $this->customlib->getStudentSessionUserName();
         $data['student_data'] = $this->customlib->getLoggedInUserData();
         $setting_data                 = $this->setting_model->get();
         $data['low_attendance_limit']     = $setting_data[0]['low_attendance_limit'];
         $data['teachers']   = $teachers   = array();
-        // TVET: Pass class_id for both params (section_id = class_id in TVET)
-        $student_teacher = $this->subjecttimetable_model->getTeacherByClassandSection($student_current_class->class_id, $student_current_class->class_id);
-        
+        // TVET: Pass class_id only
+        $student_teacher = $this->subjecttimetable_model->getTeacherByClassandSection($student_current_class->class_id);
+
         foreach ($student_teacher as $value) {
             $teachers[$value->staff_id][] = $value;
         }
-        
-        $data['teacherlist']         = $teachers;        
-        
+
+        $data['teacherlist']         = $teachers;
+
         $this->load->view('layout/student/header', $data);
         $this->load->view('user/dashboard', $data);
         $this->load->view('layout/student/footer', $data);
