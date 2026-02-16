@@ -58,9 +58,14 @@ class Common extends Public_Controller
 
         $role         = $this->customlib->getUserRole();
         $data['role'] = $role;
+        $data['programmes'] = array();
+        $data['studentclasses'] = array();
+
         if ($role == "student") {
-            $student_id             = $this->customlib->getStudentSessionUserID();
-            // TVET: Use enrolment_model to get student's class enrolments
+            $student_id = $this->customlib->getStudentSessionUserID();
+            // Get programmes for programme-based switcher
+            $data['programmes'] = $this->enrolment_model->getStudentProgrammes($student_id);
+            // Also get individual enrolments as fallback
             $data['studentclasses'] = $this->enrolment_model->getStudentEnrolments($student_id);
         } elseif ($role == "parent") {
             $parent_id              = $this->customlib->getUsersID();
@@ -82,24 +87,61 @@ class Common extends Public_Controller
             $array = array('status' => 0, 'error' => $data, 'message' => 'Something went wrong');
             echo json_encode($array);
         } else {
-           //===================          
-            $student_session_id = $this->input->post('clschg');
-
-            $student        = $this->student_model->getByStudentSession($student_session_id);
-            $logged_In_User = $this->customlib->getLoggedInUserData();
-
-            $logged_In_User['student_id'] = $student['id'];
+            $selected = $this->input->post('clschg');
 
             $current_class = $this->session->has_userdata('current_class');
             if ($current_class) {
                 $this->session->unset_userdata('current_class');
             }
 
+            // Handle programme-based switching (format: "prog_ID")
+            if (strpos($selected, 'prog_') === 0) {
+                $programme_id = str_replace('prog_', '', $selected);
+                $student_id = $this->customlib->getStudentSessionUserID();
+                $programmes = $this->enrolment_model->getStudentProgrammes($student_id);
+
+                $selected_prog = null;
+                foreach ($programmes as $prog) {
+                    if ($prog->programme_id == $programme_id) {
+                        $selected_prog = $prog;
+                        break;
+                    }
+                }
+
+                if ($selected_prog) {
+                    $class_ids_arr = explode(',', $selected_prog->class_ids);
+                    $enrolment_ids_arr = explode(',', $selected_prog->enrolment_ids);
+
+                    $logged_In_User = $this->customlib->getLoggedInUserData();
+                    $logged_In_User['student_id'] = $student_id;
+                    $this->session->set_userdata('student', $logged_In_User);
+
+                    $student_current_class = array(
+                        'programme_id'       => $selected_prog->programme_id,
+                        'programme_name'     => $selected_prog->programme_name,
+                        'class_ids'          => $selected_prog->class_ids,
+                        'class_id'           => $class_ids_arr[0],
+                        'section_id'         => $class_ids_arr[0],
+                        'student_session_id' => $enrolment_ids_arr[0],
+                    );
+                    $this->session->set_userdata('current_class', $student_current_class);
+
+                    $array = array('status' => '1', 'error' => '', 'message' => $this->lang->line('success_message'));
+                    echo json_encode($array);
+                    return;
+                }
+            }
+
+            // Legacy flow: single enrolment selection
+            $student_session_id = $selected;
+            $student        = $this->student_model->getByStudentSession($student_session_id);
+            $logged_In_User = $this->customlib->getLoggedInUserData();
+
+            $logged_In_User['student_id'] = $student['id'];
+
             $this->session->set_userdata('student', $logged_In_User);
             $student_current_class = array('class_id' => $student['class_id'], 'section_id' => $student['class_id'], 'student_session_id' => $student['student_session_id']);
             $this->session->set_userdata('current_class', $student_current_class);
-
-            //==================
 
             $array = array('status' => '1', 'error' => '', 'message' => $this->lang->line('success_message'));
             echo json_encode($array);

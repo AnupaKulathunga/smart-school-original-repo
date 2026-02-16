@@ -144,10 +144,30 @@ input[type=radio] {
             <div class="loginbg loginradius login390 bgoffsetbgno"> 
                 
 <?php
+// Programme-based selection for students, legacy class-based for parents
+if ($role == 'student' && !empty($programmes)) {
+?>
+<form action="<?php echo site_url('user/user/choose'); ?>" method="POST">
 
-if (!empty($student_lists)) {
-    ?>
-<form action="<?php echo site_url('user/user/choose'); ?>" method="POST" >
+<div class="selectform">
+   <h4 class="select-title"><?php echo $this->lang->line('select') . ' Programme'; ?></h4>
+
+    <?php foreach ($programmes as $prog) { ?>
+<div class="radio">
+  <label>
+    <input type="radio" value="prog_<?php echo $prog->programme_id; ?>" class="clschg" name="clschg">
+    <strong><?php echo htmlspecialchars($prog->programme_name); ?></strong>
+    <span style="color:#888; font-size:12px;"> &mdash; <?php echo $prog->class_count; ?> <?php echo ($prog->class_count == 1) ? 'subject' : 'subjects'; ?></span>
+  </label>
+</div>
+    <?php } ?>
+</div>
+    <span class="text-danger"><?php echo form_error('clschg'); ?></span>
+    <div class="form-bottom"><input type="submit" class="btn2 pull-right" name="submit" value="<?php echo $this->lang->line('select_and_proceed'); ?>"></div>
+</form>
+
+<?php } elseif (!empty($student_lists)) { ?>
+<form action="<?php echo site_url('user/user/choose'); ?>" method="POST">
 
 <div class="selectform">
    <h4 class="select-title"><?php echo $this->lang->line('select_class'); ?></h4>
@@ -168,26 +188,17 @@ foreach ($student_lists as $student_key => $student_value) {
   </label>
 </div>
 
-
-
-    <?php
-}
-    ?>
- </div>   
+    <?php } ?>
+</div>
     <span class="text-danger"><?php echo form_error('clschg'); ?></span>
     <div class="form-bottom"><input type="submit" class="btn2 pull-right" name="submit" value="<?php echo $this->lang->line('select_and_proceed'); ?>"></div>
 </form>
 
-    <?php
-} else {
-    ?>
-<div class="alert alert-info">    
+<?php } else { ?>
+<div class="alert alert-info">
 	<?php echo $this->lang->line('no_more_classes_found_in_your_current_session'); ?>
-	
 </div>
-<?php
-}
-?>
+<?php } ?>
 </div>
 </div>
 </div>

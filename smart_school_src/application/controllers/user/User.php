@@ -48,50 +48,55 @@ class User extends Student_Controller
         $default_login_student_id = "";
 
         if ($role == "student") {
-            $student_id            = $this->customlib->getStudentSessionUserID();
-            // TVET: Use enrolment_model to get student's class enrolments
+            $student_id = $this->customlib->getStudentSessionUserID();
+
+            // Get student's programmes (grouped by programme)
+            $programmes = $this->enrolment_model->getStudentProgrammes($student_id);
+
+            if (empty($programmes)) {
+                // Try older sessions if no programmes in current session
+                $programmes = $this->enrolment_model->getStudentProgrammes($student_id, null);
+            }
+
+            $data['programmes'] = $programmes;
+
+            // Auto-select if student is in only ONE programme
+            if (count($programmes) == 1) {
+                $prog = $programmes[0];
+                $class_ids_str = $prog->class_ids;
+                $class_ids_arr = explode(',', $class_ids_str);
+                $first_class_id = $class_ids_arr[0];
+                $enrolment_ids_arr = explode(',', $prog->enrolment_ids);
+                $first_enrolment_id = $enrolment_ids_arr[0];
+
+                $default_login_student_id = $student_id;
+                $student_current_class = array(
+                    'programme_id'       => $prog->programme_id,
+                    'programme_name'     => $prog->programme_name,
+                    'class_ids'          => $class_ids_str,
+                    'class_id'           => $first_class_id,
+                    'section_id'         => $first_class_id,
+                    'student_session_id' => $first_enrolment_id,
+                );
+            }
+
+            // Also get enrolments for parent flow compatibility
             $data['student_lists'] = $this->enrolment_model->getStudentEnrolments($student_id);
-
-            if (empty($data['student_lists'])) {
-                //if student not belong to current session find it for old session
-                // TVET: Get most recent enrolment for any session via academic_class_enrolment
-                $this->db->select('e.*, e.id as student_session_id, e.id as enrolment_id, ac.session_id, sessions.session, sessions.id as session_id, ac.id as class_id', FALSE);
-                $this->db->from('academic_class_enrolment e');
-                $this->db->join('academic_class ac', 'ac.id = e.class_id');
-                $this->db->join('sessions', 'sessions.id = ac.session_id');
-                $this->db->where('e.student_id', $student_id);
-                $this->db->order_by('ac.session_id', 'DESC');
-                $this->db->limit(10);
-                $data['student_lists'] = $this->db->get()->result();
-
-                if (!empty($data['student_lists'])) {
-                    $session       = $this->session_model->get($data['student_lists'][0]->session_id);
-                    $session_array = array('session_id' => $session['id'], 'session' => $session['session']);
-                    $this->session->set_userdata('session_array', $session_array);
-                }
-            }
-
-            if (isset($data['student_lists'][0]->default_login) && $data['student_lists'][0]->default_login) {
-                $default_login_student_id = $data['student_lists'][0]->student_id;
-                // TVET: In TVET, section_id = class_id; use enrolment_id instead of student_session_id
-                $student_current_class    = array('session_id' => $data['student_lists'][0]->session_id, 'class_id' => $data['student_lists'][0]->class_id, 'section_id' => $data['student_lists'][0]->class_id, 'student_session_id' => $data['student_lists'][0]->enrolment_id);
-            }
 
         } elseif ($role == "parent") {
             $parent_id             = $this->customlib->getUsersID();
             $data['student_lists'] = $this->student_model->getParentChilds($parent_id);
-            if (!empty($data['student_lists'])) {
+            $data['programmes']    = array(); // Parents use the old class-based flow
 
+            if (!empty($data['student_lists'])) {
                 if ($data['student_lists'][0]->default_login) {
                     $default_login_student_id = $data['student_lists'][0]->id;
-                    // TVET: section_id = class_id in TVET; student_session_id maps to enrolment_id
                     $student_current_class    = array('session_id' => $data['student_lists'][0]->session_id, 'class_id' => $data['student_lists'][0]->class_id, 'section_id' => $data['student_lists'][0]->class_id, 'student_session_id' => $data['student_lists'][0]->student_session_id);
                 }
             }
         }
 
         if (!empty($student_current_class)) {
-
             $logged_In_User               = $this->customlib->getLoggedInUserData();
             $logged_In_User['student_id'] = $default_login_student_id;
             $this->session->set_userdata('student', $logged_In_User);
@@ -102,14 +107,50 @@ class User extends Student_Controller
         $this->form_validation->set_rules('clschg', $this->lang->line('select_class'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == true) {
-            $student_session_id           = $this->input->post('clschg');
+            $selected = $this->input->post('clschg');
+
+            // Check if this is a programme selection (format: "prog_ID")
+            if (strpos($selected, 'prog_') === 0) {
+                $programme_id = str_replace('prog_', '', $selected);
+                $student_id = $this->customlib->getStudentSessionUserID();
+                $programmes = $this->enrolment_model->getStudentProgrammes($student_id);
+
+                $selected_prog = null;
+                foreach ($programmes as $prog) {
+                    if ($prog->programme_id == $programme_id) {
+                        $selected_prog = $prog;
+                        break;
+                    }
+                }
+
+                if ($selected_prog) {
+                    $class_ids_arr = explode(',', $selected_prog->class_ids);
+                    $enrolment_ids_arr = explode(',', $selected_prog->enrolment_ids);
+
+                    $logged_In_User               = $this->customlib->getLoggedInUserData();
+                    $logged_In_User['student_id'] = $student_id;
+                    $this->session->set_userdata('student', $logged_In_User);
+
+                    $student_current_class = array(
+                        'programme_id'       => $selected_prog->programme_id,
+                        'programme_name'     => $selected_prog->programme_name,
+                        'class_ids'          => $selected_prog->class_ids,
+                        'class_id'           => $class_ids_arr[0],
+                        'section_id'         => $class_ids_arr[0],
+                        'student_session_id' => $enrolment_ids_arr[0],
+                    );
+                    $this->session->set_userdata('current_class', $student_current_class);
+                    redirect('user/user/dashboard');
+                }
+            }
+
+            // Legacy flow: single enrolment selection (parent flow or fallback)
+            $student_session_id           = $selected;
             $student                      = $this->student_model->getByStudentSession($student_session_id);
             $logged_In_User               = $this->customlib->getLoggedInUserData();
             $logged_In_User['student_id'] = $student['id'];
             $this->session->set_userdata('student', $logged_In_User);
-            // TVET: Use enrolment_model to update default_login flag
             $this->enrolment_model->update($student_session_id, array('default_login' => 1));
-            // TVET: section_id = class_id in TVET model
             $student_current_class = array('class_id' => $student['class_id'], 'section_id' => $student['class_id'], 'student_session_id' => $student['student_session_id']);
             $this->session->set_userdata('current_class', $student_current_class);
             redirect('user/user/dashboard');
@@ -563,9 +604,14 @@ class User extends Student_Controller
         $member_type   = "student";
         $checkIsMember = $this->librarymember_model->checkIsMember($member_type, $student_id);
         $data['bookList'] = $checkIsMember;
-        $class_id     = $student_current_class->class_id;
-        // TVET: Call model method without section_id parameter
-        $homeworklist = $this->homework_model->getStudentHomeworkWithStatus($class_id, $student_session_id);
+
+        // Use multi-class IDs from programme session if available, else single class_id
+        $session_data = $this->session->userdata('current_class');
+        $class_ids = isset($session_data['class_ids']) ? $session_data['class_ids'] : $student_current_class->class_id;
+        $class_id  = $student_current_class->class_id;
+
+        // TVET: Call model method with class_ids (supports comma-separated for programme view)
+        $homeworklist = $this->homework_model->getStudentHomeworkWithStatus($class_ids, $student_session_id);
         foreach ($homeworklist as $key => $homeworklist_value) {
             $homeworklist[$key]['status'] = '';
             $checkstatus                  = $this->homework_model->checkstatus($homeworklist_value['id'], $student_id);
@@ -597,9 +643,9 @@ class User extends Student_Controller
         // end
 
         // your progress start
-        // TVET: section_id = class_id in TVET model
+        // TVET: Use multi-class IDs for programme view
         $data['subjects_data'] = array();
-        $subjects = $this->syllabus_model->getmysubjects($student_current_class->class_id, $student_current_class->class_id);
+        $subjects = $this->syllabus_model->getmysubjects($class_ids);
 
         foreach ($subjects as $key => $value) {
             $complete        = 0;
@@ -642,8 +688,8 @@ class User extends Student_Controller
         $days        = $this->customlib->getDaysname();
         $days_record = array();
         foreach ($days as $day_key => $day_value) {
-            // TVET: Use getTimetableByClassDay (no section_id)
-            $days_record[$day_key] = $this->subjecttimetable_model->getTimetableByClassDay($student_current_class->class_id, $day_key);
+            // TVET: Use multi-class IDs for programme timetable
+            $days_record[$day_key] = $this->subjecttimetable_model->getTimetableByClassDay($class_ids, $day_key);
         }
         $data['timetable'] = $days_record;
         $data['attendence_percentage'] = $attendence_percentage;
@@ -655,8 +701,8 @@ class User extends Student_Controller
         $setting_data                 = $this->setting_model->get();
         $data['low_attendance_limit']     = $setting_data[0]['low_attendance_limit'];
         $data['teachers']   = $teachers   = array();
-        // TVET: Pass class_id only
-        $student_teacher = $this->subjecttimetable_model->getTeacherByClassandSection($student_current_class->class_id);
+        // TVET: Pass multi-class IDs for programme view
+        $student_teacher = $this->subjecttimetable_model->getTeacherByClassandSection($class_ids);
 
         foreach ($student_teacher as $value) {
             $teachers[$value->staff_id][] = $value;

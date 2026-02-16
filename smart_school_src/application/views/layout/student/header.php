@@ -183,7 +183,10 @@ if ($role == 'guest') {
 if ($this->studentmodule_lib->hasActive('multi_class')) {
     $current_cls = $this->session->userdata('current_class');
     $current_class_label = '';
-    if (!empty($current_cls['class_id'])) {
+    // Show programme name if available, otherwise fall back to class_code
+    if (!empty($current_cls['programme_name'])) {
+        $current_class_label = $current_cls['programme_name'];
+    } elseif (!empty($current_cls['class_id'])) {
         $cls_info = $this->classmodel_model->getClassById($current_cls['class_id']);
         if ($cls_info) {
             $current_class_label = $cls_info->class_code;

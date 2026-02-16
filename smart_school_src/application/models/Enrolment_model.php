@@ -280,6 +280,42 @@ class Enrolment_model extends CI_Model
     }
 
     /**
+     * Get student's programmes (grouped by programme) for a session
+     * Returns one row per programme with comma-separated class_ids and enrolment_ids
+     *
+     * @param int $student_id Student ID
+     * @param int $session_id Session ID (optional, defaults to active session)
+     * @return array Array of programme objects
+     */
+    public function getStudentProgrammes($student_id, $session_id = null)
+    {
+        $this->db->select('ap.id as programme_id, ap.name as programme_name, ap.code as programme_code,
+            GROUP_CONCAT(DISTINCT ace.id ORDER BY ace.id) as enrolment_ids,
+            GROUP_CONCAT(DISTINCT ac.id ORDER BY ac.id) as class_ids,
+            COUNT(DISTINCT ac.id) as class_count,
+            MIN(ace.id) as first_enrolment_id,
+            MIN(ac.id) as first_class_id', FALSE);
+        $this->db->from('academic_class_enrolment ace');
+        $this->db->join('academic_class ac', 'ac.id = ace.class_id');
+        $this->db->join('academic_subject_level asl', 'asl.id = ac.subject_level_id');
+        $this->db->join('academic_subject asub', 'asub.id = asl.subject_id');
+        $this->db->join('academic_programme ap', 'ap.id = asub.programme_id');
+        $this->db->where('ace.student_id', $student_id);
+        $this->db->where('ace.status', 'Active');
+
+        if ($session_id) {
+            $this->db->where('ac.session_id', $session_id);
+        } else {
+            $this->db->join('sessions', 'sessions.id = ac.session_id');
+            $this->db->where('sessions.is_active', 'yes');
+        }
+
+        $this->db->group_by('ap.id');
+        $this->db->order_by('class_count', 'DESC');
+        return $this->db->get()->result();
+    }
+
+    /**
      * Get enrolments by filters
      * @param int $session_id Session ID
      * @param array $filters (class_id, level_id, subject_id, status)

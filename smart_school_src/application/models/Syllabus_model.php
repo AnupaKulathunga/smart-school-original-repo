@@ -17,10 +17,15 @@ class syllabus_model extends MY_Model
     }
 
     // TVET: Replaced class_sections/subject_group_class_sections join with academic_class
-    // $class_id = academic_class.id, $section_id kept for compatibility but not used
+    // $class_id can be a single ID or comma-separated string of IDs for multi-class (programme) view
     public function getmysubjects($class_id, $section_id = null)
     {
-        $sql   = "SELECT subject_group_subjects.id as subject_group_subjects_id, lesson.academic_class_id as subject_group_class_sections_id, subjects.name, subjects.code, subjects.id as subject_id FROM `academic_class` ac JOIN lesson on lesson.academic_class_id = ac.id JOIN subject_group_subjects on subject_group_subjects.id = lesson.subject_group_subject_id join subjects on subject_group_subjects.subject_id = subjects.id WHERE ac.session_id=" . $this->current_session . " and ac.id=" . $this->db->escape($class_id) . " GROUP BY subject_group_subjects.id";
+        // Support comma-separated class IDs for programme-based dashboard
+        $class_ids = is_array($class_id) ? $class_id : explode(',', $class_id);
+        $class_ids = array_map('intval', $class_ids);
+        $class_ids_str = implode(',', $class_ids);
+
+        $sql   = "SELECT subject_group_subjects.id as subject_group_subjects_id, lesson.academic_class_id as subject_group_class_sections_id, subjects.name, subjects.code, subjects.id as subject_id FROM `academic_class` ac JOIN lesson on lesson.academic_class_id = ac.id JOIN subject_group_subjects on subject_group_subjects.id = lesson.subject_group_subject_id join academic_subject subjects on subject_group_subjects.subject_id = subjects.id WHERE ac.session_id=" . $this->current_session . " and ac.id IN (" . $class_ids_str . ") GROUP BY subject_group_subjects.id";
         $query = $this->db->query($sql);
         return $query->result();
     }

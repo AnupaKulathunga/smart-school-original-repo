@@ -122,7 +122,11 @@ class Subjecttimetable_model extends MY_Model
     {
         $condition  = " and staff.is_active='1'";
         if ($class_id != '') {
-            $condition .= " and `subject_timetable`.`class_id` = " . $this->db->escape($class_id) . "";
+            // Support comma-separated class IDs for programme-based dashboard
+            $class_ids = is_array($class_id) ? $class_id : explode(',', $class_id);
+            $class_ids = array_map('intval', $class_ids);
+            $class_ids_str = implode(',', $class_ids);
+            $condition .= " and `subject_timetable`.`class_id` IN (" . $class_ids_str . ")";
         }
 
         $sql = "SELECT 'subject' type, NULL as class_teacher,`subject_group_subjects`.`subject_id` as subject_id,subjects.name as `subject_name`,subjects.code as code,'theory' as type,staff.name,staff.surname,staff.email,staff.contact_no,staff.employee_id,`subject_timetable`.staff_id as staff_id,staff.image,staff.gender,`subject_timetable`.time_from as time_from,`subject_timetable`.day as day,`subject_timetable`.room_no as room_no,`subject_timetable`.time_to as time_to ,`subject_timetable`.start_time as start_time, '' as section_name, ac.class_code as class_name FROM `subject_timetable` JOIN `subject_group_subjects` ON `subject_timetable`.`subject_group_subject_id` = `subject_group_subjects`.`id` left JOIN academic_subject subjects on subject_group_subjects.subject_id = subjects.id INNER JOIN staff on staff.id=subject_timetable.staff_id LEFT JOIN academic_class ac on ac.id=subject_timetable.class_id WHERE 1=1 " . $condition . " AND `subject_timetable`.`session_id` = '" . $this->current_session . "'";
@@ -402,13 +406,18 @@ class Subjecttimetable_model extends MY_Model
      */
     public function getTimetableByClassDay($class_id, $day)
     {
+        // Support comma-separated class IDs for programme-based dashboard
+        $class_ids = is_array($class_id) ? $class_id : explode(',', $class_id);
+        $class_ids = array_map('intval', $class_ids);
+        $class_ids_str = implode(',', $class_ids);
+
         $sql = "SELECT subject_group_subjects.subject_id, subjects.name as subject_name, subjects.code,
                        'theory' as type, staff.name as staff_name, staff.surname, subject_timetable.*
                 FROM subject_timetable
                 JOIN subject_group_subjects ON subject_timetable.subject_group_subject_id = subject_group_subjects.id
                 INNER JOIN academic_subject subjects ON subject_group_subjects.subject_id = subjects.id
                 INNER JOIN staff ON staff.id = subject_timetable.staff_id
-                WHERE subject_timetable.class_id = " . $this->db->escape($class_id) . "
+                WHERE subject_timetable.class_id IN (" . $class_ids_str . ")
                   AND subject_timetable.day = " . $this->db->escape($day) . "
                   AND subject_timetable.session_id = " . $this->current_session . "
                   AND staff.is_active = 1
