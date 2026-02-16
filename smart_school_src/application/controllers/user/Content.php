@@ -51,14 +51,15 @@ class Content extends Student_Controller
             $cohort_ids = $this->tvet_student_enrolment_model->getStudentCohortIds($student_id);
         }
 
-        // TVET: Still need student_current_class for student_session_id (for tracking views)
+        // TVET: Get current class info — class_id is academic_class.id
         $student_current_class = $this->customlib->getStudentCurrentClsSection();
+        $academic_class_id = isset($student_current_class->class_id) ? $student_current_class->class_id : 0;
 
         if ($role == "student") {
             $m = $this->sharecontent_model->getStudentsharelist(
                 $this->customlib->getStudentSessionUserID(),
-                $student_current_class->class_id,
-                $student_current_class->section_id,
+                $academic_class_id,
+                null,
                 $cohort_ids,
                 $subject_id,
                 $content_type_id
@@ -66,8 +67,8 @@ class Content extends Student_Controller
         } elseif ($role == "parent") {
             $m = $this->sharecontent_model->getParentsharelist(
                 $this->customlib->getUsersID(),
-                $student_current_class->class_id,
-                $student_current_class->section_id,
+                $academic_class_id,
+                null,
                 $cohort_ids,
                 $subject_id,
                 $content_type_id
@@ -199,86 +200,22 @@ class Content extends Student_Controller
 
     public function assignment()
     {
-        $this->session->set_userdata('top_menu', 'Downloads');
-        $this->session->set_userdata('sub_menu', 'content/assignment');
-
-        // TVET: Use student_id for enrolment-based content access
-        // Content is filtered based on the student's active subject enrolments
-        $student_id            = $this->customlib->getStudentSessionUserID();
-        $data['title_list']    = 'List of Assignment';
-        $data['role']          = $this->customlib->getUserRole();
-
-        // TVET: Pass student_id instead of class_id/section_id
-        // The model handles enrolment-based filtering automatically
-        $list                  = $this->content_model->getListByCategoryforUser($student_id, "assignments");
-        $data['list']          = $list;
-
-        $this->load->view('layout/student/header', $data);
-        $this->load->view('user/content/assignment', $data);
-        $this->load->view('layout/student/footer');
+        redirect('user/content/list');
     }
 
     public function studymaterial()
     {
-        $this->session->set_userdata('top_menu', 'Downloads');
-        $this->session->set_userdata('sub_menu', 'content/studymaterial');
-
-        // TVET: Use student_id for enrolment-based content access
-        // Content is filtered based on the student's active subject enrolments
-        $student_id            = $this->customlib->getStudentSessionUserID();
-        $data['title_list']    = 'List of Study Material';
-        $data['role']          = $this->customlib->getUserRole();
-
-        // TVET: Pass student_id instead of class_id/section_id
-        // The model handles enrolment-based filtering automatically
-        $list                  = $this->content_model->getListByCategoryforUser($student_id, "study_material");
-        $data['list']          = $list;
-
-        $this->load->view('layout/student/header', $data);
-        $this->load->view('user/content/studymaterial', $data);
-        $this->load->view('layout/student/footer');
+        redirect('user/content/list');
     }
 
     public function syllabus()
     {
-        $this->session->set_userdata('top_menu', 'Downloads');
-        $this->session->set_userdata('sub_menu', 'content/syllabus');
-
-        // TVET: Use student_id for enrolment-based content access
-        // Content is filtered based on the student's active subject enrolments
-        $student_id            = $this->customlib->getStudentSessionUserID();
-        $data['title_list']    = 'List of Syllabus';
-        $data['role']          = $this->customlib->getUserRole();
-
-        // TVET: Pass student_id instead of class_id/section_id
-        // The model handles enrolment-based filtering automatically
-        $list                  = $this->content_model->getListByCategoryforUser($student_id, "syllabus");
-        $data['list']          = $list;
-
-        $this->load->view('layout/student/header', $data);
-        $this->load->view('user/content/syllabus', $data);
-        $this->load->view('layout/student/footer');
+        redirect('user/content/list');
     }
 
     public function other()
     {
-        $this->session->set_userdata('top_menu', 'Downloads');
-        $this->session->set_userdata('sub_menu', 'content/other');
-
-        // TVET: Use student_id for enrolment-based content access
-        // Content is filtered based on the student's active subject enrolments
-        $student_id            = $this->customlib->getStudentSessionUserID();
-        $data['title_list']    = 'List of Other Download';
-        $data['role']          = $this->customlib->getUserRole();
-
-        // TVET: Pass student_id instead of class_id/section_id
-        // The model handles enrolment-based filtering automatically
-        $list                  = $this->content_model->getListByCategoryforUser($student_id, "other_download");
-        $data['list']          = $list;
-
-        $this->load->view('layout/student/header', $data);
-        $this->load->view('user/content/other', $data);
-        $this->load->view('layout/student/footer');
+        redirect('user/content/list');
     }
 
 }

@@ -25,13 +25,13 @@ class Content_model extends MY_Model
     {
         // TVET: Join to academic_class and related tables instead of class_sections
         $this->db->select('contents.*,
-            ac.name as class_name,
-            sl.name as subject_level_name,
+            ac.class_code as class_name,
+            CONCAT(subj.name, " - ", lvl.name, " - ", ac.cohort_name) as class_display_name,
             subj.name as subject_name,
             lvl.name as level_name,
             (SELECT GROUP_CONCAT(role) FROM content_for WHERE content_id=contents.id) as role', FALSE)
             ->from('contents');
-        $this->db->join('academic_class ac', 'contents.academic_class_id = ac.id', 'left');
+        $this->db->join('academic_class ac', 'contents.class_id = ac.id', 'left');
         $this->db->join('academic_subject_level sl', 'sl.id = ac.subject_level_id', 'left');
         $this->db->join('academic_subject subj', 'subj.id = sl.subject_id', 'left');
         $this->db->join('academic_level lvl', 'lvl.id = sl.level_id', 'left');
@@ -68,13 +68,13 @@ class Content_model extends MY_Model
         $query = "SELECT contents.*,
             (SELECT GROUP_CONCAT(role) FROM content_for WHERE content_id=contents.id) as role,
             ac.id as academic_class_id,
-            ac.name as class_name,
-            sl.name as subject_level_name,
+            ac.class_code as class_name,
+            CONCAT(subj.name, ' - ', lvl.name, ' - ', ac.cohort_name) as class_display_name,
             subj.name as subject_name,
             lvl.name as level_name
             FROM `content_for`
             INNER JOIN contents on contents.id=content_for.content_id
-            LEFT JOIN academic_class ac on ac.id=contents.academic_class_id
+            LEFT JOIN academic_class ac on ac.id=contents.class_id
             LEFT JOIN academic_subject_level sl on sl.id=ac.subject_level_id
             LEFT JOIN academic_subject subj on subj.id=sl.subject_id
             LEFT JOIN academic_level lvl on lvl.id=sl.level_id" . $inner_sql . "
@@ -93,12 +93,12 @@ class Content_model extends MY_Model
     {
         // TVET: Updated to join academic_class and related tables
         $this->db->select('contents.*,
-            ac.name as class_name,
-            sl.name as subject_level_name,
+            ac.class_code as class_name,
+            CONCAT(subj.name, " - ", lvl.name, " - ", ac.cohort_name) as class_display_name,
             subj.name as subject_name,
             lvl.name as level_name', FALSE)
             ->from('contents');
-        $this->db->join('academic_class ac', 'contents.academic_class_id = ac.id', 'left');
+        $this->db->join('academic_class ac', 'contents.class_id = ac.id', 'left');
         $this->db->join('academic_subject_level sl', 'sl.id = ac.subject_level_id', 'left');
         $this->db->join('academic_subject subj', 'subj.id = sl.subject_id', 'left');
         $this->db->join('academic_level lvl', 'lvl.id = sl.level_id', 'left');
@@ -122,16 +122,16 @@ class Content_model extends MY_Model
             $student_id = "0";
         }
 
-        // TVET: Updated to use enrolment-based access with academic_class
+        // TVET: Updated to use academic_class_enrolment for class-based access
         $query = "SELECT contents.*,
             ac.id as academic_class_id,
-            ac.name as class_name,
-            sl.name as subject_level_name,
+            ac.class_code as class_name,
+            CONCAT(subj.name, ' - ', lvl.name, ' - ', ac.cohort_name) as class_display_name,
             subj.name as subject_name,
             lvl.name as level_name
             FROM `content_for`
             INNER JOIN contents on content_for.content_id=contents.id
-            LEFT JOIN academic_class ac on ac.id=contents.academic_class_id
+            LEFT JOIN academic_class ac on ac.id=contents.class_id
             LEFT JOIN academic_subject_level sl on sl.id=ac.subject_level_id
             LEFT JOIN academic_subject subj on subj.id=sl.subject_id
             LEFT JOIN academic_level lvl on lvl.id=sl.level_id
@@ -139,14 +139,18 @@ class Content_model extends MY_Model
             AND contents.type='" . $this->db->escape_str($category) . "'
             AND (
                 contents.is_public='yes'
-                OR contents.academic_class_id IN (
-                    SELECT academic_class_id
-                    FROM enrolments
-                    WHERE student_id=" . intval($student_id) . "
-                    AND status='active'
+                OR contents.class_id IN (
+                    SELECT ace.class_id
+                    FROM academic_class_enrolment ace
+                    JOIN student_session ss ON ss.id = ace.student_session_id
+                    WHERE ss.student_id=" . intval($student_id) . "
+                    AND ss.session_id=" . intval($this->current_session) . "
                 )
             )";
         $query = $this->db->query($query);
+        if ($query === false) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -163,30 +167,34 @@ class Content_model extends MY_Model
             $student_id = "0";
         }
 
-        // TVET: Updated to use enrolment-based access with academic_class
+        // TVET: Updated to use academic_class_enrolment for class-based access
         $query = "SELECT contents.*,
             ac.id as academic_class_id,
-            ac.name as class_name,
-            sl.name as subject_level_name,
+            ac.class_code as class_name,
+            CONCAT(subj.name, ' - ', lvl.name, ' - ', ac.cohort_name) as class_display_name,
             subj.name as subject_name,
             lvl.name as level_name
             FROM `content_for`
             INNER JOIN contents on content_for.content_id=contents.id
-            LEFT JOIN academic_class ac on ac.id=contents.academic_class_id
+            LEFT JOIN academic_class ac on ac.id=contents.class_id
             LEFT JOIN academic_subject_level sl on sl.id=ac.subject_level_id
             LEFT JOIN academic_subject subj on subj.id=sl.subject_id
             LEFT JOIN academic_level lvl on lvl.id=sl.level_id
             WHERE role='student'
             AND (
                 contents.is_public='yes'
-                OR contents.academic_class_id IN (
-                    SELECT academic_class_id
-                    FROM enrolments
-                    WHERE student_id=" . intval($student_id) . "
-                    AND status='active'
+                OR contents.class_id IN (
+                    SELECT ace.class_id
+                    FROM academic_class_enrolment ace
+                    JOIN student_session ss ON ss.id = ace.student_session_id
+                    WHERE ss.student_id=" . intval($student_id) . "
+                    AND ss.session_id=" . intval($this->current_session) . "
                 )
             )";
         $query = $this->db->query($query);
+        if ($query === false) {
+            return array();
+        }
         return $query->result_array();
     }
 

@@ -52,8 +52,8 @@ class Sharecontent_model extends MY_Model
     {
         $result = array();
         $this->db->select('share_contents.*, staff.name,staff.surname,staff.employee_id,staff_roles.role_id')->from('share_contents');
-        $this->db->join('staff', 'staff.id = share_contents.created_by');
-        $this->db->join('staff_roles', 'staff.id = staff_roles.staff_id');
+        $this->db->join('staff', 'staff.id = share_contents.created_by', 'left');
+        $this->db->join('staff_roles', 'staff.id = staff_roles.staff_id', 'left');
         
         if ($id != null) {
             $this->db->where('share_contents.id', $id);
@@ -193,12 +193,13 @@ class Sharecontent_model extends MY_Model
     
     public function getSharedUserBySharedID($share_content_id)
     {
-        $sql= "SELECT share_content_for.*,classes.class,sections.section,students.firstname as student_first_name,students.lastname as student_last_name,students.middlename as `student_middle_name`, students.admission_no as `student_admission_on`,users.username,staff.name,roles.name as role_name,staff.name as staff_first_name,staff.surname as staff_surname ,staff_roles.id as staff_role_id ,staff_role_alias.name as staff_role_name, staff.employee_id as staff_employee_id,users.childs,parent_student.guardian_name  FROM `share_content_for` LEFT JOIN roles on roles.id= share_content_for.group_id LEFT join students on students.id =share_content_for.student_id LEFT join users on users.id =share_content_for.user_parent_id LEFT JOIN students as parent_student on parent_student.id = users.childs LEFT join staff on staff.id = share_content_for.staff_id LEFT JOIN staff_roles on staff_roles.staff_id =staff.id LEFT JOIN roles as `staff_role_alias` on staff_role_alias.id = staff_roles.role_id LEFT JOIN class_sections on class_sections.id =share_content_for.class_section_id LEFT JOIN classes on classes.id=class_sections.class_id LEFT JOIN sections on sections.id=class_sections.section_id WHERE share_content_id=".$share_content_id;
+        // TVET: Join academic_class instead of class_sections/classes/sections
+        $sql= "SELECT share_content_for.*, ac.class_code as class, students.firstname as student_first_name,students.lastname as student_last_name,students.middlename as `student_middle_name`, students.admission_no as `student_admission_on`,users.username,staff.name,roles.name as role_name,staff.name as staff_first_name,staff.surname as staff_surname ,staff_roles.id as staff_role_id ,staff_role_alias.name as staff_role_name, staff.employee_id as staff_employee_id,users.childs,parent_student.guardian_name FROM `share_content_for` LEFT JOIN roles on roles.id= share_content_for.group_id LEFT join students on students.id =share_content_for.student_id LEFT join users on users.id =share_content_for.user_parent_id LEFT JOIN students as parent_student on parent_student.id = users.childs LEFT join staff on staff.id = share_content_for.staff_id LEFT JOIN staff_roles on staff_roles.staff_id =staff.id LEFT JOIN roles as `staff_role_alias` on staff_role_alias.id = staff_roles.role_id LEFT JOIN academic_class ac on ac.id = share_content_for.class_id WHERE share_content_id=".$share_content_id;
           $query = $this->db->query($sql);
           return $query->result();
     }
 
-    public function getStudentsharelist($student_id, $class_id, $section_id, $cohort_ids = array(), $subject_id = null, $content_type_id = null)
+    public function getStudentsharelist($student_id, $academic_class_id, $section_id = null, $cohort_ids = array(), $subject_id = null, $content_type_id = null)
     {
         // Build cohort condition if cohort_ids provided
         $cohort_condition = '';
@@ -221,7 +222,8 @@ class Sharecontent_model extends MY_Model
             $content_type_condition = " AND share_contents.id IN (SELECT share_upload_contents.share_content_id FROM share_upload_contents JOIN upload_contents ON upload_contents.id = share_upload_contents.upload_content_id WHERE upload_contents.content_type_id = " . $this->db->escape($content_type_id) . ")";
         }
 
-        $sql="SELECT `share_contents`.*, `staff`.`name`, `staff`.`surname`, `staff`.`employee_id`, staff_roles.role_id, (SELECT subjects.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_name, (SELECT subjects.code FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_code, (SELECT content_types.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN content_types ON content_types.id = uc.content_type_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as content_type_name FROM `share_contents` JOIN `staff` ON `share_contents`.`created_by` = `staff`.`id` JOIN `staff_roles` ON `staff_roles`.`staff_id` = `staff`.`id` WHERE share_contents.id in (SELECT share_content_id FROM `share_content_for` WHERE group_id ='student' or student_id='".$this->db->escape_str($student_id)."' or class_section_id=(SELECT class_sections.id from class_sections WHERE class_sections.class_id='".$this->db->escape_str($class_id)."' and class_sections.section_id='".$this->db->escape_str($section_id)."')".$cohort_condition.")" . $subject_condition . $content_type_condition;
+        // TVET: Match class_id in share_content_for directly (stores academic_class.id)
+        $sql="SELECT `share_contents`.*, `staff`.`name`, `staff`.`surname`, `staff`.`employee_id`, staff_roles.role_id, (SELECT subjects.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_name, (SELECT subjects.code FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_code, (SELECT content_types.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN content_types ON content_types.id = uc.content_type_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as content_type_name FROM `share_contents` JOIN `staff` ON `share_contents`.`created_by` = `staff`.`id` LEFT JOIN `staff_roles` ON `staff_roles`.`staff_id` = `staff`.`id` WHERE share_contents.id in (SELECT share_content_id FROM `share_content_for` WHERE group_id ='student' or student_id='".$this->db->escape_str($student_id)."' or class_id='".$this->db->escape_str($academic_class_id)."'".$cohort_condition.")" . $subject_condition . $content_type_condition;
         $this->datatables->query($sql)
         ->sort('share_contents.id', 'desc')
         ->searchable('title,send_to,share_date,valid_upto,description,staff.name,staff.surname')
@@ -230,7 +232,7 @@ class Sharecontent_model extends MY_Model
         return $this->datatables->generate('json');
     }
     
-    public function getParentsharelist($user_parent_id, $class_id, $section_id, $cohort_ids = array(), $subject_id = null, $content_type_id = null)
+    public function getParentsharelist($user_parent_id, $academic_class_id, $section_id = null, $cohort_ids = array(), $subject_id = null, $content_type_id = null)
     {
         // Build cohort condition if cohort_ids provided
         $cohort_condition = '';
@@ -253,7 +255,8 @@ class Sharecontent_model extends MY_Model
             $content_type_condition = " AND share_contents.id IN (SELECT share_upload_contents.share_content_id FROM share_upload_contents JOIN upload_contents ON upload_contents.id = share_upload_contents.upload_content_id WHERE upload_contents.content_type_id = " . $this->db->escape($content_type_id) . ")";
         }
 
-        $sql="SELECT `share_contents`.*, `staff`.`name`, `staff`.`surname`, `staff`.`employee_id`, staff_roles.role_id, (SELECT subjects.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_name, (SELECT subjects.code FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_code, (SELECT content_types.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN content_types ON content_types.id = uc.content_type_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as content_type_name FROM `share_contents` JOIN `staff` ON `share_contents`.`created_by` = `staff`.`id` JOIN `staff_roles` ON `staff_roles`.`staff_id` = `staff`.`id` WHERE share_contents.id in (SELECT share_content_id FROM `share_content_for` WHERE group_id ='parent' or user_parent_id='".$this->db->escape_str($user_parent_id)."' or class_section_id=(SELECT class_sections.id from class_sections WHERE class_sections.class_id='".$this->db->escape_str($class_id)."' and class_sections.section_id='".$this->db->escape_str($section_id)."')".$cohort_condition.")" . $subject_condition . $content_type_condition;
+        // TVET: Match class_id in share_content_for directly (stores academic_class.id)
+        $sql="SELECT `share_contents`.*, `staff`.`name`, `staff`.`surname`, `staff`.`employee_id`, staff_roles.role_id, (SELECT subjects.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_name, (SELECT subjects.code FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN subjects ON subjects.id = uc.subject_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as subject_code, (SELECT content_types.name FROM share_upload_contents suc JOIN upload_contents uc ON uc.id = suc.upload_content_id LEFT JOIN content_types ON content_types.id = uc.content_type_id WHERE suc.share_content_id = share_contents.id LIMIT 1) as content_type_name FROM `share_contents` JOIN `staff` ON `share_contents`.`created_by` = `staff`.`id` LEFT JOIN `staff_roles` ON `staff_roles`.`staff_id` = `staff`.`id` WHERE share_contents.id in (SELECT share_content_id FROM `share_content_for` WHERE group_id ='parent' or user_parent_id='".$this->db->escape_str($user_parent_id)."' or class_id='".$this->db->escape_str($academic_class_id)."'".$cohort_condition.")" . $subject_condition . $content_type_condition;
         $this->datatables->query($sql)
        ->sort('share_contents.id', 'desc')
         ->searchable('title,send_to,share_date,valid_upto,description,staff.name,staff.surname')
