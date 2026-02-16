@@ -134,7 +134,7 @@
     <div class="row">
       <div class="col-md-12 text">
       <h3 class="text-center bolder"><?php echo $this->lang->line('timetable'); ?></h3>
-      <h4 class="bolds"><?php echo $class_section->class . " (" . $class_section->section . ")"; ?></h4>
+      <h4 class="bolds"><?php echo $class_section->class_code; ?></h4>
       </div>
     </div>
 

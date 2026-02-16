@@ -197,7 +197,7 @@
                   </td>
                   <td class="text"><?php echo $tm_kue->time_from . " - " . $tm_kue->time_to; ?>
                   </td>
-                  <td class="text"><?php echo $tm_kue->class . " (" . $tm_kue->section . ")"; ?></td>
+                  <td class="text"><?php echo $tm_kue->class; ?></td>
 
 
                   <td class="text"><?php echo $tm_kue->room_no; ?></td>

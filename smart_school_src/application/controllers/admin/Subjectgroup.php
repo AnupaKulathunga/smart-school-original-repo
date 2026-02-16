@@ -197,7 +197,75 @@ class Subjectgroup extends Admin_Controller
         }
         // TVET: Use getGroupByClass() - no section_id parameter
         $data       = $this->subjectgroup_model->getGroupByClass($class_id, $session_id);
+
+        // TVET: Auto-create subject group if none exists for this class
+        if (empty($data) && !empty($class_id)) {
+            $this->_autoCreateSubjectGroupForClass($class_id);
+            $data = $this->subjectgroup_model->getGroupByClass($class_id, $session_id);
+        }
+
         echo json_encode($data);
+    }
+
+    // TVET: Alias for views that call getGroupByClass directly (timetable, lesson plan)
+    // Auto-creates a subject group for TVET classes that don't have one yet
+    public function getGroupByClass()
+    {
+        $class_id   = $this->input->post('class_id');
+        $session_id = $this->input->post('session_id');
+        if(!isset($session_id)){
+            $session_id=NULL;
+        }
+        $data = $this->subjectgroup_model->getGroupByClass($class_id, $session_id);
+
+        // TVET: Auto-create subject group if none exists for this class
+        if (empty($data) && !empty($class_id)) {
+            $this->_autoCreateSubjectGroupForClass($class_id);
+            // Re-query after creation
+            $data = $this->subjectgroup_model->getGroupByClass($class_id, $session_id);
+        }
+
+        echo json_encode($data);
+    }
+
+    /**
+     * TVET: Auto-create a subject group for an academic class
+     * In TVET, each class = one subject, so we create a group with that single subject
+     */
+    private function _autoCreateSubjectGroupForClass($class_id)
+    {
+        // Get class details including subject info
+        $class_info = $this->classmodel_model->getClassById($class_id);
+        if (empty($class_info)) {
+            return;
+        }
+
+        // Get the subject_id from academic_class -> academic_subject_level -> academic_subject
+        $subject_level = $this->db->select('asl.subject_id, asub.name as subject_name, al.code as level_code')
+            ->from('academic_class ac')
+            ->join('academic_subject_level asl', 'asl.id = ac.subject_level_id')
+            ->join('academic_subject asub', 'asub.id = asl.subject_id')
+            ->join('academic_level al', 'al.id = asl.level_id')
+            ->where('ac.id', $class_id)
+            ->get()->row();
+
+        if (empty($subject_level)) {
+            return;
+        }
+
+        $session_id = $this->setting_model->getCurrentSession();
+
+        // Create the subject group
+        $group_name = $subject_level->subject_name . ' - ' . $subject_level->level_code;
+        $group_data = array(
+            'name'        => $group_name,
+            'session_id'  => $session_id,
+            'description' => 'Auto-created for TVET class',
+        );
+        $subjects = array($subject_level->subject_id);
+        $sections = array($class_id);
+
+        $this->subjectgroup_model->add($group_data, $subjects, $sections);
     }
 
     public function getSubjectByClassandSectionDate()

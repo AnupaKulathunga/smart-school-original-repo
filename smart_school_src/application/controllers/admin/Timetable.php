@@ -43,38 +43,38 @@ class Timetable extends Admin_Controller
             $class_id           = $this->input->post('class_id');
             $data['class_id']   = $class_id;
 
-            // TVET: Get subjects by class only (class already includes subject via subject_level)
-            $result_subjects    = $this->teachersubject_model->getSubjectByClass($class_id);
-
             $getDaysnameList         = $this->customlib->getDaysname();
             $data['getDaysnameList'] = $getDaysnameList;
-            $final_array             = array();
-            if (!empty($result_subjects)) {
-                foreach ($result_subjects as $subject_k => $subject_v) {
-                    $result_array = array();
-                    foreach ($getDaysnameList as $day_key => $day_value) {
-                        $where_array = array(
-                            'teacher_subject_id' => $subject_v['id'],
-                            'day_name'           => $day_value,
-                        );
-                        $result = $this->timetable_model->get($where_array);
-                        if (!empty($result)) {
-                            $obj                      = new stdClass();
-                            $obj->status              = "Yes";
-                            $obj->start_time          = $result[0]['start_time'];
-                            $obj->end_time            = $result[0]['end_time'];
-                            $obj->room_no             = $result[0]['room_no'];
-                            $result_array[$day_value] = $obj;
-                        } else {
-                            $obj                      = new stdClass();
-                            $obj->status              = "No";
-                            $obj->start_time          = "N/A";
-                            $obj->end_time            = "N/A";
-                            $obj->room_no             = "N/A";
-                            $result_array[$day_value] = $obj;
+
+            // TVET: Query subject_timetable directly (not teacher_subjects + timetable)
+            // Build a subject→day grid from subject_timetable entries
+            $final_array = array();
+            foreach ($getDaysnameList as $day_key => $day_value) {
+                $day_entries = $this->subjecttimetable_model->getSubjectByClassDay($class_id, $day_key);
+                if (!empty($day_entries)) {
+                    foreach ($day_entries as $entry) {
+                        $subject_label = $entry->subject_name;
+                        if (!empty($entry->code)) {
+                            $subject_label .= ' (' . $entry->code . ')';
                         }
+                        if (!isset($final_array[$subject_label])) {
+                            // Initialize all days as "Not Scheduled"
+                            foreach ($getDaysnameList as $dk => $dv) {
+                                $obj             = new stdClass();
+                                $obj->status     = "No";
+                                $obj->start_time = "N/A";
+                                $obj->end_time   = "N/A";
+                                $obj->room_no    = "N/A";
+                                $final_array[$subject_label][$dv] = $obj;
+                            }
+                        }
+                        $obj             = new stdClass();
+                        $obj->status     = "Yes";
+                        $obj->start_time = $entry->time_from;
+                        $obj->end_time   = $entry->time_to;
+                        $obj->room_no    = $entry->room_no;
+                        $final_array[$subject_label][$day_value] = $obj;
                     }
-                    $final_array[$subject_v['name']] = $result_array;
                 }
             }
 

@@ -135,11 +135,11 @@ class Teachersubject_model extends MY_Model
         $query = $this->db->query("SELECT teacher_subjects.*,
                     exam_schedules.date_of_exam, exam_schedules.start_to, exam_schedules.end_from,
                     exam_schedules.room_no, exam_schedules.full_marks, exam_schedules.passing_marks,
-                    subjects.name, subjects.type
+                    subjects.name, 'theory' as type
                 FROM teacher_subjects
                 LEFT JOIN exam_schedules ON exam_schedules.teacher_subject_id = teacher_subjects.id
                     AND exam_schedules.exam_id = " . $this->db->escape($exam_id) . "
-                INNER JOIN subjects ON teacher_subjects.subject_id = subjects.id
+                INNER JOIN academic_subject subjects ON teacher_subjects.subject_id = subjects.id
                 WHERE teacher_subjects.class_id = " . $this->db->escape($class_id));
         return $query->result_array();
     }
@@ -151,7 +151,7 @@ class Teachersubject_model extends MY_Model
         if (isset($role_id) && ($userdata["role_id"] == 2) && ($userdata["class_teacher"] == "yes")) {
             $cquery = $this->db->select("ac.*", FALSE)
                 ->from("class_teacher")
-                ->join("academic_classes ac", "class_teacher.class_id = ac.id")
+                ->join("academic_class ac", "class_teacher.class_id = ac.id")
                 ->where("class_teacher.staff_id", $userdata["id"])
                 ->where("ac.id", $class_id)
                 ->get();
@@ -172,10 +172,10 @@ class Teachersubject_model extends MY_Model
         }
 
         $sql = "SELECT teacher_subjects.*, staff.name as `teacher_name`, staff.surname,
-                       subjects.name, subjects.type, subjects.code
+                       subjects.name, 'theory' as type, subjects.code
                 FROM teacher_subjects
-                INNER JOIN subjects ON teacher_subjects.subject_id = subjects.id
-                INNER JOIN academic_classes ac ON teacher_subjects.class_id = ac.id
+                INNER JOIN academic_subject subjects ON teacher_subjects.subject_id = subjects.id
+                INNER JOIN academic_class ac ON teacher_subjects.class_id = ac.id
                 INNER JOIN staff ON staff.id = teacher_subjects.teacher_id
                 WHERE teacher_subjects.class_id = " . $this->db->escape($class_id) . "
                   AND teacher_subjects.session_id = " . $this->db->escape($this->current_session) . " " . $where;
@@ -187,8 +187,8 @@ class Teachersubject_model extends MY_Model
     {
         $this->db->select('teacher_subjects.*, subjects.name, ac.class_code as class', FALSE);
         $this->db->from('teacher_subjects');
-        $this->db->join('subjects', 'subjects.id = teacher_subjects.subject_id');
-        $this->db->join('academic_classes ac', 'ac.id = teacher_subjects.class_id');
+        $this->db->join('academic_subject subjects', 'subjects.id = teacher_subjects.subject_id');
+        $this->db->join('academic_class ac', 'ac.id = teacher_subjects.class_id');
         $this->db->where('teacher_subjects.teacher_id', $teacher_id);
         $this->db->where('teacher_subjects.session_id', $this->current_session);
         $query = $this->db->get();
@@ -212,17 +212,17 @@ class Teachersubject_model extends MY_Model
      */
     public function getDetailbyClass($class_id, $exam_id)
     {
-        $this->db->select('teacher_subjects.*,
+        $this->db->select("teacher_subjects.*,
                           exam_schedules.date_of_exam, exam_schedules.start_to,
                           exam_schedules.end_from, exam_schedules.room_no,
                           exam_schedules.full_marks, exam_schedules.passing_marks,
-                          subjects.name, subjects.type, subjects.code,
+                          subjects.name, 'theory' as type, subjects.code,
                           ac.class_code, ac.cohort_name,
-                          al.name as level_name', FALSE)
+                          al.name as level_name", FALSE)
             ->from('teacher_subjects')
             ->join('exam_schedules', 'exam_schedules.teacher_subject_id = teacher_subjects.id
                    AND exam_schedules.exam_id = ' . $this->db->escape($exam_id), 'left')
-            ->join('subjects', 'teacher_subjects.subject_id = subjects.id')
+            ->join('academic_subject subjects', 'teacher_subjects.subject_id = subjects.id')
             ->join('academic_class ac', 'teacher_subjects.class_id = ac.id')
             ->join('academic_subject_level asl', 'ac.subject_level_id = asl.id', 'left')
             ->join('academic_level al', 'asl.level_id = al.id', 'left')
@@ -270,16 +270,19 @@ class Teachersubject_model extends MY_Model
         }
 
         $sql = "SELECT teacher_subjects.*, staff.name as teacher_name, staff.surname,
-                subjects.name, subjects.type, subjects.code,
+                subjects.name, 'theory' as type, subjects.code,
                 ac.class_code, ac.cohort_name
                 FROM teacher_subjects
-                INNER JOIN subjects ON teacher_subjects.subject_id = subjects.id
+                INNER JOIN academic_subject subjects ON teacher_subjects.subject_id = subjects.id
                 INNER JOIN academic_class ac ON teacher_subjects.class_id = ac.id
                 INNER JOIN staff ON staff.id = teacher_subjects.teacher_id
                 WHERE ac.id = " . $this->db->escape($class_id) . "
                 AND teacher_subjects.session_id = " . $this->db->escape($this->current_session) . " " . $where;
 
         $query = $this->db->query($sql);
+        if ($query === false) {
+            return array();
+        }
         return $query->result_array();
     }
 
@@ -296,7 +299,7 @@ class Teachersubject_model extends MY_Model
                           ac.class_code, ac.cohort_name,
                           asub.name as subject_name, al.code as level_code', FALSE)
             ->from('teacher_subjects')
-            ->join('subjects', 'subjects.id = teacher_subjects.subject_id')
+            ->join('academic_subject subjects', 'subjects.id = teacher_subjects.subject_id')
             ->join('academic_class ac', 'ac.id = teacher_subjects.class_id')
             ->join('academic_subject_level asl', 'asl.id = ac.subject_level_id')
             ->join('academic_subject asub', 'asub.id = asl.subject_id')

@@ -60,7 +60,8 @@
                                     ]);
                                     ?>
                                 </div>
-                                <div class="col-md-6">
+                                <!-- TVET: Subject group is auto-managed, hidden from user -->
+                                <div class="col-md-6" style="display:none;">
                                     <div class="form-group">
                                         <label><?php echo $this->lang->line('subject_group'); ?><small class="req"> *</small></label>
                                         <select  id="subject_group_id" name="subject_group_id" class="form-control" >
@@ -215,6 +216,7 @@ $count++;
                 });
 
                 // Load subject groups when class changes
+                // TVET: Auto-creates and auto-selects the subject group
                 function loadSubjectGroup() {
                     var class_id = $('#class_id').val();
                     $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
@@ -231,6 +233,11 @@ $count++;
                                         "<option value=" + obj.subject_group_id + ">" + obj.name + "</option>"
                                     );
                                 });
+                                // TVET: Auto-select and submit if only one subject group
+                                if (data.length === 1) {
+                                    $('#subject_group_id').val(data[0].subject_group_id);
+                                    $('.create_time_table').submit();
+                                }
                             }
                         });
                     }

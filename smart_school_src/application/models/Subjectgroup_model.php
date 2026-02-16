@@ -269,7 +269,7 @@ class Subjectgroup_model extends MY_Model {
             }
         }
 
-        $sql = "SELECT subject_group_subjects.*,subjects.name,subjects.code,subjects.type FROM `subject_group_subjects` INNER JOIN subjects on subjects.id=subject_group_subjects.subject_id WHERE subject_group_id =" . $this->db->escape($subject_group_id) . " and session_id =" . $this->db->escape($session_id) . "" . $subject_groupid_condition;
+        $sql = "SELECT subject_group_subjects.*,subjects.name,subjects.code,'theory' as type FROM `subject_group_subjects` INNER JOIN academic_subject subjects on subjects.id=subject_group_subjects.subject_id WHERE subject_group_id =" . $this->db->escape($subject_group_id) . " and session_id =" . $this->db->escape($session_id) . "" . $subject_groupid_condition;
         $query = $this->db->query($sql);
 
         return $query->result();
@@ -353,7 +353,7 @@ class Subjectgroup_model extends MY_Model {
                 FROM `academic_class` ac
                 INNER JOIN subject_group_class_sections ON subject_group_class_sections.class_section_id = ac.id
                 INNER JOIN subject_group_subjects ON subject_group_subjects.subject_group_id = subject_group_class_sections.subject_group_id
-                INNER JOIN subjects ON subjects.id = subject_group_subjects.subject_id
+                INNER JOIN academic_subject subjects ON subjects.id = subject_group_subjects.subject_id
                 INNER JOIN subject_timetable ON subject_timetable.subject_group_subject_id = subject_group_subjects.id
                 INNER JOIN staff ON staff.id = subject_timetable.staff_id
                 WHERE ac.id=" . $this->db->escape($class_id) . "
@@ -414,7 +414,7 @@ class Subjectgroup_model extends MY_Model {
                 INNER JOIN academic_class ac ON subject_group_class_sections.class_section_id = ac.id
                 INNER JOIN subject_groups ON subject_groups.id = subject_group_class_sections.subject_group_id
                 INNER JOIN subject_group_subjects ON subject_group_subjects.subject_group_id = subject_groups.id
-                INNER JOIN subjects ON subjects.id = subject_group_subjects.subject_id
+                INNER JOIN academic_subject subjects ON subjects.id = subject_group_subjects.subject_id
                 WHERE ac.id=" . $this->db->escape($class_id) . "
                 AND subject_group_class_sections.session_id=" . $this->db->escape($this->current_session);
 

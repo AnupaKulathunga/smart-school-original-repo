@@ -33,7 +33,7 @@ if (!empty($timetable)) {
                             foreach ($timetable[$tm_key] as $tm_k => $tm_kue) {
                             ?>
                                 <div class="attachment-block attachment-block-normal clearfix">
-                                    <div class="relative attachment-left-space"><i class="fa fa-book"></i><?php echo $this->lang->line('class') ?>: <?php echo $tm_kue->class . "(" . $tm_kue->section . ")"; ?>
+                                    <div class="relative attachment-left-space"><i class="fa fa-book"></i><?php echo $this->lang->line('class') ?>: <?php echo $tm_kue->class; ?>
                                         <?php echo $this->lang->line('subject') ?>: <?php
                                                                                     echo $tm_kue->subject_name;
                                                                                     if ($tm_kue->subject_code != '') {
