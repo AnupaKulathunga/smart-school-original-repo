@@ -1269,6 +1269,14 @@ CREATE TABLE IF NOT EXISTS `exam_group_class_batch_exams` (
   `exam_id` int DEFAULT NULL,
   `class_id` int DEFAULT NULL,
   `section_id` int DEFAULT NULL,
+  `exam` varchar(200) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `is_active` int DEFAULT 1,
+  `is_publish` int DEFAULT 0,
+  `date_from` date DEFAULT NULL,
+  `date_to` date DEFAULT NULL,
+  `passing_percentage` decimal(5,2) DEFAULT 0,
+  `use_exam_roll_no` int DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -2571,6 +2579,18 @@ CREATE TABLE IF NOT EXISTS `onlineexam_students` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `onlineexam_attempts`
+--
+
+CREATE TABLE IF NOT EXISTS `onlineexam_attempts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `onlineexam_student_id` int NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `onlineexam_student_id` (`onlineexam_student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Table structure for table `permission_category`
