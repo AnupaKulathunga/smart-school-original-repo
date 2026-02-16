@@ -643,44 +643,56 @@ class User extends Student_Controller
         // end
 
         // your progress start
-        // TVET: Use multi-class IDs for programme view
+        // TVET: Get subjects from enrolments (not lesson table) so all programme subjects always show
         $data['subjects_data'] = array();
-        $subjects = $this->syllabus_model->getmysubjects($class_ids);
+        $session_id = $this->setting_model->getCurrentSession();
+        $student_classes = $this->academic_enrolment_model->getStudentClasses($student_id, $session_id);
 
-        foreach ($subjects as $key => $value) {
-            $complete        = 0;
-            $incomplete      = 0;
-            $subject_details = $this->syllabus_model->get_subjectstatus($value->subject_group_subjects_id, $value->subject_group_class_sections_id);
-            if (!empty($subject_details) && isset($subject_details[0]) && $subject_details[0]->total != 0) {
+        // Filter to only classes in the current programme (if programme session is set)
+        if (isset($session_data['class_ids'])) {
+            $programme_class_ids = array_map('intval', explode(',', $session_data['class_ids']));
+            $student_classes = array_filter($student_classes, function($c) use ($programme_class_ids) {
+                return in_array((int)$c->class_id, $programme_class_ids);
+            });
+        }
 
-                $complete   = ($subject_details[0]->complete / $subject_details[0]->total) * 100;
-                $incomplete = ($subject_details[0]->incomplete / $subject_details[0]->total) * 100;
-                if ($value->code == '') {
-                    $lebel = $value->name;
-                } else {
-                    $lebel = $value->name . ' (' . $value->code . ')';
-                }
-                $data['subjects_data'][$value->subject_group_subjects_id] = array(
-                    'lebel'      => $lebel,
-                    'complete'   => round($complete),
-                    'incomplete' => round($incomplete),
-                    'id'         => $value->subject_group_subjects_id . '_' . $value->code,
-                    'total'      => $subject_details[0]->total,
-                    'name'       => $value->name,
-                    'graph_id'   => $value->subject_group_subjects_id . time(),
-                );
-            } else {
+        // Also get lesson-based subjects for progress calculation (if lessons exist)
+        $lesson_subjects = $this->syllabus_model->getmysubjects($class_ids);
+        $lesson_map = array(); // class_id => lesson subject data
+        foreach ($lesson_subjects as $ls) {
+            $lesson_map[$ls->subject_group_class_sections_id] = $ls;
+        }
 
-                $data['subjects_data'][$value->subject_group_subjects_id] = array(
-                    'lebel'      => $value->name . ' (' . $value->code . ')',
-                    'complete'   => 0,
-                    'incomplete' => 0,
-                    'id'         => $value->subject_group_subjects_id . '_' . $value->code,
-                    'total'      => 0,
-                    'name'       => $value->name,
-                    'graph_id'   => $value->subject_group_subjects_id . time(),
-                );
+        foreach ($student_classes as $class) {
+            $complete   = 0;
+            $incomplete = 0;
+            $total      = 0;
+            $subject_key = $class->class_id . '_' . $class->subject_code;
+            $lebel = $class->subject_name . ' ' . $class->level_code;
+            if (!empty($class->subject_code)) {
+                $lebel .= ' (' . $class->subject_code . ')';
             }
+
+            // Check if lesson data exists for this class to calculate progress
+            if (isset($lesson_map[$class->class_id])) {
+                $ls = $lesson_map[$class->class_id];
+                $subject_details = $this->syllabus_model->get_subjectstatus($ls->subject_group_subjects_id, $ls->subject_group_class_sections_id);
+                if (!empty($subject_details) && isset($subject_details[0]) && $subject_details[0]->total != 0) {
+                    $complete   = round(($subject_details[0]->complete / $subject_details[0]->total) * 100);
+                    $incomplete = round(($subject_details[0]->incomplete / $subject_details[0]->total) * 100);
+                    $total      = $subject_details[0]->total;
+                }
+            }
+
+            $data['subjects_data'][$subject_key] = array(
+                'lebel'      => $lebel,
+                'complete'   => $complete,
+                'incomplete' => $incomplete,
+                'id'         => $subject_key,
+                'total'      => $total,
+                'name'       => $class->subject_name,
+                'graph_id'   => $subject_key . time(),
+            );
         }
         // end
 
