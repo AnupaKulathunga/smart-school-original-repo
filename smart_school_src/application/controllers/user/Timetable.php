@@ -14,7 +14,10 @@ class Timetable extends Student_Controller {
         $this->session->set_userdata('top_menu', 'Time_table');
         // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
         $student_enrolment = $this->customlib->getStudentCurrentEnrolment();
-        $class_id = $student_enrolment->class_id;
+
+        // Use multi-class IDs from programme session if available
+        $session_data = $this->session->userdata('current_class');
+        $class_ids = isset($session_data['class_ids']) ? $session_data['class_ids'] : $student_enrolment->class_id;
 
         $student_id = $this->customlib->getStudentSessionUserID();
         $student = $this->student_model->get($student_id);
@@ -22,8 +25,8 @@ class Timetable extends Student_Controller {
         $days_record = array();
 
         foreach ($days as $day_key => $day_value) {
-            // TVET: Use getTimetableByClassDay() - no section_id parameter
-            $days_record[$day_key] = $this->subjecttimetable_model->getTimetableByClassDay($class_id, $day_key);
+            // TVET: Use multi-class IDs for programme timetable
+            $days_record[$day_key] = $this->subjecttimetable_model->getTimetableByClassDay($class_ids, $day_key);
         }
         $data['timetable'] = $days_record;
 
@@ -38,6 +41,10 @@ class Timetable extends Student_Controller {
         $student_enrolment = $this->customlib->getStudentCurrentEnrolment();
         $class_id = $student_enrolment->class_id;
 
+        // Use multi-class IDs from programme session if available
+        $session_data = $this->session->userdata('current_class');
+        $class_ids = isset($session_data['class_ids']) ? $session_data['class_ids'] : $class_id;
+
         $days = $this->customlib->getDaysname();
         // TVET: Get class details from academic_class_model
         $class_section = $this->classmodel_model->getClassById($class_id);
@@ -45,8 +52,8 @@ class Timetable extends Student_Controller {
         $days_record = array();
 
         foreach ($days as $day_key => $day_value) {
-            // TVET: Use getTimetableByClassDay() - no section_id parameter
-            $days_record[$day_key] = $this->subjecttimetable_model->getTimetableByClassDay($class_id, $day_key);
+            // TVET: Use multi-class IDs for programme timetable
+            $days_record[$day_key] = $this->subjecttimetable_model->getTimetableByClassDay($class_ids, $day_key);
         }
         $data['timetable'] = $days_record;
         $timetable_page = $this->load->view('admin/timetable/_printclasstimetable', $data, true);
