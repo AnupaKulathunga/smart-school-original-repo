@@ -19,10 +19,10 @@ class Video_tutorial extends Student_Controller
 
         $this->session->set_userdata('top_menu', 'Downloads');
         $this->session->set_userdata('sub_menu', 'video_tutorial/index');
-        $student_current_class = $this->customlib->getStudentCurrentClsSection();
-        $data['class_id']      = $student_current_class->class_id;
-        // TVET: section_id not needed, but pass class_id for backward compatibility with view
-        $data['section_id']    = $student_current_class->class_id;
+        // TVET: Use getStudentCurrentEnrolment() instead of getStudentCurrentClsSection()
+        $student_enrolment = $this->customlib->getStudentCurrentEnrolment();
+        $data['class_id']  = $student_enrolment->class_id;
+        $data['section_id'] = $student_enrolment->class_id;
         $this->load->view('layout/student/header');
         $this->load->view('user/video_tutorial/index', $data);
         $this->load->view('layout/student/footer');
@@ -95,14 +95,14 @@ class Video_tutorial extends Student_Controller
         $file_src = $result['video_link'];
 
         $employee_id = '';
-        if ($result['staff_employee_id'] != "") {
+        if (!empty($result['staff_employee_id'])) {
             $employee_id = ' (' . $result['staff_employee_id'] . ')';
-        }    
-        
-        if($superadmin_restriction == 'disabled' && $result['role_id'] == 7){
-                $staff_name =  ''; 
+        }
+
+        if($superadmin_restriction == 'disabled' && isset($result['role_id']) && $result['role_id'] == 7){
+                $staff_name =  '';
         }else{
-                $staff_name =   $result['staff_name'] . ' ' . $result['staff_surname'] . $employee_id ;
+                $staff_name = (!empty($result['staff_name']) ? $result['staff_name'] : '') . ' ' . (!empty($result['staff_surname']) ? $result['staff_surname'] : '') . $employee_id;
         }
 
         $output = '';
@@ -113,11 +113,7 @@ class Video_tutorial extends Student_Controller
         $output .= "</div>";
         $output .= "<i class='fa fa-youtube-play videoicon'></i>";
         $output .= "<div class='overlay3'>";
-        $output .= "<a href='#' ata-toggle='tooltip' title =" . $this->lang->line('view') . " class='uploadcheckbtn' data-backdrop='static' data-keyboard='false' data-record_id='" . $result['id'] . "' data-toggle='modal' data-target='#detail' 
-        
-        data-role_name='" . $staff_name . "' 
-        
-        data-image='" . $file . "' data-source='" . $file_src . "' data-title='" . $result['title'] . "' data-description='" . $result['description'] . "'><i class='fa fa-navicon'></i></a>";
+        $output .= "<a href='#' data-toggle='tooltip' title='" . $this->lang->line('view') . "' class='uploadcheckbtn' data-backdrop='static' data-keyboard='false' data-record_id='" . $result['id'] . "' data-toggle='modal' data-target='#detail' data-media_type='youtube' data-role_name='" . $staff_name . "' data-image='" . $file . "' data-source='" . $file_src . "' data-title='" . $result['title'] . "' data-description='" . $result['description'] . "'><i class='fa fa-navicon'></i></a>";
         $output .= "<p class='processing'>" . $this->lang->line('processing') . "</p>";
         $output .= "</div>";
         $output .= "</div>";

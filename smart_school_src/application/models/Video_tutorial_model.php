@@ -180,7 +180,7 @@ class Video_tutorial_model extends MY_Model
     {
         $this->db->select('video_tutorial.*, academic_class.id as class_id, academic_class.class_code, academic_class.cohort_name, academic_subject.name as subject_name, academic_level.name as level_name, staff.name as staff_name, staff.surname as staff_surname, staff.employee_id as staff_employee_id, staff_roles.role_id', FALSE)
             ->join('staff', 'staff.id=video_tutorial.created_by', 'left')
-            ->join('staff_roles', 'staff.id=staff_roles.staff_id')
+            ->join('staff_roles', 'staff.id=staff_roles.staff_id', 'left')
             ->join('video_tutorial_class_sections', 'video_tutorial_class_sections.video_tutorial_id=video_tutorial.id')
             ->join('academic_class', 'academic_class.id=video_tutorial_class_sections.class_section_id')
             ->join('academic_subject_level', 'academic_subject_level.id=academic_class.subject_level_id', 'left')

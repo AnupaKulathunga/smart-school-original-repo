@@ -305,7 +305,8 @@ class Video_tutorial extends Admin_Controller
     {
         $sectionlist = $this->video_tutorial_model->selectedsection($result->id);
         foreach ($sectionlist as $key => $sectionlist_value) {
-            $result->sectionlist[$key] = $sectionlist_value['section'];
+            // TVET: Use class_code instead of section name
+            $result->sectionlist[$key] = isset($sectionlist_value['class_code']) ? $sectionlist_value['class_code'] : '';
         }
 
         $employee_id = '';
