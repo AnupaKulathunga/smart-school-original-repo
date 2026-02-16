@@ -96,7 +96,7 @@ class Common extends Public_Controller
             }
 
             $this->session->set_userdata('student', $logged_In_User);
-            $student_current_class = array('class_id' => $student['class_id'], 'section_id' => $student['section_id'], 'student_session_id' => $student['student_session_id']);
+            $student_current_class = array('class_id' => $student['class_id'], 'section_id' => $student['class_id'], 'student_session_id' => $student['student_session_id']);
             $this->session->set_userdata('current_class', $student_current_class);
 
             //==================

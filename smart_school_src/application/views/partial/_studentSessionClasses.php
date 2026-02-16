@@ -18,7 +18,12 @@ foreach ($studentclasses as $student_key => $student_value) {
                         <div class="row rating-desc">
                             <div class="col-md-12">
                             	  <label class="checkbox-inline">
-                                    <input type="checkbox" value="<?php echo $student_value->student_session_id; ?>" class="clschg" name="clschg" <?php echo ($student_value->class_id ==$current_class['class_id'] && $student_value->student_session_id ==$current_class['student_session_id']) ? 'checked' :''; ?>><?php echo ($role == 'parent') ? $name . " " . $student_value->class : $student_value->class; ?>
+                                    <input type="checkbox" value="<?php echo $student_value->student_session_id; ?>" class="clschg" name="clschg" <?php echo ($student_value->class_id ==$current_class['class_id'] && $student_value->student_session_id ==$current_class['student_session_id']) ? 'checked' :''; ?>><?php
+$class_label = isset($student_value->subject_name)
+    ? $student_value->subject_name . ' - ' . $student_value->level_code . ' (Cohort ' . $student_value->cohort_name . ')'
+    : (isset($student_value->class) ? $student_value->class : $student_value->class_code);
+echo ($role == 'parent') ? $name . " " . $class_label : $class_label;
+?>
 
                                 </label>
                           

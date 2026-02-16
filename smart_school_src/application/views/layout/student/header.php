@@ -181,8 +181,16 @@ if ($role == 'guest') {
                                    <?php
 
 if ($this->studentmodule_lib->hasActive('multi_class')) {
+    $current_cls = $this->session->userdata('current_class');
+    $current_class_label = '';
+    if (!empty($current_cls['class_id'])) {
+        $cls_info = $this->classmodel_model->getClassById($current_cls['class_id']);
+        if ($cls_info) {
+            $current_class_label = $cls_info->class_code;
+        }
+    }
     ?>
-       <li class="cal15"><a href="#" data-placement="bottom" data-toggle="tooltip" title="<?php echo $this->lang->line('switch_class') ?>"><span data-toggle="modal" data-target="#classSwitchModal"><i class="fa fa-exchange" aria-hidden="true"></i></span></a></li>
+       <li class="cal15"><a href="#" data-placement="bottom" data-toggle="tooltip" title="<?php echo $this->lang->line('switch_class') ?>"><span data-toggle="modal" data-target="#classSwitchModal"><?php if ($current_class_label): ?><span style="color:#fff; font-size:12px; margin-right:5px;"><?php echo $current_class_label; ?></span><?php endif; ?><i class="fa fa-exchange" aria-hidden="true"></i></span></a></li>
    <?php
 
 }
