@@ -126,6 +126,9 @@ class Common extends Public_Controller
                     );
                     $this->session->set_userdata('current_class', $student_current_class);
 
+                    // Save programme preference for next login
+                    $this->student_model->saveLastProgramme($student_id, $selected_prog->programme_id);
+
                     $array = array('status' => '1', 'error' => '', 'message' => $this->lang->line('success_message'));
                     echo json_encode($array);
                     return;

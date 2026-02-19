@@ -60,19 +60,34 @@ class User extends Student_Controller
 
             $data['programmes'] = $programmes;
 
-            // Auto-select if student is in only ONE programme
+            // Auto-select programme: single programme OR remembered choice
+            $auto_prog = null;
             if (count($programmes) == 1) {
-                $prog = $programmes[0];
-                $class_ids_str = $prog->class_ids;
+                $auto_prog = $programmes[0];
+            } elseif (count($programmes) > 1) {
+                // Check if student has a saved programme preference
+                $student_session = $this->student_model->getStudentSessionRecord($student_id);
+                if ($student_session && !empty($student_session->last_programme_id)) {
+                    foreach ($programmes as $prog) {
+                        if ($prog->programme_id == $student_session->last_programme_id) {
+                            $auto_prog = $prog;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ($auto_prog) {
+                $class_ids_str = $auto_prog->class_ids;
                 $class_ids_arr = explode(',', $class_ids_str);
                 $first_class_id = $class_ids_arr[0];
-                $enrolment_ids_arr = explode(',', $prog->enrolment_ids);
+                $enrolment_ids_arr = explode(',', $auto_prog->enrolment_ids);
                 $first_enrolment_id = $enrolment_ids_arr[0];
 
                 $default_login_student_id = $student_id;
                 $student_current_class = array(
-                    'programme_id'       => $prog->programme_id,
-                    'programme_name'     => $prog->programme_name,
+                    'programme_id'       => $auto_prog->programme_id,
+                    'programme_name'     => $auto_prog->programme_name,
                     'class_ids'          => $class_ids_str,
                     'class_id'           => $first_class_id,
                     'section_id'         => $first_class_id,
@@ -140,6 +155,10 @@ class User extends Student_Controller
                         'student_session_id' => $enrolment_ids_arr[0],
                     );
                     $this->session->set_userdata('current_class', $student_current_class);
+
+                    // Save programme preference for next login
+                    $this->student_model->saveLastProgramme($student_id, $selected_prog->programme_id);
+
                     redirect('user/user/dashboard');
                 }
             }

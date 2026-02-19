@@ -187,6 +187,30 @@ class Student_model extends MY_Model
     }
 
     /**
+     * Get the student_session record for current session
+     * Used to retrieve saved preferences like last_programme_id
+     */
+    public function getStudentSessionRecord($student_id)
+    {
+        $this->db->select('ss.*');
+        $this->db->from('student_session ss');
+        $this->db->where('ss.student_id', $student_id);
+        $this->db->where('ss.session_id', $this->current_session);
+        $this->db->limit(1);
+        return $this->db->get()->row();
+    }
+
+    /**
+     * Save the student's last selected programme for auto-login
+     */
+    public function saveLastProgramme($student_id, $programme_id)
+    {
+        $this->db->where('student_id', $student_id);
+        $this->db->where('session_id', $this->current_session);
+        $this->db->update('student_session', array('last_programme_id' => $programme_id));
+    }
+
+    /**
      * TVET: Get student by enrolment ID
      * Replaces getByStudentSession() for TVET model
      * Uses academic_class_enrolment and academic_class tables

@@ -3871,6 +3871,7 @@ CREATE TABLE IF NOT EXISTS `student_session` (
   `transport_fees` decimal(15,2) DEFAULT '0.00',
   `fees_discount` decimal(5,2) DEFAULT '0.00',
   `is_active` varchar(10) DEFAULT 'no',
+  `last_programme_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_session` (`session_id`),
   KEY `idx_student` (`student_id`)
