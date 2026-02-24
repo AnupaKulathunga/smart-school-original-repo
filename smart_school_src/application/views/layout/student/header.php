@@ -434,7 +434,7 @@ if ($role == 'student' || $role == 'parent') {
                             <li class="<?php echo set_Topmenu('fees'); ?>"><a href="<?php echo base_url(); ?>user/user/getfees"><i class="fa fa-money ftlayer"></i> <span><?php echo $this->lang->line('fees'); ?></span></a></li>
                         <?php }?>
 
-                        <?php if ($this->module_lib->hasModule('online_course') && $this->module_lib->hasActive('online_course') && $this->studentmodule_lib->hasActive('online_course') && $this->auth->addonchk('ssoclc', false)) {?>
+                        <?php if ($this->module_lib->hasModule('online_course') && $this->module_lib->hasActive('online_course') && $this->studentmodule_lib->hasActive('online_course')) {?>
                             <li class="<?php echo set_topmenu('user/studentcourse'); ?>"><a href="<?php echo base_url(); ?>user/studentcourse"><i class="fa fa-file-video-o ftlayer"></i> <span><?php echo $this->lang->line('online_course'); ?></span></a></li>
                         <?php }?>
 
