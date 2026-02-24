@@ -23,7 +23,9 @@ class Courselesson extends Admin_Controller
         }
         $this->form_validation->set_rules('title', $this->lang->line('title'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('lesson_type', $this->lang->line('lesson_type'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('add_lesson_thumbnail', $this->lang->line('thumbnail') . ' ' . $this->lang->line('field_is_required'), 'callback_handle_upload[add_lesson_thumbnail]');
+        if (!empty($_FILES['add_lesson_thumbnail']['name'])) {
+            $this->form_validation->set_rules('add_lesson_thumbnail', $this->lang->line('thumbnail'), 'callback_handle_upload[add_lesson_thumbnail]');
+        }
         $lesson_type     = $this->input->post('lesson_type');
         $lesson_provider = $this->input->post('lesson_provider');
         if ($lesson_type == 'pdf') {
@@ -208,7 +210,7 @@ class Courselesson extends Admin_Controller
         if (!$this->rbac->hasPrivilege('online_course_lesson', 'can_edit')) {
             access_denied();
         }
-        $lesson_thumbnail = $_FILES['lesson_thumbnail']['name'];
+        $lesson_thumbnail = isset($_FILES['lesson_thumbnail']['name']) ? $_FILES['lesson_thumbnail']['name'] : '';
         $this->form_validation->set_rules('lesson_titleID', $this->lang->line('title'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('lessons_type', $this->lang->line('lesson_type'), 'trim|required|xss_clean');
         if ($lesson_thumbnail != '') {
@@ -440,6 +442,10 @@ class Courselesson extends Admin_Controller
      */
     public function pdf_handle_upload(){
 
+    if (!isset($_FILES['lesson_attachment']['name'])) {
+        $this->form_validation->set_message('pdf_handle_upload', $this->lang->line('attachment_field_is_required'));
+        return false;
+    }
     $total_attachments=count($_FILES['lesson_attachment']['name']);
     for($i=0;$i<$total_attachments;$i++){
         if (isset($_FILES["lesson_attachment"]) && !empty($_FILES['lesson_attachment']['name'][$i])) {
@@ -470,6 +476,9 @@ class Courselesson extends Admin_Controller
      */
     public function edit_handle_upload(){
 
+        if (!isset($_FILES['lesson_attachment']['name'])) {
+            return true;
+        }
         $total_attachments=count($_FILES['lesson_attachment']['name']);
         for($i=0;$i<$total_attachments;$i++){
         if (isset($_FILES["lesson_attachment"]) && !empty($_FILES['lesson_attachment']['name'][$i])) {
@@ -497,6 +506,10 @@ class Courselesson extends Admin_Controller
      */
     public function file_check(){
 
+        if (!isset($_FILES['lesson_attachment']['name'])) {
+            $this->form_validation->set_message('file_check', $this->lang->line('attachment_field_is_required'));
+            return false;
+        }
         $total_attachments=count($_FILES['lesson_attachment']['name']);
         for($i=0;$i<$total_attachments;$i++){
         if (isset($_FILES["lesson_attachment"]) && !empty($_FILES['lesson_attachment']['name'][$i])) {
@@ -534,6 +547,9 @@ class Courselesson extends Admin_Controller
     This is used to edit lesson doc file thumbnail validation
      */
     public function edit_file_check(){
+        if (!isset($_FILES['lesson_attachment']['name'])) {
+            return true;
+        }
         $total_attachments=count($_FILES['lesson_attachment']['name']);
         for($i=0;$i<$total_attachments;$i++){
         if (isset($_FILES["lesson_attachment"]) && !empty($_FILES['lesson_attachment']['name'][$i])) {
@@ -568,6 +584,10 @@ class Courselesson extends Admin_Controller
     This is used to add lesson text file thumbnail validation
      */
     public function text_check(){
+        if (!isset($_FILES['lesson_attachment']['name'])) {
+            $this->form_validation->set_message('text_check', $this->lang->line('attachment_field_is_required'));
+            return false;
+        }
         $total_attachments=count($_FILES['lesson_attachment']['name']);
         for($i=0;$i<$total_attachments;$i++){
         if (isset($_FILES["lesson_attachment"]) && !empty($_FILES['lesson_attachment']['name'][$i])) {
@@ -597,6 +617,9 @@ class Courselesson extends Admin_Controller
     This is used to edit lesson text file thumbnail validation
      */
     public function edit_text_check(){
+    if (!isset($_FILES['lesson_attachment']['name'])) {
+        return true;
+    }
     $total_attachments=count($_FILES['lesson_attachment']['name']);
         for($i=0;$i<$total_attachments;$i++){
         if (isset($_FILES["lesson_attachment"]) && !empty($_FILES['lesson_attachment']['name'][$i])) {

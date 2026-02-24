@@ -595,7 +595,7 @@ if (!empty($allTeacherList)) {
                                     </div>
                                     <div class="col-sm-12">
                                         <div class="form-group">
-                                            <label for="pwd"><?php echo $this->lang->line('inline_preview_image'); ?> (700px X 400px)</label><small class="req"> *</small>
+                                            <label for="pwd"><?php echo $this->lang->line('inline_preview_image'); ?> (700px X 400px)</label>
                                             <input type="file" id="thumbnail" autocomplete="off" class="filestyle form-control" name="add_lesson_thumbnail">
                                             <span id="thumbnail_error" class="text-danger"></span>
                                         </div>
@@ -1614,11 +1614,11 @@ $('.course_detail_id').click(function(){
 </script>
 
 <script>
-(function ($) {
-  "use strict";
-    // TVET: class_id is now a multi-select, no section loading needed
-    $('.class-list').select2();
-})(jQuery);
+$(document).ready(function() {
+    if ($.fn.select2) {
+        $('.class-list').select2();
+    }
+});
 
 function saveSection() {
   var courseid = $('#courseid').val();
