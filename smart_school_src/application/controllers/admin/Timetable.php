@@ -167,12 +167,11 @@ class Timetable extends Admin_Controller
         $data['staff']           = $staff;
         $data['subject']         = array();
 
-        // TVET: Only class_id and subject_group_id required (no section)
+        // TVET: Only class_id required (subject_group auto-derived)
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
 
         $class_id         = $this->input->post('class_id');
-        $subject_group_id = $this->input->post('subject_group_id');
+        $subject_group_id = $this->subjectgroup_model->getSubjectGroupIdByClass($class_id);
 
         $data['class_id']         = $class_id;
         $data['subject_group_id'] = $subject_group_id;
@@ -271,7 +270,8 @@ class Timetable extends Admin_Controller
         $data['total_count'] = 1;
         $day                 = $this->input->post('day');
         $class_id            = $this->input->post('class_id');
-        $subject_group_id    = $this->input->post('subject_group_id');
+        // TVET: Auto-derive subject_group_id from class
+        $subject_group_id    = $this->subjectgroup_model->getSubjectGroupIdByClass($class_id);
         $subject             = $this->subjectgroup_model->getGroupsubjects($subject_group_id);
 
         // TVET: Get timetable by class only (no section)
@@ -297,10 +297,9 @@ class Timetable extends Admin_Controller
     public function savegroup()
     {
         $json = array();
-        $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required');
+        // TVET: subject_group_id auto-derived from class
         $this->form_validation->set_rules('day', $this->lang->line('day'), 'trim|required');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required');
-        // TVET: No section_id validation
         $total_rows = $this->input->post('total_row');
 
         if (isset($total_rows) && !empty($total_rows)) {
@@ -316,7 +315,6 @@ class Timetable extends Admin_Controller
 
         if (!$this->form_validation->run()) {
             $json = array(
-                'subject_group_id' => form_error('subject_group_id', '<li>', '</li>'),
                 'day'              => form_error('day', '<li>', '</li>'),
                 'class_id'         => form_error('class_id', '<li>', '</li>'),
                 'rows'             => form_error('rows', '<li>', '</li>'),
@@ -335,7 +333,8 @@ class Timetable extends Admin_Controller
         } else {
             $day              = $this->input->post('day');
             $class_id         = $this->input->post('class_id');
-            $subject_group_id = $this->input->post('subject_group_id');
+            // TVET: Auto-derive subject_group_id from class
+            $subject_group_id = $this->subjectgroup_model->getSubjectGroupIdByClass($class_id);
             $total_row        = $this->input->post('total_row');
             $session          = $this->setting_model->getCurrentSession();
             $insert_array     = array();

@@ -8,7 +8,6 @@
            
             <input type="hidden" name="day" name="" value="<?php echo $day; ?>">
             <input type="hidden" name="class_id" name="" value="<?php echo $class_id; ?>">
-            <input type="hidden" name="subject_group_id" name="" value="<?php echo $subject_group_id; ?>">
             <div class="">   
                 <table class="table table-bordered table-hover order-list tablewidthRS" id="tab_logic">
                     <thead>

@@ -41,36 +41,16 @@
                         <div id='date_result'></div>
                         <div class="col-lg-12 col-md-12 col-sm-12">
                             <?php
-                            // TVET: Use class_selector component (no section)
+                            // TVET: Use class_selector component (subject derived from class)
                             $this->load->view('admin/_partials/class_selector', [
                                 'selected_class_id' => '',
                                 'classlist' => $classlist,
                                 'required' => true,
                                 'id' => 'searchclassid',
-                                'name' => 'class_id',
-                                'onchange' => 'getSubjectGroup(this.value, 0, \"subject_group_id\")'
+                                'name' => 'class_id'
                             ]);
                             ?>
                             <span class="text-danger" id="error_class_id"></span>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('subject_group'); ?><small class="req"> *</small></label>
-                                <select  id="subject_group_id" name="subject_group_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="text-danger" id="error_subject_group_id"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('subject'); ?><small class="req"> *</small></label>
-                                <select  id="subid" name="subject_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="text-danger" id="error_subject_id"></span>
-                                
-                            </div>
                         </div>
                     </div>
                     <button type="submit" id="search_filter" name="search" value="search_filter" class="btn btn-primary btn-sm checkbox-toggle pull-right"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
@@ -141,98 +121,8 @@
 </script>
 
 <script type="text/javascript">
+    // TVET: Subject group/subject JS removed — subject auto-derived from class
 
-    var save_method; //for save method string
-    var update_id; //for save method string
-
-    // TVET: Load subject group when class changes
-    $(document).on('change', '#searchclassid', function () {
-        var class_id = $(this).val();
-        getSubjectGroup(class_id, 0, 'subject_group_id');
-    });
-
-    $(document).on('change', '#subject_group_id', function () {
-        var class_id = $('#searchclassid').val();
-        var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subid');
-    });
-
-    function getSubjectGroup(class_id, subjectgroup_id, subject_group_target) {
-        if (class_id != "") {
-
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
-                data: {'class_id': class_id},
-                dataType: 'JSON',
-                beforeSend: function () {
-                    $('#' + subject_group_target).html("").addClass('dropdownloading');
-                },
-                success: function (data) {
-
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (subjectgroup_id == obj.subject_group_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>";
-                    });
-                    $('#' + subject_group_target).append(div_data);
-                },
-                error: function (xhr) {
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-                },
-                complete: function () {
-                    $('#' + subject_group_target).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-
-    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target) {
-        if (class_id != "" && subject_group_id != "") {
-
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupsubjects',
-                data: {'subject_group_id': subject_group_id},
-                dataType: 'JSON',
-                beforeSend: function () {
-                    $('#' + subject_target).html("").addClass('dropdownloading');
-                },
-                success: function (data) {
-                    console.log(data);
-                    $.each(data, function (i, obj)
-                    {
-                        var code ='';
-                        if(obj.code){
-                            code = " (" + obj.code + ") ";
-                        }
-
-                        var sel = "";
-                        if (subject_group_subject_id == obj.id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.id + " " + sel + ">" + obj.name + code + "</option>";
-                    });
-                    $('#' + subject_target).append(div_data);
-                },
-                error: function (xhr) {
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-
-                },
-                complete: function () {
-                    $('#' + subject_target).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-    
     $(document).on('submit','.search_daily_assignment_form',function(e){
     e.preventDefault(); // avoid to execute the actual submit of the form.
     var $this = $(this).find("button[type=submit]:focus");  

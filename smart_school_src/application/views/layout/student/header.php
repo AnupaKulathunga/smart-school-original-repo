@@ -560,7 +560,7 @@ $ntf = $this->customlib->getUserunreadNotification();
                         <?php if ($this->module_lib->hasActive('library') && $this->studentmodule_lib->hasActive('library')) {?>
                             <li class="treeview <?php echo set_Topmenu('Library'); ?>">
                                 <a href="#">
-                                    <i class="fa fa-book ftlayer"></i> <span><?php echo $this->lang->line('library'); ?></span> <i class="fa fa-angle-left pull-right"></i>
+                                    <i class="fa fa-book ftlayer"></i> <span><?php echo $this->lang->line('ebooks_library'); ?></span> <i class="fa fa-angle-left pull-right"></i>
                                 </a>
                                 <ul class="treeview-menu">
                                     <li class="<?php echo set_Submenu('book/index'); ?>">

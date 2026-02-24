@@ -105,15 +105,10 @@ class Homework_model extends MY_model
         return $query->result_array();
     }
 
-    // TVET: Renamed from search_homework - now takes academic_class_id instead of class_id + section_id
-    public function search_homework($class_id, $subject_group_id, $subject_id)
+    // TVET: Filter by academic_class_id only (subject derived from class)
+    public function search_homework($class_id, $subject_group_id = null, $subject_id = null)
     {
-        // TVET: Build WHERE clause using academic_class_id
-        if ((!empty($class_id)) && (!empty($subject_id)) && (!empty($subject_group_id))) {
-            $this->db->where(array('homework.academic_class_id' => $class_id, 'subject_groups.id' => $subject_group_id, 'subject_group_subjects.id' => $subject_id));
-        } else if ((!empty($class_id)) && (!empty($subject_group_id))) {
-            $this->db->where(array('homework.academic_class_id' => $class_id, 'subject_groups.id' => $subject_group_id));
-        } else if ((!empty($class_id))) {
+        if (!empty($class_id)) {
             $this->db->where(array('homework.academic_class_id' => $class_id));
         }
 
@@ -129,14 +124,9 @@ class Homework_model extends MY_model
         return $query->result_array();
     }
 
-    public function search_dthomework($class_id, $subject_group_id, $subject_id)
+    public function search_dthomework($class_id, $subject_group_id = null, $subject_id = null)
     {
-        // TVET: Build WHERE clause using academic_class_id
-        if ((!empty($class_id)) && (!empty($subject_id)) && (!empty($subject_group_id))) {
-            $this->datatables->where(array('homework.academic_class_id' => $class_id, 'subject_groups.id' => $subject_group_id, 'subject_group_subjects.id' => $subject_id));
-        } else if ((!empty($class_id)) && (!empty($subject_group_id))) {
-            $this->datatables->where(array('homework.academic_class_id' => $class_id, 'subject_groups.id' => $subject_group_id));
-        } else if ((!empty($class_id))) {
+        if (!empty($class_id)) {
             $this->datatables->where(array('homework.academic_class_id' => $class_id));
         }
 
@@ -157,14 +147,9 @@ class Homework_model extends MY_model
         return $this->datatables->generate('json');
     }
 
-    public function search_closehomework($class_id, $subject_group_id, $subject_id)
+    public function search_closehomework($class_id, $subject_group_id = null, $subject_id = null)
     {
-        // TVET: Build WHERE clause using academic_class_id
-        if ((!empty($class_id)) && (!empty($subject_id)) && (!empty($subject_group_id))) {
-            $this->datatables->where(array('homework.academic_class_id' => $class_id, 'subject_groups.id' => $subject_group_id, 'subject_group_subjects.id' => $subject_id));
-        } else if ((!empty($class_id)) && (!empty($subject_group_id))) {
-            $this->datatables->where(array('homework.academic_class_id' => $class_id, 'subject_groups.id' => $subject_group_id));
-        } else if ((!empty($class_id))) {
+        if (!empty($class_id)) {
             $this->datatables->where(array('homework.academic_class_id' => $class_id));
         }
 
@@ -548,11 +533,14 @@ class Homework_model extends MY_model
         }
     }
 
-    public function searchdailyassignment($class_id, $subject_group_id, $subject_group_subject_id, $date)
+    public function searchdailyassignment($class_id, $subject_group_id = null, $subject_group_subject_id = null, $date = null)
     {
-        // TVET: Build WHERE clause using academic_class_id via enrolment
-        if ((!empty($class_id)) && (!empty($date))) {
-            $this->datatables->where(array('e.class_id' => $class_id, 'daily_assignment.date' => $date, 'subject_group_subjects.subject_group_id' => $subject_group_id, 'subject_group_subjects.id' => $subject_group_subject_id));
+        // TVET: Filter by class_id and date only (subject derived from class)
+        if (!empty($class_id)) {
+            $this->datatables->where(array('e.class_id' => $class_id));
+        }
+        if (!empty($date)) {
+            $this->datatables->where(array('daily_assignment.date' => $date));
         }
 
         // TVET: Use academic_class_enrolment (e) + academic_class (ac) instead of student_session
@@ -605,11 +593,11 @@ class Homework_model extends MY_model
         return $result->row_array();
     }
 
-    public function dailyassignmentreport($class_id, $subject_group_id, $subject_group_subject_id, $condition = null)
+    public function dailyassignmentreport($class_id, $subject_group_id = null, $subject_group_subject_id = null, $condition = null)
     {
-        // TVET: Build WHERE clause using enrolment class_id
-        if ((!empty($class_id))) {
-            $this->datatables->where(array('e.class_id' => $class_id, 'subject_group_subjects.subject_group_id' => $subject_group_id, 'subject_group_subjects.id' => $subject_group_subject_id));
+        // TVET: Filter by class_id only (subject derived from class)
+        if (!empty($class_id)) {
+            $this->datatables->where(array('e.class_id' => $class_id));
         }
 
         if ($condition != null) {
@@ -658,14 +646,9 @@ class Homework_model extends MY_model
 
     }
     
-    public function search_dthomeworkreport($class_id, $subject_group_id, $subject_id)
+    public function search_dthomeworkreport($class_id, $subject_group_id = null, $subject_id = null)
     {
-        // TVET: Build WHERE clause using academic_class_id
-        if ((!empty($class_id)) && (!empty($subject_id)) && (!empty($subject_group_id))) {
-            $this->db->where(array('homework.academic_class_id' => $class_id, 'subject_groups.id' => $subject_group_id, 'subject_group_subjects.id' => $subject_id));
-        } else if ((!empty($class_id)) && (!empty($subject_group_id))) {
-            $this->db->where(array('homework.academic_class_id' => $class_id, 'subject_groups.id' => $subject_group_id));
-        } else if ((!empty($class_id))) {
+        if (!empty($class_id)) {
             $this->db->where(array('homework.academic_class_id' => $class_id));
         }
 

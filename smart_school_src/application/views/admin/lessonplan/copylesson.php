@@ -60,32 +60,16 @@ $language_name = $language["short_code"];
 
                         <div class="col-md-4 col-lg-4 col-sm-6">
                             <?php
+                            // TVET: Use class_selector (subject auto-derived from class)
                             $this->load->view('admin/_partials/class_selector', [
                                 'selected_class_id' => set_value('old_class_id'),
                                 'classlist' => $classlist,
                                 'id' => 'old_class_id',
                                 'name' => 'old_class_id',
-                                'label' => $this->lang->line('class')
+                                'label' => $this->lang->line('class'),
+                                'required' => true
                             ]);
                             ?>
-                        </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('subject_group'); ?></label><small class="req"> *</small>
-                                <select id="old_subject_group_id" name="old_subject_group_id" class="form-control">
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="class_id_error text-danger"><?php echo form_error('old_subject_group_id'); ?></span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('subject'); ?></label><small class="req"> *</small>
-                                <select id="old_subject_id" name="old_subject_id" class="form-control">
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="class_id_error text-danger"><?php echo form_error('old_subject_id'); ?></span>
-                            </div>
                         </div>
                     </div>
                     <button type="submit" id="search_filter" name="search" value="search_filter" class="btn btn-primary btn-sm checkbox-toggle pull-right"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
@@ -153,31 +137,16 @@ $language_name = $language["short_code"];
                                 <h4 class="mb10"><?php echo $this->lang->line('select_subject'); ?></h4>
 
                                 <?php
-                                // TVET: Use class_selector component for NEW session class selection
+                                // TVET: Use class_selector component for NEW session class selection (subject auto-derived)
                                 $this->load->view('admin/_partials/class_selector', [
                                     'selected_class_id' => '',
                                     'classlist' => $classlist,
                                     'id' => 'class_id',
                                     'name' => 'class_id',
-                                    'label' => $this->lang->line('class')
+                                    'label' => $this->lang->line('class'),
+                                    'required' => true
                                 ]);
                                 ?>
-
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('subject_group'); ?></label><small class="req"> *</small>
-                                    <select id="subject_group_id" name="subject_group_id" class="form-control">
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="class_id_error text-danger"><?php echo form_error('subject_group_id'); ?></span>
-                                </div>
-
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('subject'); ?></label><small class="req"> *</small>
-                                    <select id="subject_id" name="subject_group_subject_id" class="form-control">
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="class_id_error text-danger"><?php echo form_error('subject_id'); ?></span>
-                                </div>
                                 
                                 <button type="submit" class="btn btn-primary pull-right" data-loading-text="<?php echo $this->lang->line('submitting') ?>" value=""><?php echo $this->lang->line('save'); ?></button>
                     </form>
@@ -224,125 +193,7 @@ $language_name = $language["short_code"];
     </div>
 </div>
 
-<script>
-    $(document).ready(function(e) {
-        var session_id = $('#old_session_id').val();
-        var class_id = $('#old_class_id').val();
-        var subject_group_id = '<?php echo set_value('old_subject_group_id', 0) ?>';
-        var subject_id = '<?php echo set_value('old_subject_id', 0) ?>';
-
-        getSubjectGroupByClass(class_id, subject_group_id, 'old_subject_group_id', session_id);
-        getsubjectBySubjectGroup(class_id, subject_group_id, subject_id, 'old_subject_id', session_id);
-    });
-
-    // TVET: Handle OLD session class change - load subject groups
-    $(document).on('change', '#old_class_id', function() {
-        let session_id = $('#old_session_id').val();
-        let class_id = $(this).val();
-        getSubjectGroupByClass(class_id, 0, 'old_subject_group_id', session_id);
-    });
-
-    // TVET: Load subject groups directly from class (no section needed)
-    function getSubjectGroupByClass(class_id, subjectgroup_id, subject_group_target, session_id = null) {
-        if (class_id != "") {
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClass',
-                data: {
-                    'class_id': class_id,
-                    'session_id': session_id
-                },
-                dataType: 'JSON',
-                beforeSend: function() {
-                    // setting a timeout
-                    $('#' + subject_group_target).html("").addClass('dropdownloading');
-                },
-                success: function(data) {
-                    $.each(data, function(i, obj) {
-                        var sel = "";
-                        if (subjectgroup_id == obj.subject_group_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>";
-                    });
-                    $('#' + subject_group_target).append(div_data);
-                },
-                error: function(xhr) { // if error occured
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-
-                },
-                complete: function() {
-                    $('#' + subject_group_target).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-
-    $(document).on('change', '#old_subject_group_id', function() {
-        let session_id = $('#old_session_id').val();
-        let class_id = $('#old_class_id').val();
-        let subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'old_subject_id', session_id);
-    });
-
-    // TVET: Handle NEW session class change - load subject groups
-    $(document).on('change', '#class_id', function() {
-        let class_id = $(this).val();
-        getSubjectGroupByClass(class_id, 0, 'subject_group_id', null);
-    });
-
-    // TVET: Handle NEW session subject group change - load subjects
-    $(document).on('change', '#subject_group_id', function() {
-        let class_id = $('#class_id').val();
-        let subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subject_id', null);
-    });
-
-    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target, session_id = null) {
-        if (class_id != "" && subject_group_id != "") {
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupsubjects',
-                data: {
-                    'subject_group_id': subject_group_id,
-                    "session_id": session_id
-                },
-                dataType: 'JSON',
-                beforeSend: function() {
-                    // setting a timeout
-                    $('#' + subject_target).html("").addClass('dropdownloading');
-                },
-                success: function(data) {
-                    console.log(data);
-                    $.each(data, function(i, obj) {
-                        var sel = "";
-                        if (subject_group_subject_id == obj.id) {
-                            sel = "selected";
-                        }
-
-                        code = '';
-                        if (obj.code) {
-                            code = " (" + obj.code + ") ";
-                        }
-
-                        div_data += "<option value=" + obj.id + " " + sel + ">" + obj.name + code + "</option>";
-                    });
-                    $('#' + subject_target).append(div_data);
-                },
-                error: function(xhr) { // if error occured
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-
-                },
-                complete: function() {
-                    $('#' + subject_target).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-</script>
+<!-- TVET: Subject group/subject JS removed — subject auto-derived from class -->
 
 <script type="text/javascript">
     $("#save_lesson").on('submit', (function(e) {

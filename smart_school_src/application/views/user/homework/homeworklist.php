@@ -60,7 +60,6 @@ $upload_docsButton = 0;
 
 foreach ($homeworklist as $key => $homework) {
 
-    $subject_group_id = $homework['subject_groups_id'];
     if (date('Y-m-d') <= date('Y-m-d', strtotime($homework['submit_date']))) {
         $upload_docsButton = 1;
     }
@@ -136,7 +135,6 @@ $upload_docsButton = 0;
 
 foreach ($closedhomeworklist as $key => $closedhomework) {
 
-    $subject_group_id = $closedhomework['subject_groups_id'];
     if (date('Y-m-d') <= date('Y-m-d', strtotime($closedhomework['submit_date']))) {
         $upload_docsButton = 1;
     }

@@ -95,9 +95,7 @@ if (!empty($staff_list)) {
                                             </select>
 
                                             <input type="hidden" id="class_id" name="class_id" class="form-control" >
-                                            <!-- TVET: section_id removed - using CLASS only -->
-                                            <input type="hidden" id="subject_group_id" name="subject_group_id" class="form-control" >
-                                            <input type="hidden" id="subject_id" name="subject_id" class="form-control" >
+                                            <!-- TVET: subject_group_id and subject_id removed — auto-derived from class -->
                                             <input type="hidden" id="subject_group_subject_id" name="subject_group_subject_id" class="form-control" >
                                             <input type="hidden" id="created_for" name="created_for" >
                                             <input id="subject_syllabusid" type="hidden" name="subject_syllabusid" >

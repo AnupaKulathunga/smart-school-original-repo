@@ -569,6 +569,46 @@ class Subjectgroup_model extends MY_Model {
     }
 
     /**
+     * Get the subject_group_subject_id for a TVET academic_class.
+     * In TVET each class = 1 subject, so this returns the single matching record.
+     *
+     * @param int $class_id academic_class.id
+     * @return int|null subject_group_subject_id or null if not found
+     */
+    public function getSubjectGroupSubjectByClass($class_id)
+    {
+        $sql = "SELECT sgs.id as subject_group_subject_id
+                FROM academic_class ac
+                INNER JOIN academic_subject_level asl ON asl.id = ac.subject_level_id
+                INNER JOIN subject_group_class_sections sgcs ON sgcs.class_section_id = ac.id
+                INNER JOIN subject_group_subjects sgs ON sgs.subject_group_id = sgcs.subject_group_id
+                    AND sgs.subject_id = asl.subject_id
+                WHERE ac.id = " . $this->db->escape($class_id) . "
+                LIMIT 1";
+        $query = $this->db->query($sql);
+        $row = $query->row();
+        return $row ? $row->subject_group_subject_id : null;
+    }
+
+    /**
+     * Get the subject_group_id for a TVET academic_class
+     * In TVET, each class has exactly one subject group assignment
+     *
+     * @param int $class_id academic_class.id
+     * @return int|null subject_group_id or null if not found
+     */
+    public function getSubjectGroupIdByClass($class_id)
+    {
+        $sql = "SELECT sgcs.subject_group_id
+                FROM subject_group_class_sections sgcs
+                WHERE sgcs.class_section_id = " . $this->db->escape($class_id) . "
+                LIMIT 1";
+        $query = $this->db->query($sql);
+        $row = $query->row();
+        return $row ? $row->subject_group_id : null;
+    }
+
+    /**
      * Check if class has subject group assignment (TVET)
      * Replaces check_section_exists validation
      *

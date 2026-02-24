@@ -22,33 +22,14 @@
                         </div>
                         <div class="col-md-4">
                             <?php
-                            // TVET: Use class_selector component
+                            // TVET: Use class_selector component (subject derived from class)
                             $this->load->view('admin/_partials/class_selector', [
                                 'selected_class_id' => $class_id,
                                 'name' => 'class_id',
                                 'id' => 'searchclassid',
-                                'required' => false,
-                                'onchange' => 'getSubjectGroupByClass(this.value, 0)'
+                                'required' => false
                             ]);
                             ?>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('subject_group'); ?></label>
-                                <select  id="subject_group_id" name="subject_group_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="section_id_error text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('subject'); ?></label>
-                                <select  id="subid" name="subject_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="section_id_error text-danger"></span>
-                            </div>
                         </div>
                     </div>
                     <button type="submit" id="search_filter" name="search" value="search_filter" class="btn btn-primary btn-sm checkbox-toggle pull-right"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
@@ -67,10 +48,9 @@
                                 <thead>
                                             <tr>
                                                 <th><?php echo $this->lang->line('class') ?></th>
-                                                <th><?php echo $this->lang->line('subject_group'); ?></th>
                                                 <th><?php echo $this->lang->line('subject') ?></th>
                                                 <th><?php echo $this->lang->line('homework_date'); ?></th>
-                                                <th><?php echo $this->lang->line('submission_date'); ?></th> 
+                                                <th><?php echo $this->lang->line('submission_date'); ?></th>
                                                 <th><?php echo $this->lang->line('student_count'); ?></th>
                                                 <th><?php echo $this->lang->line('homework_submitted'); ?></th>
                                                 <th class="text-start-lg"><?php echo $this->lang->line('pending_student'); ?></th>
@@ -88,8 +68,7 @@
                                         foreach ($resultlist as $student) {                                           
                                             ?>
                                             <tr>
-                                                <td><?php echo $student['class']; ?></td>
-                                                <td><?php echo $student['name']; ?></td>                           
+                                                <td><?php echo $student['class_code']; ?></td>
                                                 <td><?php echo $student['subject_name']; ?><?php if($student['subject_code']){ echo ' ('.$student['subject_code'].')'; }?></td>
                                                 <td><?php echo date($this->customlib->getSchoolDateFormat(), $this->customlib->dateyyyymmddTodateformat($student['homework_date'])); ?></td>  
                                                 <td><?php echo date($this->customlib->getSchoolDateFormat(), $this->customlib->dateyyyymmddTodateformat($student['submit_date']));
@@ -166,86 +145,4 @@ $(document).ready(function(){
     });
 </script>
 
-<script type="text/javascript">
-    // TVET: Initialize subject groups and subjects by class
-    $(document).ready(function (e) {
-        getSubjectGroupByClass("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>");
-        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $subject_id ?>", 'subid');
-    });
-
-    function getSubjectGroupByClass(class_id, subjectgroup_id) {
-        if (class_id != "") {
-            $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
-                data: {'class_id': class_id},
-                dataType: 'JSON',
-                beforeSend: function () {
-                    $('#subject_group_id').addClass('dropdownloading');
-                },
-                success: function (data) {
-                    var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-                    $.each(data, function (i, obj) {
-                        var sel = (subjectgroup_id == obj.subject_group_id) ? "selected" : "";
-                        div_data += "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>";
-                    });
-                    $('#subject_group_id').html(div_data);
-                },
-                complete: function () {
-                    $('#subject_group_id').removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-
-    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target) {
-        if (class_id != "" && subject_group_id != "") {
-
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupsubjects',
-                data: {'subject_group_id': subject_group_id},
-                dataType: 'JSON',
-                beforeSend: function () {
-                    // setting a timeout
-                    $('#' + subject_target).html("").addClass('dropdownloading');
-                },
-                success: function (data) {
-                    console.log(data);
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (subject_group_subject_id == obj.id) {
-                            sel = "selected";
-                        }
-                        
-                        var code ='';
-                        if(obj.code){
-                            code = " (" + obj.code + ") ";
-                        }
-                        
-                        div_data += "<option value=" + obj.id + " " + sel + ">" + obj.name + code + "</option>";
-                    });
-                    $('#' + subject_target).append(div_data);
-                },
-                error: function (xhr) { // if error occured
-                   alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-                },
-                complete: function () {
-                    $('#' + subject_target).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-    
-    // TVET: section change handler removed - no section in TVET
-
-    $(document).on('change', '#subject_group_id', function () {
-        var class_id = $('#searchclassid').val();
-        var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subid');
-    });
-</script>
+<!-- TVET: Subject group/subject JS removed — subject auto-derived from class -->

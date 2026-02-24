@@ -18,33 +18,16 @@
                             <?php echo $this->customlib->getCSRF(); ?>
                             <div class="form-group">
                                 <?php
+                                // TVET: Use class_selector component (subject derived from class, read-only in edit)
                                 $this->load->view('admin/_partials/class_selector', [
                                     'selected_class_id' => $class_id,
                                     'classlist' => $classlist,
                                     'id' => 'searchclassid',
-                                    'onchange' => 'getSubjectGroupByClass()'
+                                    'required' => true
                                 ]);
                                 ?>
                                 <input type="hidden" id="lesson_subjectid" name="lesson_subjectid" value="<?php echo $lesson_subject_group_subjectid; ?>" >
-                            </div>
-
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('subject_group') ?></label><small class="req"> *</small>
-                                <select  id="subject_group_id" name="subject_group_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="section_id_error text-danger"></span>
-                            </div>
-
-                            <div class="">
-                                <div class="form-group">
-                                    <label><?php echo $this->lang->line('subject'); ?></label><small class="req"> *</small>
-                                    <select  id="subid" name="subject_id" class="form-control" >
-                                        <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                    </select>
-                                    <span class="section_id_error text-danger"></span>
-                                </div>
-                            </div></br></br>
+                            </div><br><br>
                             <div class="form-group">
                                 <?php if ($this->rbac->hasPrivilege('lesson', 'can_add')) {
                                     ?>
@@ -84,7 +67,6 @@
                                     </tr>
                                 <tr>
                                     <th><?php echo $this->lang->line('class'); ?></th>
-                                    <th><?php echo $this->lang->line('subject_group'); ?></th>
                                     <th><?php echo $this->lang->line('subject'); ?></th>
                                     <th><?php echo $this->lang->line('lesson'); ?></th>
                                     <th class="mailbox-date text-right noExport "><?php echo $this->lang->line('action'); ?></th>
@@ -128,94 +110,11 @@
 
 <script>
     $(document).ready(function (e) {
-        getSubjectGroupByClass("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id');
-        getsubjectBySubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", "<?php echo $lesson_subject_group_subjectid ?>", 'subid');
+        // TVET: Class is read-only in edit mode
         $('#searchclassid').css('pointer-events', 'none');
-        $('#subject_group_id').css('pointer-events', 'none');
-        $('#subid').css('pointer-events', 'none');
     });
 
-    // TVET: Load subject groups directly from class (no section needed)
-    function getSubjectGroupByClass(class_id, subjectgroup_id, subject_group_target) {
-        if (class_id != "") {
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClass',
-                data: {'class_id': class_id},
-                dataType: 'JSON',
-                beforeSend: function () {
-                    $('#' + subject_group_target).html("").addClass('dropdownloading');
-                    $('#subid').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
-                },
-                success: function (data) {
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (subjectgroup_id == obj.subject_group_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>";
-                    });
-                    $('#' + subject_group_target).append(div_data);
-                },
-                error: function (xhr) {
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-                },
-                complete: function () {
-                    $('#' + subject_group_target).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-
-    $(document).on('change', '#subject_group_id', function () {
-        var class_id = $('#searchclassid').val();
-        var subject_group_id = $(this).val();
-        getsubjectBySubjectGroup(class_id, subject_group_id, 0, 'subid');
-    });
-
-    function getsubjectBySubjectGroup(class_id, subject_group_id, subject_group_subject_id, subject_target) {
-        if (class_id != "" && subject_group_id != "") {
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupsubjects',
-                data: {'subject_group_id': subject_group_id},
-                dataType: 'JSON',
-                beforeSend: function () {
-                    // setting a timeout
-                    $('#' + subject_target).html("").addClass('dropdownloading');
-                },
-                success: function (data) {
-                    console.log(data);
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (subject_group_subject_id == obj.id) {
-                            sel = "selected";
-                        }
-                        
-                        var code ='';
-                        if(obj.code){
-                            code = " (" + obj.code + ") ";
-                        }
-                        
-                        div_data += "<option value=" + obj.id + " " + sel + ">" + obj.name + code +"</option>";
-                    });
-                    $('#' + subject_target).append(div_data);
-                },
-                error: function (xhr) { // if error occured
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-
-                },
-                complete: function () {
-                    $('#' + subject_target).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
+    // TVET: Subject group/subject JS removed — subject auto-derived from class
 
     function add_lesson() {
         var id = makeid(8);

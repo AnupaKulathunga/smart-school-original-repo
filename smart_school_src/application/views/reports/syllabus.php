@@ -45,15 +45,6 @@ $language_name = $language["short_code"];
                             ?>
                             <span class="class_id_error text-danger"></span>
                         </div>
-                        <div class="col-md-3 col-lg-3 col-sm-6">
-                            <div class="form-group">
-                                <label><?php echo $this->lang->line('subject_group'); ?></label><small class="req"> *</small>
-                                <select  id="subject_group_id" name="subject_group_id" class="form-control" >
-                                    <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                </select>
-                                <span class="class_id_error text-danger"><?php echo form_error('subject_group_id'); ?></span>
-                            </div>
-                        </div>
                     </div>
                     <button type="submit" id="search_filter" name="search" value="search_filter" class="btn btn-primary btn-sm checkbox-toggle pull-right"><i class="fa fa-search"></i> <?php echo $this->lang->line('search'); ?></button>
                 </div>
@@ -257,54 +248,7 @@ $language_name = $language["short_code"];
     });
 </script>
 
-<script>
-    // TVET: Initialize subject groups by class (no section)
-    $(document).ready(function (e) {
-        getSubjectGroup("<?php echo $class_id ?>", "<?php echo $subject_group_id ?>", 'subject_group_id');
-    });
-
-    // TVET: Load subject group when class changes
-    $(document).on('change', '#searchclassid', function () {
-        var class_id = $(this).val();
-        getSubjectGroup(class_id, 0, 'subject_group_id');
-    });
-
-    function getSubjectGroup(class_id, subjectgroup_id, subject_group_target) {
-        if (class_id != "") {
-
-            var div_data = '<option value=""><?php echo $this->lang->line('select'); ?></option>';
-
-            $.ajax({
-                type: 'POST',
-                url: base_url + 'admin/subjectgroup/getGroupByClassandSection',
-                data: {'class_id': class_id},
-                dataType: 'JSON',
-                beforeSend: function () {
-                    $('#' + subject_group_target).html("").addClass('dropdownloading');
-                },
-                success: function (data) {
-
-                    $.each(data, function (i, obj)
-                    {
-                        var sel = "";
-                        if (subjectgroup_id == obj.subject_group_id) {
-                            sel = "selected";
-                        }
-                        div_data += "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>";
-                    });
-                    $('#' + subject_group_target).append(div_data);
-                },
-                error: function (xhr) {
-                    alert("<?php echo $this->lang->line('error_occurred_please_try_again'); ?>");
-
-                },
-                complete: function () {
-                    $('#' + subject_group_target).removeClass('dropdownloading');
-                }
-            });
-        }
-    }
-</script>
+<!-- TVET: Subject group/subject JS removed — subject auto-derived from class -->
 
 <script>
 

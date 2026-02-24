@@ -39,8 +39,6 @@ class Homework extends Admin_Controller
         $userdata                 = $this->customlib->getUserData();
         $carray                   = array();
         $data['class_id']         = "";
-        $data['subject_group_id'] = "";
-        $data['subject_id']       = "";
 
         $this->load->view("layout/header", $data);
         $this->load->view("homework/homeworklist", $data);
@@ -49,22 +47,17 @@ class Homework extends Admin_Controller
 
     public function searchvalidation()
     {
-        $class_id         = $this->input->post('class_id');
-        $subject_group_id = $this->input->post('subject_group_id');
-        $subject_id       = $this->input->post('subject_id');
+        $class_id = $this->input->post('class_id');
 
-        // TVET: Only class_id required (no section)
+        // TVET: Only class_id required
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
             $error = array();
-
             $error['class_id'] = form_error('class_id');
             $array             = array('status' => 0, 'error' => $error);
             echo json_encode($array);
         } else {
-            $class_id   = $this->input->post('class_id');
-
-            $params = array('class_id' => $class_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id);
+            $params = array('class_id' => $class_id);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
@@ -74,12 +67,10 @@ class Homework extends Admin_Controller
     {
         $currency_symbol  = $this->customlib->getSchoolCurrencyFormat();
         $class_id         = $this->input->post('class_id');
-        $subject_group_id = $this->input->post('subject_group_id');
-        $subject_id       = $this->input->post('subject_id');
 
         $carray       = array();
-        // TVET: Search homework by class only (no section)
-        $homeworklist = $this->homework_model->search_dthomework($class_id, $subject_group_id, $subject_id);
+        // TVET: Search homework by class only
+        $homeworklist = $this->homework_model->search_dthomework($class_id);
         $homework = json_decode($homeworklist);
 
         $getStaffRole       = $this->customlib->getStaffRole();
@@ -113,9 +104,8 @@ class Homework extends Admin_Controller
                 }
 
                 $row   = array();
-                // TVET: Use class_code as class display (cohort already included in class_code)
+                // TVET: Use class_code as class display
                 $row[] = $homeworklist->class_code;
-                $row[] = $homeworklist->name;
                 $row[] = $homeworklist->subject_name . ' ' . $subject_code;
                 $row[] = $this->customlib->dateformat($homeworklist->homework_date);
                 $row[] = $this->customlib->dateformat($homeworklist->submit_date);
@@ -156,13 +146,11 @@ class Homework extends Admin_Controller
     {
         $currency_symbol  = $this->customlib->getSchoolCurrencyFormat();
         $class_id         = $this->input->post('class_id');
-        $subject_group_id = $this->input->post('subject_group_id');
-        $subject_id       = $this->input->post('subject_id');
 
         $userdata     = $this->customlib->getUserData();
         $carray       = array();
-        // TVET: Search closed homework by class only (no section)
-        $homeworklist = $this->homework_model->search_closehomework($class_id, $subject_group_id, $subject_id);
+        // TVET: Search closed homework by class only
+        $homeworklist = $this->homework_model->search_closehomework($class_id);
 
         $homework           = json_decode($homeworklist);
         $getStaffRole       = $this->customlib->getStaffRole();
@@ -198,9 +186,8 @@ class Homework extends Admin_Controller
 
                 $row   = array();
                 $row[] = '<input type="checkbox" id="delete_homework" name="delete_homework[]" value="' . $homeworklist->id . '">';
-                // TVET: Use class_code as class display (cohort already included in class_code)
+                // TVET: Use class_code as class display
                 $row[] = $homeworklist->class_code;
-                $row[] = $homeworklist->name;
                 $row[] = $homeworklist->subject_name . ' ' . $subject_code;
 
                 if ($homeworklist->homework_date != null && $homeworklist->homework_date != '0000-00-00') {
@@ -303,9 +290,7 @@ class Homework extends Admin_Controller
         $userdata           = $this->customlib->getUserData();
         $this->form_validation->set_rules('record_id', $this->lang->line('record_id'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('modal_class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        // TVET: No section_id validation
-        $this->form_validation->set_rules('modal_subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('modal_subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
+        // TVET: Subject group and subject are auto-derived from class
         $this->form_validation->set_rules('homework_date', $this->lang->line('homework_date'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('submit_date', $this->lang->line('submission_date'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('description', $this->lang->line('description'), 'trim|required|xss_clean');
@@ -315,8 +300,6 @@ class Homework extends Admin_Controller
             $msg = array(
                 'record_id'              => form_error('record_id'),
                 'modal_class_id'         => form_error('modal_class_id'),
-                'modal_subject_group_id' => form_error('modal_subject_group_id'),
-                'modal_subject_id'       => form_error('modal_subject_id'),
                 'homework_date'          => form_error('homework_date'),
                 'submit_date'            => form_error('submit_date'),
                 'description'            => form_error('description'),
@@ -337,6 +320,8 @@ class Homework extends Admin_Controller
 
             // TVET: Save to academic_class_id (and class_id for backward compat)
             $academic_class_id = $this->input->post("modal_class_id");
+            // TVET: Auto-derive subject_group_subject_id from class
+            $subject_group_subject_id = $this->subjectgroup_model->getSubjectGroupSubjectByClass($academic_class_id);
             $data       = array(
                 'id'                       => $record_id,
                 'session_id'               => $session_id,
@@ -346,7 +331,7 @@ class Homework extends Admin_Controller
                 'homework_date'            => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('homework_date'))),
                 'submit_date'              => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('submit_date'))),
                 'staff_id'                 => $userdata["id"],
-                'subject_group_subject_id' => $this->input->post("modal_subject_id"),
+                'subject_group_subject_id' => $subject_group_subject_id,
                 'marks'                    => $marks,
                 'description'              => $this->input->post("description"),
                 'create_date'              => date("Y-m-d"),
@@ -466,20 +451,17 @@ class Homework extends Admin_Controller
         $result             = $this->homework_model->get($id);
         $data["result"]     = $result;
         $data['class_id']   = $result["class_id"];
-        $data['subject_id'] = $result["subject_id"];
         $data["id"]         = $id;
         $userdata           = $this->customlib->getUserData();
 
-        // TVET: No section_id validation
+        // TVET: Only class_id required, subject derived from class
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('homework_date', $this->lang->line('homework_date'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('description', $this->lang->line('description'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
             $msg = array(
                 'class_id'      => form_error('class_id'),
-                'subject_id'    => form_error('subject_id'),
                 'homework_date' => form_error('homework_date'),
                 'description'   => form_error('description'),
             );
@@ -501,18 +483,20 @@ class Homework extends Admin_Controller
 
             // TVET: Save to academic_class_id (and class_id for backward compat)
             $academic_class_id = $this->input->post("class_id");
+            // TVET: Auto-derive subject_group_subject_id from class
+            $subject_group_subject_id = $this->subjectgroup_model->getSubjectGroupSubjectByClass($academic_class_id);
             $data = array(
-                'id'                => $id,
-                'academic_class_id' => $academic_class_id,
-                'class_id'          => $academic_class_id,
-                'section_id'        => 0,
-                'subject_id'        => $this->input->post("subject_id"),
-                'homework_date'     => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('homework_date'))),
-                'submit_date'       => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('submit_date'))),
-                'staff_id'          => $userdata["id"],
-                'description'       => $this->input->post("description"),
-                'create_date'       => date("Y-m-d"),
-                'document'          => $document,
+                'id'                       => $id,
+                'academic_class_id'        => $academic_class_id,
+                'class_id'                 => $academic_class_id,
+                'section_id'               => 0,
+                'subject_group_subject_id' => $subject_group_subject_id,
+                'homework_date'            => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('homework_date'))),
+                'submit_date'              => date('Y-m-d', $this->customlib->datetostrtotime($this->input->post('submit_date'))),
+                'staff_id'                 => $userdata["id"],
+                'description'              => $this->input->post("description"),
+                'create_date'              => date("Y-m-d"),
+                'document'                 => $document,
             );
 
             $this->homework_model->add($data);
@@ -725,27 +709,19 @@ class Homework extends Admin_Controller
         $data['classlist']        = $class;
         $userdata                 = $this->customlib->getUserData();
         $carray                   = array();
-        $data['class_id']         = $class_id         = "";
-        $data['subject_id']       = $subject_id       = "";
-        $data['subject_group_id'] = $subject_group_id = "";
+        $data['class_id']         = $class_id = "";
 
         $class_id                 = $this->input->post("class_id");
-        $subject_group_id         = $this->input->post("subject_group_id");
-        $subject_id               = $this->input->post("subject_id");
         $data['class_id']         = $class_id;
-        $data['subject_group_id'] = $subject_group_id;
-        $data['subject_id']       = $subject_id;
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run() == false) {
             $data['resultlist'] = array();
             $data["report"]     = array();
         } else {
-            // TVET: search_homework now takes class_id without section_id
-            $data['resultlist'] = $this->homework_model->search_homework($class_id, $subject_group_id, $subject_id);
+            // TVET: search_homework by class only
+            $data['resultlist'] = $this->homework_model->search_homework($class_id);
 
             foreach ($data['resultlist'] as $key => $value) {
                 $report                       = $this->count_percentage($value["id"], $value["class_id"]);
@@ -857,11 +833,9 @@ class Homework extends Admin_Controller
 
     public function searchdailyassignment()
     {
-        $class_id                 = $this->input->post('class_id');
-        $subject_group_id         = $this->input->post('subject_group_id');
-        $subject_group_subject_id = $this->input->post('subject_id');
-        $date                     = $this->input->post('date');
-        $download                 = "";
+        $class_id = $this->input->post('class_id');
+        $date     = $this->input->post('date');
+        $download = "";
 
         if ($date != '') {
             $date = date('Y-m-d', $this->customlib->datetostrtotime($date));
@@ -873,8 +847,8 @@ class Homework extends Admin_Controller
         $userdata        = $this->customlib->getUserData();
         $login_staff_id  = $userdata["id"];
 
-        // TVET: searchdailyassignment uses class_id (no section)
-        $dailyassignment = $this->homework_model->searchdailyassignment($class_id, $subject_group_id, $subject_group_subject_id, $date);
+        // TVET: searchdailyassignment by class only
+        $dailyassignment = $this->homework_model->searchdailyassignment($class_id, null, null, $date);
         $dailyassignment = json_decode($dailyassignment);
 
         $dt_data = array();
@@ -939,29 +913,19 @@ class Homework extends Admin_Controller
 
     public function assignmentvalidation()
     {
-        $class_id         = $this->input->post('class_id');
-        $subject_group_id = $this->input->post('subject_group_id');
-        $subject_id       = $this->input->post('subject_id');
-        $date             = $this->input->post('date');
+        $class_id = $this->input->post('class_id');
+        $date     = $this->input->post('date');
 
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('date', $this->lang->line('date'), 'trim|required|xss_clean');
         if ($this->form_validation->run() == false) {
             $error = array();
-
-            $error['class_id']         = form_error('class_id');
-            $error['subject_group_id'] = form_error('subject_group_id');
-            $error['subject_id']       = form_error('subject_id');
-            $error['date']             = form_error('date');
-
+            $error['class_id'] = form_error('class_id');
+            $error['date']     = form_error('date');
             $array = array('status' => 0, 'error' => $error);
             echo json_encode($array);
         } else {
-            $class_id = $this->input->post('class_id');
-
-            $params = array('class_id' => $class_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id, 'date' => $date);
+            $params = array('class_id' => $class_id, 'date' => $date);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }
@@ -1037,13 +1001,11 @@ class Homework extends Admin_Controller
 
         $userdata                 = $this->customlib->getUserData();
         $carray                   = array();
-        $data['class_id']         = $class_id   =   $this->input->post('class_id');
-        $data['subject_group_id'] = $subject_group_id   =   $this->input->post('subject_group_id');
-        $data['subject_id']       = $subject_id =   $this->input->post('subject_id');
+        $data['class_id']         = $class_id = $this->input->post('class_id');
 
         if (isset($_POST["search"])) {
-            // TVET: search_dthomeworkreport uses class_id (no section)
-            $homeworklist = $this->homework_model->search_dthomeworkreport($class_id, $subject_group_id, $subject_id);
+            // TVET: search by class only
+            $homeworklist = $this->homework_model->search_dthomeworkreport($class_id);
             $data["resultlist"] = $homeworklist;
         }
 
@@ -1108,9 +1070,7 @@ class Homework extends Admin_Controller
 
     public function searchdailyassignmentreport()
     {
-        $class_id                 = $this->input->post('class_id');
-        $subject_group_id         = $this->input->post('subject_group_id');
-        $subject_group_subject_id = $this->input->post('subject_id');
+        $class_id = $this->input->post('class_id');
 
         if (isset($_POST['search_type']) && $_POST['search_type'] != '') {
 
@@ -1132,8 +1092,8 @@ class Homework extends Admin_Controller
         $userdata        = $this->customlib->getUserData();
         $login_staff_id  = $userdata["id"];
 
-        // TVET: dailyassignmentreport uses class_id (no section)
-        $dailyassignment = $this->homework_model->dailyassignmentreport($class_id, $subject_group_id, $subject_group_subject_id, $condition);
+        // TVET: dailyassignmentreport by class only
+        $dailyassignment = $this->homework_model->dailyassignmentreport($class_id, null, null, $condition);
         $dailyassignment = json_decode($dailyassignment);
 
         $dt_data = array();
@@ -1220,22 +1180,13 @@ class Homework extends Admin_Controller
     {
         $this->form_validation->set_rules('search_type', $this->lang->line('search_type'), 'trim|required|xss_clean');
         $this->form_validation->set_rules('class_id', $this->lang->line('class'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('subject_group_id', $this->lang->line('subject_group'), 'trim|required|xss_clean');
-        $this->form_validation->set_rules('subject_id', $this->lang->line('subject'), 'trim|required|xss_clean');
 
-        $class_id         = $this->input->post('class_id');
-        $subject_group_id = $this->input->post('subject_group_id');
-        $subject_id       = $this->input->post('subject_id');
+        $class_id = $this->input->post('class_id');
 
         if ($this->form_validation->run() == false) {
             $error = array();
-
             $error['search_type'] = form_error('search_type');
-
-            $error['class_id']         = form_error('class_id');
-            $error['subject_group_id'] = form_error('subject_group_id');
-            $error['subject_id']       = form_error('subject_id');
-
+            $error['class_id']    = form_error('class_id');
             $array = array('status' => 0, 'error' => $error);
             echo json_encode($array);
         } else {
@@ -1247,9 +1198,7 @@ class Homework extends Admin_Controller
                 $date_to   = $this->input->post('date_to');
             }
 
-            $class_id = $this->input->post('class_id');
-
-            $params = array('search_type' => $search_type, 'date_from' => $date_from, 'date_to' => $date_to, 'class_id' => $class_id, 'subject_group_id' => $subject_group_id, 'subject_id' => $subject_id);
+            $params = array('search_type' => $search_type, 'date_from' => $date_from, 'date_to' => $date_to, 'class_id' => $class_id);
             $array  = array('status' => 1, 'error' => '', 'params' => $params);
             echo json_encode($array);
         }

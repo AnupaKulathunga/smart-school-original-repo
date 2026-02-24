@@ -60,16 +60,7 @@
                                     ]);
                                     ?>
                                 </div>
-                                <!-- TVET: Subject group is auto-managed, hidden from user -->
-                                <div class="col-md-6" style="display:none;">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('subject_group'); ?><small class="req"> *</small></label>
-                                        <select  id="subject_group_id" name="subject_group_id" class="form-control" >
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        </select>
-                                        <span class="text-danger"><?php echo form_error('subject_group_id'); ?></span>
-                                    </div>
-                                </div>
+                                <!-- TVET: Subject group removed — auto-derived from class -->
                             </div>
                         </div>
                         <div class="box-footer">
@@ -155,7 +146,7 @@ $count = 1;
         if ($count == 1) {
         }
         ?>
-                                    <li <?php echo $cls; ?>><a href="#tab_<?php echo $count; ?>" data-c="<?php echo set_value('class_id'); ?>" data-days="<?php echo $days_value; ?>" data-group="<?php echo set_value('subject_group_id'); ?>" data-day="<?php echo $days_key; ?>" data-toggle="tab" aria-expanded="true"><?php echo $days_value; ?></a></li>
+                                    <li <?php echo $cls; ?>><a href="#tab_<?php echo $count; ?>" data-c="<?php echo set_value('class_id'); ?>" data-days="<?php echo $days_value; ?>" data-day="<?php echo $days_key; ?>" data-toggle="tab" aria-expanded="true"><?php echo $days_value; ?></a></li>
 
                                     <?php
 $count++;
@@ -200,66 +191,19 @@ $count++;
                         format: 'LT'
                     });
                 });
-                // TVET: No section dropdown - class_id is self-contained
-                // Load subject_group directly from class_id
+                // TVET: subject_group auto-derived from class on server side
                 var tot_count = 0;
-                var class_id = $('#class_id').val();
-                var subject_group_id = '<?php echo set_value('subject_group_id') ?>';
 
                 $(document).ready(function () {
                     $('#myTabs a:first').tab('show'); // Select first tab
-
-                    // Load subject groups on page load if class is selected
-                    if (class_id && subject_group_id) {
-                        loadSubjectGroupByClass(class_id, subject_group_id);
-                    }
                 });
 
-                // Load subject groups when class changes
-                // TVET: Auto-creates and auto-selects the subject group
+                // TVET: When class changes, auto-submit the form
                 function loadSubjectGroup() {
                     var class_id = $('#class_id').val();
-                    $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
-
                     if (class_id) {
-                        $.ajax({
-                            type: "POST",
-                            url: base_url + "admin/subjectgroup/getGroupByClass",
-                            data: {'class_id': class_id},
-                            dataType: "json",
-                            success: function (data) {
-                                $.each(data, function (i, obj) {
-                                    $('#subject_group_id').append(
-                                        "<option value=" + obj.subject_group_id + ">" + obj.name + "</option>"
-                                    );
-                                });
-                                // TVET: Auto-select and submit if only one subject group
-                                if (data.length === 1) {
-                                    $('#subject_group_id').val(data[0].subject_group_id);
-                                    $('.create_time_table').submit();
-                                }
-                            }
-                        });
+                        $('.create_time_table').submit();
                     }
-                }
-
-                function loadSubjectGroupByClass(class_id, selected_group_id) {
-                    $('#subject_group_id').html('<option value=""><?php echo $this->lang->line('select'); ?></option>');
-
-                    $.ajax({
-                        type: "POST",
-                        url: base_url + "admin/subjectgroup/getGroupByClass",
-                        data: {'class_id': class_id},
-                        dataType: "json",
-                        success: function (data) {
-                            $.each(data, function (i, obj) {
-                                var sel = (selected_group_id == obj.subject_group_id) ? "selected" : "";
-                                $('#subject_group_id').append(
-                                    "<option value=" + obj.subject_group_id + " " + sel + ">" + obj.name + "</option>"
-                                );
-                            });
-                        }
-                    });
                 }
 
                 $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -275,7 +219,7 @@ $count++;
                     $.ajax({
                         type: 'POST',
                         url: base_url + "admin/timetable/getBydategroupclasssection",
-                        data: {'day': ajax_data.day, 'class_id': ajax_data.c, 'subject_group_id': ajax_data.group},
+                        data: {'day': ajax_data.day, 'class_id': ajax_data.c},
                         dataType: 'json',
                         beforeSend: function () {
                             $(target).addClass('show');
