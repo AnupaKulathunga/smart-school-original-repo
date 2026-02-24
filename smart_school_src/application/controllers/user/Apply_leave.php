@@ -76,13 +76,10 @@ class Apply_leave extends Student_Controller
                 $this->apply_leave_model->add($data);
             }
 
-            $student_current_class = $this->customlib->getStudentCurrentClsSection();
-            $class_id              = $student_current_class->class_id;
-            $section_id            = $student_current_class->section_id;
+            $current_class = $this->session->userdata('current_class');
 
             $sender_details = array(
-                'class_id'           => $student_current_class->class_id,
-                'section_id'         => $student_current_class->section_id,
+                'class_id'           => $current_class['class_id'],
                 'message'            => $this->input->post('message'),
                 'apply_date'         => $this->input->post('apply_date'),
                 'from_date'          => $this->input->post('from_date'),

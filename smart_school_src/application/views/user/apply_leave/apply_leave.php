@@ -18,8 +18,7 @@
                             <table class="table table-hover table-striped table-bordered example">
                                 <thead>
                                     <tr>
-                                        <th><?php echo $this->lang->line('class'); ?></th>
-                                        <th><?php echo $this->lang->line('section'); ?></th>
+                                        <th><?php echo $this->lang->line('programme'); ?></th>
                                         <th><?php echo $this->lang->line('apply_date'); ?></th>
                                         <th><?php echo $this->lang->line('from_date'); ?></th>
                                         <th><?php echo $this->lang->line('to_date'); ?></th>
@@ -32,8 +31,7 @@
                                     <?php foreach ($results as $value) {
     ?>
                                         <tr>
-                                            <td><?php echo $value['class']; ?></td>
-                                            <td><?php echo $value['section']; ?></td>                                         
+                                            <td><?php echo isset($this->session->userdata['current_class']['programme_name']) ? $this->session->userdata['current_class']['programme_name'] : $value['class']; ?></td>
                                             <td><?php echo date($this->customlib->getSchoolDateFormat(), strtotime($value['apply_date'])); ?></td>
                                             <td><?php echo date($this->customlib->getSchoolDateFormat(), strtotime($value['from_date'])); ?></td>
                                             <td><?php echo date($this->customlib->getSchoolDateFormat(), strtotime($value['to_date'])); ?></td>
