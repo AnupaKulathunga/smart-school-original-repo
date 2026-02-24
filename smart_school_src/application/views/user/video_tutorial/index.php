@@ -35,6 +35,8 @@
                         <dl class="mediaDL">
                             <dt><?php echo $this->lang->line('title'); ?></dt>
                             <dd id="modal_title"></dd>
+                            <dt><?php echo $this->lang->line('class'); ?></dt>
+                            <dd id="modal_class_label"></dd>
                             <dt><?php echo $this->lang->line('description'); ?></dt>
                             <dd id="modal_description"></dd>
                             <dt><?php echo $this->lang->line('created_by'); ?></dt>
@@ -59,12 +61,12 @@ $(document).ready(function () {
 });
 
 function load(page) {
-    var class_id = '<?php echo $class_id; ?>';
+    var class_ids = '<?php echo $class_ids; ?>';
     $("#no_record_found").addClass("hide");
     $.ajax({
         url: "<?php echo base_url(); ?>user/video_tutorial/getPage/" + page,
         method: "GET",
-        data: {'class_id': class_id},
+        data: {'class_ids': class_ids},
         dataType: "json",
         beforeSend: function () {
             $('#media_div').empty();
@@ -91,8 +93,8 @@ function load(page) {
 
 $('#detail').on('show.bs.modal', function (e) {
     var data = $(e.relatedTarget).data();
-    var media_content_path = "<a href='" + data.source + "' target='_blank'>" + data.source + "</a>";
     $('#modal_title').text("").text(data.title);
+    $('#modal_class_label').text("").text(data.class_label || '');
     $('#modal_description').text("").text(data.description);
     $('#modal_role_name').text("").text(data.role_name);
     updateMediaDetailPopup(data.media_type, data.source, data.image);
@@ -100,7 +102,7 @@ $('#detail').on('show.bs.modal', function (e) {
 
 function updateMediaDetailPopup(media_type, url, thumb_path) {
     var youtubeID = YouTubeGetID(url);
-    content_popup = '<object data="https://www.youtube.com/embed/' + youtubeID + '" width="100%" height="400"></object>';
+    content_popup = '<iframe src="https://www.youtube.com/embed/' + youtubeID + '?autoplay=1" width="100%" height="400" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
     $('.popup_image').html("").html(content_popup);
 }
 
@@ -116,7 +118,7 @@ function YouTubeGetID(url) {
     return ID;
 }
 
-$('.ukclose').click(function(){
+$('#detail').on('hidden.bs.modal', function () {
     $('.popup_image').html('');
-})
+});
 </script>

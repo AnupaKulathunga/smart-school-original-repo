@@ -198,6 +198,34 @@ class Video_tutorial_model extends MY_Model
         return $query->result_array();
     }
 
+    /**
+     * Get videos for multiple class IDs (student portal — all enrolled classes)
+     */
+    public function getVideosByClassIds($limit, $start, $class_ids)
+    {
+        $this->db->select('video_tutorial.*, academic_class.id as class_id, academic_class.class_code, academic_class.cohort_name, academic_subject.name as subject_name, academic_level.name as level_name, staff.name as staff_name, staff.surname as staff_surname, staff_roles.role_id', FALSE)
+            ->join('staff', 'staff.id=video_tutorial.created_by', 'left')
+            ->join('staff_roles', 'staff.id=staff_roles.staff_id', 'left')
+            ->join('video_tutorial_class_sections', 'video_tutorial_class_sections.video_tutorial_id=video_tutorial.id')
+            ->join('academic_class', 'academic_class.id=video_tutorial_class_sections.class_section_id')
+            ->join('academic_subject_level', 'academic_subject_level.id=academic_class.subject_level_id', 'left')
+            ->join('academic_subject', 'academic_subject.id=academic_subject_level.subject_id', 'left')
+            ->join('academic_level', 'academic_level.id=academic_subject_level.level_id', 'left')
+            ->from('video_tutorial');
+        if (!empty($class_ids)) {
+            $this->db->where_in('academic_class.id', $class_ids);
+        } else {
+            $this->db->where('1=0'); // no classes = no results
+        }
+        if ($limit != '' && $start != '') {
+            $this->db->limit($limit, $start);
+        }
+        $this->db->order_by('video_tutorial.id', 'DESC');
+        $this->db->group_by('video_tutorial_class_sections.video_tutorial_id');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
     public function addsections($data)
     {
         $this->db->trans_start(); # Starting Transaction

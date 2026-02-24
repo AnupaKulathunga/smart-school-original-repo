@@ -326,7 +326,7 @@ class Video_tutorial extends Admin_Controller
         $output .= "</div>";
         $output .= "<div class='overlay3'>";
 
-        $output .= "<a  href='#' class='uploadcheckbtn' data-backdrop='static' data-keyboard='false' data-record_id='" . $result->id . "' data-toggle='modal' data-target='#detail'  data-role_name='" . $result->staff_name . ' ' . $result->staff_surname . $employee_id . "' data-sectionlist='" . $sectionlist . "' data-class='" . $result->class . "'  data-image='" . $file . "' data-source='" . $file_src . "' data-title='" . $result->title . "' data-description='" . $result->description . "'><i class='fa fa-navicon' title='" . $this->lang->line('view') . "'></i></a>";
+        $output .= "<a  href='#' class='uploadcheckbtn' data-backdrop='static' data-keyboard='false' data-record_id='" . $result->id . "' data-toggle='modal' data-target='#detail'  data-role_name='" . $result->staff_name . ' ' . $result->staff_surname . $employee_id . "' data-sectionlist='" . $sectionlist . "' data-class='" . $result->class . "'  data-image='" . $file . "' data-source='" . $file_src . "' data-title='" . $result->title . "' data-description='" . $result->description . "'><i class='fa fa-play-circle' title='" . $this->lang->line('view') . "'></i></a>";
 
         if ($this->rbac->hasPrivilege('video_tutorial', 'can_edit')) {
             $output .= "<a href='#' class='uploadclosebtn' data-id='" . $result->id . "' data-toggle='modal' data-target='#editvideotutorialmodal' data-backdrop='static' data-keyboard='false'><i class=' fa fa-pencil' title='" . $this->lang->line('edit') . "'></i></a>";
