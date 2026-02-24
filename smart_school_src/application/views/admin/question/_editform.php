@@ -1,19 +1,15 @@
  <input type="hidden" name="recordid" value="<?php echo $recordid; ?>">
  <div class="row">
                     <div class="form-group col-md-6">
-                        <label for="subject_id"><?php echo $this->lang->line('subject') ?></label><small class="req"> *</small>
-
-                        <select class="form-control" name="subject_id">
-                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                            <?php
-foreach ($subjectlist as $subject_key => $subject_value) {
-    ?>
-                                <option value="<?php echo $subject_value['id']; ?>" <?php echo set_select('subject_id', $subject_value['id'], (set_value('subject_id', $subject_value['id']) == $question_result->subject_id) ? true : false); ?>><?php echo $subject_value['name']; ?> <?php if($subject_value['code']){ echo '('.$subject_value['code'].')'; } ?></option>
-                                <?php
-}
-?>
-                        </select>
-                        <span class="text text-danger subject_id_error"></span>
+                        <?php
+                        // TVET: Single Class dropdown (Subject + Level + Cohort)
+                        $this->load->view('admin/_partials/class_selector', [
+                            'selected_class_id' => $question_result->class_id,
+                            'classlist' => $classList,
+                            'required' => true
+                        ]);
+                        ?>
+                        <span class="text text-danger class_id_error"></span>
                     </div>
                       <div class="form-group col-md-3">
                         <label for="question_type"><?php echo $this->lang->line('question_type'); ?></label><small class="req"> *</small>
@@ -44,18 +40,6 @@ foreach ($question_level as $question_level_key => $question_level_value) {
                         <span class="text text-danger question_level_error"></span>
                     </div>
                     </div>
-                   <div class="row">
-                       <div class="form-group col-md-12">
-                           <?php
-                           // TVET: Use class_selector component (single dropdown for complete CLASS)
-                           $this->load->view('admin/_partials/class_selector', [
-                               'selected_class_id' => $question_result->class_id,
-                               'classlist' => $classList
-                           ]);
-                           ?>
-                           <span class="text text-danger class_id_error"></span>
-                       </div>
-                   </div>
                     <div class="form-group">
                         <label><?php echo $this->lang->line('question') ?></label><small class="req"> *</small>
                     <button class="btn btn-primary pull-right btn-xs" type="button" id="question" data-toggle="modal" data-location="question" data-target="#myimgModal"><i class="fa fa-plus"></i> <?php echo $this->lang->line('add_image'); ?></button>

@@ -66,8 +66,8 @@ class Question_model extends MY_model
         $userdata = $this->customlib->getUserData();
         $role_id  = $userdata["role_id"];
 
-        $this->db->select('questions.*,subjects.name,subjects.code,ac.class_code as `class_name`')->from('questions');
-        $this->db->join('subjects', 'subjects.id = questions.subject_id');
+        $this->db->select('questions.*,academic_subject.name,academic_subject.code,ac.class_code as `class_name`')->from('questions');
+        $this->db->join('academic_subject', 'academic_subject.id = questions.subject_id', 'left');
         $this->db->join('academic_class ac', 'ac.id = questions.class_id', 'left');
 
         if ($id != null) {
@@ -86,8 +86,8 @@ class Question_model extends MY_model
 
     public function getall($limit = null, $offset = null)
     {
-        $this->db->select('questions.*,subjects.name,ac.class_code as `class_name`')->from('questions');
-        $this->db->join('subjects', 'subjects.id = questions.subject_id');
+        $this->db->select('questions.*,academic_subject.name,ac.class_code as `class_name`')->from('questions');
+        $this->db->join('academic_subject', 'academic_subject.id = questions.subject_id', 'left');
         $this->db->join('academic_class ac', 'ac.id = questions.class_id', 'left');
         $this->db->limit($limit, $offset);
         $this->db->order_by('questions.id');
@@ -155,13 +155,13 @@ class Question_model extends MY_model
             $this->datatables->where('questions.staff_id', $created_by);
         }
 
-        $this->datatables->select('questions.*,subjects.name,subjects.code,ac.class_code as class_name,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id,staff_roles.role_id as created_role');
-        $this->datatables->join('subjects', 'subjects.id = questions.subject_id');
+        $this->datatables->select('questions.*,academic_subject.name,academic_subject.code,ac.class_code as class_name,staff.name as staff_name,staff.surname as staff_surname,staff.employee_id,staff_roles.role_id as created_role');
+        $this->datatables->join('academic_subject', 'academic_subject.id = questions.subject_id');
         $this->datatables->join('academic_class ac', 'ac.id = questions.class_id', 'left');
         $this->datatables->join('staff', 'staff.id = questions.staff_id', 'left');
         $this->datatables->join('staff_roles', 'staff_roles.staff_id = staff.id', 'left');
-        $this->datatables->searchable('questions.id,subjects.name,questions.question_type,questions.level,questions.question,ac.class_code,questions.staff_id');
-        $this->datatables->orderable('questions.id,subjects.name,questions.question_type,questions.level,questions.question,ac.class_code,questions.staff_id');
+        $this->datatables->searchable('questions.id,academic_subject.name,questions.question_type,questions.level,questions.question,ac.class_code,questions.staff_id');
+        $this->datatables->orderable('questions.id,academic_subject.name,questions.question_type,questions.level,questions.question,ac.class_code,questions.staff_id');
         $this->datatables->from('questions');
         $this->datatables->sort('questions.id','desc');
         return $this->datatables->generate('json');

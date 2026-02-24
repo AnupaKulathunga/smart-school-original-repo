@@ -68,27 +68,13 @@
                                 <?php echo $this->customlib->getCSRF(); ?>
                                 <div class="col-sm-6 col-md-4">
                                     <?php
-                                    // TVET: Use class_selector component (single dropdown for complete CLASS)
+                                    // TVET: Single Class dropdown (Subject + Level + Cohort)
                                     $this->load->view('admin/_partials/class_selector', [
                                         'selected_class_id' => set_value('class_id'),
-                                        'classlist' => $classlist
+                                        'classlist' => $classlist,
+                                        'required' => false
                                     ]);
                                     ?>
-                                </div>
-                                <div class="col-sm-3 col-md-2">
-                                    <div class="form-group">
-                                        <label><?php echo $this->lang->line('subject'); ?></label>
-                                        <select class="form-control" name="subject">
-                                            <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                        <?php
-foreach ($subjectlist as $subject_key => $subject_value) {
-    ?>
-                                            <option value="<?php echo $subject_value['id']; ?>"><?php echo $subject_value['name']; ?> <?php if($subject_value['code']){ echo '('.$subject_value['code'].')'; } ?></option>
-                                        <?php
-}
-?>
-                                        </select>
-                                    </div>
                                 </div>
                                 <div class="col-sm-3 col-md-2">
                                     <div class="form-group">
@@ -154,9 +140,9 @@ foreach ($staff_list as $staff_list_key => $staff_list_value) {
                                 <tr>
                                      <th><?php if ($this->rbac->hasPrivilege('question_bank', 'can_delete')) {?><input type="checkbox" id="masterCheck" value="checkUncheckAll"><?php }?></th>
                                     <th><?php echo $this->lang->line('q_id'); ?></th>
-                                    <th><?php echo $this->lang->line('subject') ?></th>
+                                    <th><?php echo $this->lang->line('class'); ?></th>
                                     <th><?php echo $this->lang->line('question_type') ?></th>
-                                    <th><?php echo $this->lang->line('level'); ?></th>
+                                    <th><?php echo $this->lang->line('question_level'); ?></th>
                                     <th><?php echo $this->lang->line('question') ?></th>
                                     <th><?php echo $this->lang->line('created_by') ?></th>
                                     <th class="pull-right noExport"><?php echo $this->lang->line('action'); ?></th>
@@ -247,31 +233,12 @@ function findOption($questionOpt, $find)
             </div>
             <form action="<?php echo site_url('admin/question/uploadfile'); ?>" method="POST" id="formimportquestion">
                 <div class="modal-body add_question_import_body">
-                       <div class="form-group">
-                            <label><?php echo $this->lang->line('subject'); ?></label><small class="req"> *</small>
-                            <select autofocus="" id="subject_id" name="subject_id" class="form-control" >
-                                <option value=""><?php echo $this->lang->line('select'); ?></option>
-                                <?php
-foreach ($subjectlist as $subject) {
-    $sub_code = ($subject['code'] != "") ? " (" . $subject['code'] . ")" : "";
-    ?>
-
-                                    <option value="<?php echo $subject['id'] ?>" <?php
-if (set_value('subject_id') == $subject['id']) {
-        echo "selected=selected";
-    }
-    ?>><?php echo $subject['name'] . $sub_code; ?></option>
-                                            <?php
-}
-?>
-                            </select>
-                            <span class="text-danger"><?php echo form_error('class_id'); ?></span>
-                        </div>
                  <?php
-                 // TVET: Use class_selector component
+                 // TVET: Single Class dropdown (Subject + Level + Cohort)
                  $this->load->view('admin/_partials/class_selector', [
                      'selected_class_id' => set_value('class_id'),
-                     'classlist' => $classlist
+                     'classlist' => $classlist,
+                     'required' => true
                  ]);
                  ?>
                 <div class="form-group">
@@ -294,8 +261,8 @@ if (set_value('subject_id') == $subject['id']) {
         $(document).ready(function () {
             initDatatable('all-list', 'admin/question/getDatatable', [],[], 100,
                 [
-                    { "bSortable": false, "aTargets": [ 0 ]},
-                    { "bSortable": false, "aTargets": [ -1 ] ,'sClass': 'dt-body-right'}
+                    { "bSortable": false, "aTargets": [ 0 ] },
+                    { "bSortable": false, "aTargets": [ -1 ], 'sClass': 'dt-body-right' }
                 ]);
         });
     }(jQuery))
@@ -694,8 +661,8 @@ $(document).on('submit','#questionsearchform',function(e){
                 }else{
                    initDatatable('all-list', 'admin/question/getDatatable', response.params,[], 100,
                         [
-                            { "bSortable": false, "aTargets": [ 0 ]},
-                            { "bSortable": false, "aTargets": [ -1 ] ,'sClass': 'dt-body-right'}
+                            { "bSortable": false, "aTargets": [ 0 ] },
+                            { "bSortable": false, "aTargets": [ -1 ], 'sClass': 'dt-body-right' }
                         ]);
                 }
               },
