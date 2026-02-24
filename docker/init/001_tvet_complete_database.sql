@@ -1558,12 +1558,18 @@ CREATE TABLE IF NOT EXISTS `feemasters` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE IF NOT EXISTS `fees_discounts` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `session_id` int DEFAULT NULL,
   `name` varchar(100) DEFAULT NULL,
   `code` varchar(100) DEFAULT NULL,
+  `type` varchar(20) DEFAULT NULL,
+  `percentage` float(10,2) DEFAULT NULL,
   `amount` decimal(15,2) DEFAULT '0.00',
-  `is_active` varchar(10) DEFAULT 'yes',
+  `discount_limit` int DEFAULT NULL,
+  `expire_date` date DEFAULT NULL,
   `description` text,
+  `is_active` varchar(10) DEFAULT 'no',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -3816,11 +3822,17 @@ CREATE TABLE IF NOT EXISTS `student_fees_deposite` (
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE IF NOT EXISTS `student_fees_discounts` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `student_session_id` int DEFAULT NULL,
+  `fees_discount_id` int DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'assigned',
+  `payment_id` varchar(50) DEFAULT NULL,
   `student_fees_master_id` int DEFAULT NULL,
   `amount` decimal(15,2) DEFAULT NULL,
   `discount_type` varchar(50) DEFAULT NULL,
-  `description` varchar(200) DEFAULT NULL,
+  `description` text,
+  `is_active` varchar(10) NOT NULL DEFAULT 'no',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
