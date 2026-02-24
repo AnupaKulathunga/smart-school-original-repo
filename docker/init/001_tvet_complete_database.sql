@@ -1078,6 +1078,7 @@ CREATE TABLE IF NOT EXISTS `disability_types` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) DEFAULT NULL,
   `description` text,
+  `default_extra_time_percent` int DEFAULT 25,
   `is_active` varchar(10) DEFAULT 'yes',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
