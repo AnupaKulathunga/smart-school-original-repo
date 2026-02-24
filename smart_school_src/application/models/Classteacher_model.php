@@ -175,7 +175,7 @@ class Classteacher_model extends MY_Model
         $additional = $this->db->select('staff.*, acl.class_id, ac.class_code, ac.cohort_name,
                                          acl.role as lecturer_role', FALSE)
             ->from('academic_class_lecturer acl')
-            ->join('staff', 'acl.lecturer_id = staff.id')
+            ->join('staff', 'acl.staff_id = staff.id')
             ->join('academic_class ac', 'ac.id = acl.class_id')
             ->where('acl.class_id', $class_id)
             ->where('acl.is_active', 1)
@@ -218,13 +218,13 @@ class Classteacher_model extends MY_Model
     {
         // Check if already exists
         $existing = $this->db->where('class_id', $class_id)
-            ->where('lecturer_id', $staff_id)
+            ->where('staff_id', $staff_id)
             ->get('academic_class_lecturer');
 
         if ($existing->num_rows() > 0) {
             // Update existing
             $this->db->where('class_id', $class_id);
-            $this->db->where('lecturer_id', $staff_id);
+            $this->db->where('staff_id', $staff_id);
             return $this->db->update('academic_class_lecturer', array(
                 'role' => $role,
                 'is_active' => 1
@@ -233,7 +233,7 @@ class Classteacher_model extends MY_Model
             // Insert new
             return $this->db->insert('academic_class_lecturer', array(
                 'class_id' => $class_id,
-                'lecturer_id' => $staff_id,
+                'staff_id' => $staff_id,
                 'role' => $role,
                 'is_active' => 1
             ));
@@ -252,7 +252,7 @@ class Classteacher_model extends MY_Model
     {
         $this->db->where('class_id', $class_id);
         if (!empty($staff_ids)) {
-            $this->db->where_in('lecturer_id', $staff_ids);
+            $this->db->where_in('staff_id', $staff_ids);
         }
         return $this->db->delete('academic_class_lecturer');
     }
@@ -285,7 +285,7 @@ class Classteacher_model extends MY_Model
             ->join('academic_subject_level asl', 'asl.id = ac.subject_level_id')
             ->join('academic_subject asub', 'asub.id = asl.subject_id')
             ->join('academic_level al', 'al.id = asl.level_id')
-            ->where('acl.lecturer_id', $staff_id)
+            ->where('acl.staff_id', $staff_id)
             ->where('acl.is_active', 1)
             ->where('ac.session_id', $this->current_session)
             ->get()->result_array();

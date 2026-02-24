@@ -393,7 +393,8 @@ class Classmodel_model extends CI_Model
             subjects.name as subject_name, subjects.code as subject_code,
             level.name as level_name, level.code as level_code,
             staff.name as lecturer_name, staff.surname as lecturer_surname,
-            CONCAT(subjects.name, " - ", level.name, " (", class.cohort_name, ")") as class_name', FALSE);
+            CONCAT(subjects.name, " - ", level.name, " (", class.cohort_name, ")") as class_name,
+            CONCAT(subjects.name, " - ", level.name, " (", class.cohort_name, ")") as class', FALSE);
         $this->db->from('academic_class class');
         $this->db->join('academic_subject_level subject_level', 'class.subject_level_id = subject_level.id');
         $this->db->join('academic_subject subjects', 'subject_level.subject_id = subjects.id');

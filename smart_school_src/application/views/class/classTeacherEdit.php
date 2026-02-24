@@ -60,11 +60,9 @@
 
                                     <?php foreach ($result as $result_key => $result_value) {
                                         ?>
-                                        <input autofocus="" id="class" name="classteacherid[]" placeholder="" type="hidden" class="form-control"  value="<?php echo $result_value["id"]; ?>" />
-                                        <input autofocus="" id="class" name="previd[]" placeholder="" type="hidden" class="form-control"  value="<?php echo $result_value["ctid"]; ?>" />
-
+                                        <input type="hidden" name="classteacherid[]" value="<?php echo $result_value["id"]; ?>" />
                                     <?php }
-                                    ?> 
+                                    ?>
 
                                     <?php
                                     $i = 0;

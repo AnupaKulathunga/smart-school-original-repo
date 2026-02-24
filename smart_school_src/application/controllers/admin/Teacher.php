@@ -364,31 +364,16 @@ class Teacher extends Admin_Controller
 
         } else {
 
-            $class    = $this->input->post("class");
-            // TVET: section removed
+            $class_id = $this->input->post("class");
             $teachers = $this->input->post("teachers");
 
-            $i = 0;
-            foreach ($teachers as $key => $value) {
-
-                $classteacherid = $this->input->post("classteacherid");
-                if (isset($classteacherid)) {
-
-                    $data = array('id' => $classteacherid[$i],
-                        'class_id'         => $class,
-                        // TVET: section_id removed
-                        'staff_id'         => $teachers[$i],
-                        'session_id'       => $this->current_session,
-                    );
+            // TVET: First teacher = primary lecturer, rest = additional lecturers
+            foreach ($teachers as $i => $staff_id) {
+                if ($i === 0) {
+                    $this->classteacher_model->assignPrimaryLecturer($class_id, $staff_id);
                 } else {
-                    $data = array('class_id' => $class,
-                        // TVET: section_id removed
-                        'staff_id'               => $teachers[$i],
-                        'session_id'             => $this->current_session,
-                    );
+                    $this->classteacher_model->addClassLecturer($class_id, $staff_id);
                 }
-                $i++;
-                $this->classteacher_model->addClassTeacher($data);
             }
             $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('success_message') . '</div>');
             redirect('admin/teacher/assign_class_teacher');
@@ -509,54 +494,22 @@ class Teacher extends Admin_Controller
             $data['sectionlist'] = $sectionlist;
         } else {
 
-            $section      = $this->input->post('section');
-            $prev_teacher = $this->input->post('classteacherid');
-            $staff_id     = $this->input->post('teachers');
-            $class_id     = $this->input->post('class');
-            if (!isset($prev_teacher)) {
-                $prev_teacher = array();
-            }
-            $add_result    = array_diff($staff_id, $prev_teacher);
-            $delete_result = array_diff($prev_teacher, $staff_id);
+            $teachers = $this->input->post('teachers');
+            $class_id = $this->input->post('class');
 
-            if (!empty($add_result)) {
-                $teacher_batch_array = array();
-                foreach ($add_result as $teacher_add_key => $teacher_add_value) {
-                    $teacher_batch_array[] = $teacher_add_value;
+            // TVET: Clear existing assignments, then re-assign
+            // Clear primary lecturer
+            $this->classteacher_model->assignPrimaryLecturer($class_id, null);
+            // Clear additional lecturers
+            $this->classteacher_model->removeClassLecturer($class_id);
+
+            // Re-assign: first = primary, rest = additional
+            foreach ($teachers as $i => $staff_id) {
+                if ($i === 0) {
+                    $this->classteacher_model->assignPrimaryLecturer($class_id, $staff_id);
+                } else {
+                    $this->classteacher_model->addClassLecturer($class_id, $staff_id);
                 }
-
-                $insert_array = array();
-                foreach ($teacher_batch_array as $vec_key => $vec_value) {
-
-                    $vehicle_array = array(
-                        'class_id'   => $class_id,
-                        // TVET: section_id removed
-                        'staff_id'   => $vec_value,
-                        'session_id' => $this->current_session,
-                    );
-                    $this->classteacher_model->addClassTeacher($vehicle_array);
-                    $insert_array[] = $vehicle_array;
-                }
-            } else {
-                $prev_class_id   = $this->input->post('prev_class_id');
-                // TVET: prev_section_id removed
-                $previd          = $this->input->post('previd');
-
-                if (!empty($previd)) {
-
-                    if ($prev_class_id != $class_id) {
-                        $this->classteacher_model->updateTeacher($previd, $class_id, $section);
-                    }
-                }
-            }
-
-            if (!empty($delete_result)) {
-                $classteacher_delete_array = array();
-                foreach ($delete_result as $vec_delete_key => $vec_delete_value) {
-                    $classteacher_delete_array[] = $vec_delete_value;
-                }
-
-                $this->classteacher_model->delete($class_id, $section, $classteacher_delete_array);
             }
             $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('update_message') . '</div>');
             redirect('admin/teacher/assign_class_teacher');
@@ -569,10 +522,10 @@ class Teacher extends Admin_Controller
 
     public function classteacherdelete($class_id)
     {
-        // TVET: section_id parameter removed
         if (!empty($class_id)) {
-
-            $this->classteacher_model->delete($class_id, null, null);
+            // TVET: Clear primary lecturer and remove additional lecturers
+            $this->classteacher_model->assignPrimaryLecturer($class_id, null);
+            $this->classteacher_model->removeClassLecturer($class_id);
             $this->session->set_flashdata('msg', '<div class="alert alert-success text-center">' . $this->lang->line('delete_message') . '</div>');
             redirect("admin/teacher/assign_class_teacher");
         }
