@@ -446,9 +446,7 @@ if ($role == 'student' || $role == 'parent') {
                             <li class="<?php echo set_topmenu('Gmeet'); ?>"><a href="<?php echo base_url('user/gmeet'); ?>"><i class="fa fa-video-camera ftlayer"></i> <?php echo $this->lang->line('gmeet') . " " . $this->lang->line('live_class'); ?></a></li>
                         <?php }?>
 
-                        <?php if ($this->studentmodule_lib->hasActive('class_timetable')) {?>
-                            <li class="<?php echo set_Topmenu('Time_table'); ?>"><a href="<?php echo base_url(); ?>user/timetable"><i class="fa fa-calendar-plus-o ftlayer"></i> <span><?php echo $this->lang->line('class_timetable'); ?></span></a></li>
-                        <?php }?>
+                        <?php /* Class Timetable removed — duplicates TVET Portal > My Timetable */ ?>
 
                         <?php if ($this->module_lib->hasActive('lesson_plan') && $this->studentmodule_lib->hasActive('lesson_plan')) {?>
                             <li class="<?php echo set_Topmenu('syllabus'); ?>"><a href="<?php echo base_url(); ?>user/syllabus"><i class="fa fa fa-list-alt ftlayer"></i> <span><?php echo $this->lang->line('lesson_plan'); ?></span></a></li>
@@ -489,9 +487,7 @@ if ($role == 'student' || $role == 'parent') {
                             </li>
                         <?php }?>
 
-                        <?php if ($this->module_lib->hasActive('student_attendance') && $this->studentmodule_lib->hasActive('attendance')) {?>
-                            <li class="treeview <?php echo set_Topmenu('Attendence'); ?>"><a href="<?php echo base_url(); ?>user/attendence"><i class="fa fa-calendar-check-o ftlayer"></i> <span><?php echo $this->lang->line('attendance'); ?></span></a></li>
-                        <?php }?>
+                        <?php /* Attendance removed — duplicates TVET Portal > My Attendance */ ?>
                         
                         <?php  
                         if ($this->module_lib->hasModule('cbseexam') && $this->module_lib->hasActive('cbseexam') && $this->studentmodule_lib->hasActive('cbseexam')   ) { ?>	

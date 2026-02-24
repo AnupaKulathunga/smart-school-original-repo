@@ -114,18 +114,41 @@ class Tvetportal extends Student_Controller
 
         $data['title'] = $this->lang->line('my_timetable') ?: 'My Timetable';
 
-        // Get student's enrolled classes with timetable
+        $data['enrolments'] = array();
+        $data['timetable'] = array();
+        $data['filter_class_id'] = $this->input->get('class_id') ? $this->input->get('class_id') : '';
+
         if ($this->student_id) {
             $classes = $this->academic_enrolment_model->getStudentClasses(
                 $this->student_id,
                 $this->current_session
             );
-            $data['enrolments'] = array();
             foreach ($classes as $class) {
                 $data['enrolments'][] = (array) $class;
             }
-        } else {
-            $data['enrolments'] = array();
+
+            // Build class IDs for timetable lookup
+            $class_ids = array();
+            foreach ($classes as $class) {
+                $class_ids[] = $class->class_id;
+            }
+
+            // Filter to a single class if requested
+            if ($data['filter_class_id'] && in_array($data['filter_class_id'], $class_ids)) {
+                $lookup_ids = $data['filter_class_id'];
+            } else {
+                $lookup_ids = implode(',', $class_ids);
+            }
+
+            // Fetch weekly timetable across enrolled classes
+            if (!empty($class_ids)) {
+                $days = $this->customlib->getDaysname();
+                $days_record = array();
+                foreach ($days as $day_key => $day_value) {
+                    $days_record[$day_key] = $this->subjecttimetable_model->getTimetableByClassDay($lookup_ids, $day_key);
+                }
+                $data['timetable'] = $days_record;
+            }
         }
 
         $this->load->view('layout/student/header', $data);
